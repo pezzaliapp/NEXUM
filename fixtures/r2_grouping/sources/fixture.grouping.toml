@@ -1,0 +1,23 @@
+id = "fixture.grouping"
+name = "Fixture anti-overfitting del raggruppamento (sintetico)"
+owner = "NEXUM test fixtures"
+verdict = "fixture"
+reliability_tier = "T1"
+verified_at = "2026-09-28"
+independence_group = "grpG"
+connector = "connectors.fixture_json"
+
+[license]
+id = "MIT"
+attribution = "NEXUM synthetic fixture (fictitious identifiers)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "local"
+auth = "none"
+path = "fixtures/r2_grouping/data/grouping.json"
+
+[politeness]
+min_interval_s = 0
+max_rps = 100

@@ -1,0 +1,29 @@
+{
+ "frozen_at": "2026-09-28",
+ "purpose": "Dimostrare il vantaggio architetturale del raggruppamento generico dei candidati (variante D) rispetto alla selezione per severità globale (variante B) e al solo punteggio (v1), su scenari sintetici definiti PRIMA dell'implementazione. Non riproduce il golden set reale.",
+ "parameters": {
+  "spatial_rule": {"window": "[-1h, +7d]", "radius_km": 300, "strength": 0.8, "emit_threshold": 0.3, "group_link": {"within_time": "72h", "within_distance_km": 150}},
+  "non_spatial_rule": {"window": "[0, 3d] prima dell'allerta", "strength": 0.8, "emit_threshold": 0.3, "group_link": {"within_time": "72h", "shares_participant": ["subject"]}}
+ },
+ "expected_D_grouping": {
+  "TRIG-A": {"insight": true, "representative": "SIG-A1", "group": ["SIG-A1", "SIG-A2", "SIG-A3"], "support_member": "SIG-A2", "discarded_groups": 0},
+  "TRIG-B": {"insight": true, "representative": "SIG-B1", "group": ["SIG-B1", "SIG-B2"], "support_member": "SIG-B1", "discarded_groups": 1},
+  "TRIG-C": {"insight": true, "representative": "SIG-C1", "group": ["SIG-C1", "SIG-C2"], "support_member": "SIG-C1", "discarded_groups": 1},
+  "TRIG-E": {"insight": true, "representative": "SIG-E1", "group": ["SIG-E1", "SIG-E2"], "support_member": "SIG-E2", "discarded_groups": 0},
+  "ALERT-D": {"insight": true, "representative": "REP-D2", "group": ["REP-D1", "REP-D2"], "support_member": "REP-D1", "discarded_groups": 1, "uses_coordinates": false}
+ },
+ "expected_B_max_severity": {
+  "TRIG-A": {"insight": true, "representative": "SIG-A1", "correct": true},
+  "TRIG-B": {"insight": false, "chosen": "SIG-B3", "correct": false, "why": "sceglie l'evento più severo di un'altra sequenza, il cui supporto individuale è sotto soglia"},
+  "TRIG-C": {"insight": true, "representative": "SIG-C3", "correct": false, "why": "produce un nesso con l'evento più severo del gruppo sbagliato"},
+  "TRIG-E": {"insight": false, "chosen": "SIG-E1", "correct": false, "why": "il rappresentante da solo è sotto soglia; il supporto del gruppo non viene considerato"},
+  "ALERT-D": {"insight": true, "representative": "REP-D3", "correct": false, "why": "sceglie la segnalazione più severa relativa a un'altra risorsa"}
+ },
+ "expected_v1_score_only": {
+  "TRIG-A": {"representative": "SIG-A2", "correct": false},
+  "TRIG-B": {"representative": "SIG-B1", "correct": true},
+  "TRIG-C": {"representative": "SIG-C1", "correct": true},
+  "TRIG-E": {"representative": "SIG-E2", "correct": false},
+  "ALERT-D": {"representative": "REP-D1", "correct": false}
+ }
+}

@@ -1,0 +1,634 @@
+{
+ "excluded_activations": [
+  {
+   "activation": "EMSR004",
+   "reason": "attivazione del 2012, precedente alla finestra del catalogo ingerito (USGS M≥5,5 dal 2015-01-01)"
+  },
+  {
+   "activation": "EMSR005",
+   "reason": "attivazione del 2012, precedente alla finestra del catalogo ingerito"
+  },
+  {
+   "activation": "EMSR172",
+   "reason": "attività sismica (sciame) senza alcun evento M≥5,5 nel catalogo ingerito entro 14 giorni/500 km: fuori dal perimetro dichiarato di R2 (M≥5,5)"
+  },
+  {
+   "activation": "EMSN074",
+   "reason": "evento di Zagabria 2020 sotto M 5,5 nel catalogo USGS: fuori dal perimetro di R2"
+  }
+ ],
+ "frozen_at": "2026-09-28",
+ "must_not_match_activations": [
+  {
+   "activation": "EMSN021",
+   "reason": "valutazione del rischio sismico (pianificazione), non legata a un evento"
+  },
+  {
+   "activation": "EMSR198",
+   "reason": "esercitazione (EU RICHTER-CARAIBES 2017), non legata a un evento"
+  },
+  {
+   "activation": "EMSN061",
+   "reason": "analisi della deformazione del suolo tre mesi dopo l'evento di Palu, non una risposta a un evento recente"
+  }
+ ],
+ "negative_events": [
+  {
+   "magnitude": 8.8,
+   "time": "2025-07-29T23:24:52.483000Z",
+   "title": "M 8.8 - 2025 Kamchatka Peninsula, Russia Earthquake",
+   "usgs_id": "us6000qw60"
+  },
+  {
+   "magnitude": 8.2,
+   "time": "2018-08-19T00:19:40.670000Z",
+   "title": "M 8.2 - 2018 Fiji Earthquake",
+   "usgs_id": "us1000gcii"
+  },
+  {
+   "magnitude": 8.2,
+   "time": "2021-07-29T06:15:49.188000Z",
+   "title": "M 8.2 - 2021 Chignik, Alaska Earthquake",
+   "usgs_id": "ak0219neiszm"
+  },
+  {
+   "magnitude": 8.1,
+   "time": "2021-03-04T19:28:33.178000Z",
+   "title": "M 8.1 - 2021 Kermadec Islands, New Zealand Earthquake",
+   "usgs_id": "us7000dflf"
+  },
+  {
+   "magnitude": 8.1,
+   "time": "2021-08-12T18:35:17.231000Z",
+   "title": "M 8.1 - 2021 South Sandwich Islands Earthquake",
+   "usgs_id": "us6000f53e"
+  },
+  {
+   "magnitude": 8.0,
+   "time": "2019-05-26T07:41:15.073000Z",
+   "title": "M 8.0 - 78 km NE of Navarro, Peru",
+   "usgs_id": "us60003sc0"
+  },
+  {
+   "magnitude": 7.9,
+   "time": "2016-12-17T10:51:10.500000Z",
+   "title": "M 7.9 - 140 km E of Kokopo, Papua New Guinea",
+   "usgs_id": "us200081v8"
+  },
+  {
+   "magnitude": 7.9,
+   "time": "2017-01-22T04:30:22.960000Z",
+   "title": "M 7.9 - 35 km WNW of Panguna, Papua New Guinea",
+   "usgs_id": "us10007uph"
+  },
+  {
+   "magnitude": 7.9,
+   "time": "2018-01-23T09:31:40.890000Z",
+   "title": "M 7.9 - 261 km SE of Chiniak, Alaska",
+   "usgs_id": "us2000cmy3"
+  },
+  {
+   "magnitude": 7.9,
+   "time": "2018-09-06T15:49:18.710000Z",
+   "title": "M 7.9 - 45 km S of Levuka, Fiji",
+   "usgs_id": "us2000h9e2"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2015-05-30T11:23:02.110000Z",
+   "title": "M 7.8 - Bonin Islands, Japan region",
+   "usgs_id": "us20002ki3"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2016-03-02T12:49:48.110000Z",
+   "title": "M 7.8 - southwest of Sumatra, Indonesia",
+   "usgs_id": "us10004u1y"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2016-11-13T11:02:56.340000Z",
+   "title": "M 7.8 - 53 km NNE of Amberley, New Zealand",
+   "usgs_id": "us1000778i"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2016-12-08T17:38:46.280000Z",
+   "title": "M 7.8 - 69 km WSW of Kirakira, Solomon Islands",
+   "usgs_id": "us20007z80"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2020-07-22T06:12:44.810000Z",
+   "title": "M 7.8 - 2020 Perryville, Alaska Earthquake",
+   "usgs_id": "us7000asvb"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2025-09-18T18:58:14.939000Z",
+   "title": "M 7.8 - 140 km E of Petropavlovsk-Kamchatsky, Russia",
+   "usgs_id": "us7000qx2g"
+  },
+  {
+   "magnitude": 7.8,
+   "time": "2026-08-14T21:58:21.561000Z",
+   "title": "M 7.8 - 66 km NNW of Ende, Indonesia",
+   "usgs_id": "us6000tkt2"
+  },
+  {
+   "magnitude": 7.7,
+   "time": "2016-07-29T21:18:24.740000Z",
+   "title": "M 7.7 - Pagan region, Northern Mariana Islands",
+   "usgs_id": "us100068jg"
+  },
+  {
+   "magnitude": 7.7,
+   "time": "2017-07-17T23:34:13.740000Z",
+   "title": "M 7.7 - Komandorskiye Ostrova, Russia region",
+   "usgs_id": "us20009x42"
+  },
+  {
+   "magnitude": 7.7,
+   "time": "2020-01-28T19:10:24.918000Z",
+   "title": "M 7.7 - 123 km NNW of Lucea, Jamaica",
+   "usgs_id": "us60007idc"
+  }
+ ],
+ "positives": [
+  {
+   "activation": "EMSR125",
+   "activation_name": "Earthquake in Nepal",
+   "activation_time": "2015-04-25T12:20:00Z",
+   "delta_t_h": 6.14,
+   "distance_km": 34.5,
+   "expected_event": {
+    "magnitude": 7.8,
+    "time": "2015-04-25T06:11:25.950000Z",
+    "title": "M 7.8 - 67 km NNE of Bharatpur, Nepal",
+    "usgs_id": "us20002926"
+   }
+  },
+  {
+   "activation": "EMSR137",
+   "activation_name": "Earthquake in Chile",
+   "activation_time": "2015-09-17T09:34:00Z",
+   "delta_t_h": 10.66,
+   "distance_km": 183.4,
+   "expected_event": {
+    "magnitude": 8.3,
+    "time": "2015-09-16T22:54:32.860000Z",
+    "title": "M 8.3 - 48 km W of Illapel, Chile",
+    "usgs_id": "us20003k7a"
+   }
+  },
+  {
+   "activation": "EMSR145",
+   "activation_name": "Earthquake in Afghanistan",
+   "activation_time": "2015-10-26T17:48:00Z",
+   "delta_t_h": 8.64,
+   "distance_km": 48.3,
+   "expected_event": {
+    "magnitude": 7.5,
+    "time": "2015-10-26T09:09:42.560000Z",
+    "title": "M 7.5 - Hindu Kush region, Afghanistan",
+    "usgs_id": "us10003re5"
+   }
+  },
+  {
+   "activation": "EMSR159",
+   "activation_name": "Earthquake in Ecuador",
+   "activation_time": "2016-04-17T14:30:00Z",
+   "delta_t_h": 14.52,
+   "distance_km": 18.8,
+   "expected_event": {
+    "magnitude": 7.8,
+    "time": "2016-04-16T23:58:36.980000Z",
+    "title": "M 7.8 - 27 km SSE of Muisne, Ecuador",
+    "usgs_id": "us20005j32"
+   }
+  },
+  {
+   "activation": "EMSR177",
+   "activation_name": "Earthquake in Central Italy",
+   "activation_time": "2016-08-24T10:13:00Z",
+   "delta_t_h": 8.61,
+   "distance_km": 6.3,
+   "expected_event": {
+    "magnitude": 6.2,
+    "time": "2016-08-24T01:36:32.870000Z",
+    "title": "M 6.2 - 5 km WNW of Accumoli, Italy",
+    "usgs_id": "us10006g7d"
+   }
+  },
+  {
+   "activation": "EMSR190",
+   "activation_name": "Earthquake in Central Italy",
+   "activation_time": "2016-10-26T22:45:00Z",
+   "delta_t_h": 3.45,
+   "distance_km": 10.4,
+   "expected_event": {
+    "magnitude": 6.1,
+    "time": "2016-10-26T19:18:08.430000Z",
+    "title": "M 6.1 - 2 km NNW of Visso, Italy",
+    "usgs_id": "us1000725y"
+   }
+  },
+  {
+   "activation": "EMSR194",
+   "activation_name": "Earthquake in Central Italy",
+   "activation_time": "2017-01-19T12:53:00Z",
+   "delta_t_h": 26.65,
+   "distance_km": 10.4,
+   "expected_event": {
+    "magnitude": 5.7,
+    "time": "2017-01-18T10:14:10.980000Z",
+    "title": "M 5.7 - 5 km ESE of Cittareale, Italy",
+    "usgs_id": "us10007twj"
+   }
+  },
+  {
+   "activation": "EMSR240",
+   "activation_name": "Earthquake in Southern Mexico",
+   "activation_time": "2017-09-11T23:00:00Z",
+   "delta_t_h": 90.18,
+   "distance_km": 110.8,
+   "expected_event": {
+    "magnitude": 8.2,
+    "time": "2017-09-08T04:49:19.180000Z",
+    "title": "M 8.2 - 2017 Tehuantepec, Mexico Earthquake",
+    "usgs_id": "us2000ahv0"
+   }
+  },
+  {
+   "activation": "EMSR244",
+   "activation_name": "Earthquake in Central Mexico",
+   "activation_time": "2017-09-20T10:38:00Z",
+   "delta_t_h": 16.39,
+   "distance_km": 42.4,
+   "expected_event": {
+    "magnitude": 7.1,
+    "time": "2017-09-19T18:14:38.090000Z",
+    "title": "M 7.1 - 1 km S of Matzaco, Mexico",
+    "usgs_id": "us2000ar20"
+   }
+  },
+  {
+   "activation": "EMSR256",
+   "activation_name": "Earthquake in Iraq",
+   "activation_time": "2017-11-13T13:00:00Z",
+   "delta_t_h": 18.7,
+   "distance_km": 11.3,
+   "expected_event": {
+    "magnitude": 7.3,
+    "time": "2017-11-12T18:18:17.180000Z",
+    "title": "M 7.3 - 29 km S of ?alabja, Iraq",
+    "usgs_id": "us2000bmcg"
+   }
+  },
+  {
+   "activation": "EMSR270",
+   "activation_name": "Earthquake in Papua New Guinea",
+   "activation_time": "2018-02-25T23:42:00Z",
+   "delta_t_h": 5.95,
+   "distance_km": 9.1,
+   "expected_event": {
+    "magnitude": 7.5,
+    "time": "2018-02-25T17:44:44.140000Z",
+    "title": "M 7.5 - 32 km SW of Tari, Papua New Guinea",
+    "usgs_id": "us2000d7q6"
+   }
+  },
+  {
+   "activation": "EMSR304",
+   "activation_name": "Earthquake in Lombok- Indonesia",
+   "activation_time": "2018-08-06T20:00:00Z",
+   "delta_t_h": 32.22,
+   "distance_km": 50.4,
+   "expected_event": {
+    "magnitude": 6.9,
+    "time": "2018-08-05T11:46:38.630000Z",
+    "title": "M 6.9 - 36 km NW of Labuan Lombok, Indonesia",
+    "usgs_id": "us1000g3ub"
+   }
+  },
+  {
+   "activation": "EMSR317",
+   "activation_name": "Earthquake in Indonesia",
+   "activation_time": "2018-09-28T15:24:00Z",
+   "delta_t_h": 5.35,
+   "distance_km": 27.6,
+   "expected_event": {
+    "magnitude": 7.5,
+    "time": "2018-09-28T10:02:45.250000Z",
+    "title": "M 7.5 - 72 km N of Palu, Indonesia",
+    "usgs_id": "us1000h3p4"
+   }
+  },
+  {
+   "activation": "EMSR320",
+   "activation_name": "Earthquake in Northwestern coast of Haiti",
+   "activation_time": "2018-10-08T09:26:00Z",
+   "delta_t_h": 33.24,
+   "distance_km": 23.4,
+   "expected_event": {
+    "magnitude": 5.9,
+    "time": "2018-10-07T00:11:51.220000Z",
+    "title": "M 5.9 - 21 km WNW of Port-de-Paix, Haiti",
+    "usgs_id": "us1000h8an"
+   }
+  },
+  {
+   "activation": "EMSR376",
+   "activation_name": "Earthquake in Turkey",
+   "activation_time": "2019-08-08T15:09:00Z",
+   "delta_t_h": 3.72,
+   "distance_km": 14.5,
+   "expected_event": {
+    "magnitude": 5.9,
+    "time": "2019-08-08T11:25:31.104000Z",
+    "title": "M 5.9 - 9 km ESE of Baklan, Turkey",
+    "usgs_id": "us6000529r"
+   }
+  },
+  {
+   "activation": "EMSR393",
+   "activation_name": "Earthquake in Indonesia",
+   "activation_time": "2019-09-30T11:00:00Z",
+   "delta_t_h": 107.22,
+   "distance_km": 9.9,
+   "expected_event": {
+    "magnitude": 6.5,
+    "time": "2019-09-25T23:46:43.543000Z",
+    "title": "M 6.5 - 33 km NE of Ambon, Indonesia",
+    "usgs_id": "us70005lfd"
+   }
+  },
+  {
+   "activation": "EMSR406",
+   "activation_name": "Earthquake in Iran",
+   "activation_time": "2019-11-08T13:16:00Z",
+   "delta_t_h": 14.48,
+   "distance_km": 35.5,
+   "expected_event": {
+    "magnitude": 5.9,
+    "time": "2019-11-07T22:47:07.041000Z",
+    "title": "M 5.9 - 59 km NE of Hashtr?d, Iran",
+    "usgs_id": "us600068w0"
+   }
+  },
+  {
+   "activation": "EMSR412",
+   "activation_name": "Earthquake to the West of Tirana- Albania",
+   "activation_time": "2019-11-26T11:04:00Z",
+   "delta_t_h": 8.16,
+   "distance_km": 19.2,
+   "expected_event": {
+    "magnitude": 6.4,
+    "time": "2019-11-26T02:54:12.872000Z",
+    "title": "M 6.4 - 15 km WSW of Mamurras, Albania",
+    "usgs_id": "us70006d0m"
+   }
+  },
+  {
+   "activation": "EMSR423",
+   "activation_name": "Earthquake in Turkey- East Anatolia",
+   "activation_time": "2020-01-24T20:25:00Z",
+   "delta_t_h": 2.5,
+   "distance_km": 27.4,
+   "expected_event": {
+    "magnitude": 6.7,
+    "time": "2020-01-24T17:55:14.147000Z",
+    "title": "M 6.7 - 13 km N of Do?anyol, Turkey",
+    "usgs_id": "us60007ewc"
+   }
+  },
+  {
+   "activation": "EMSR476",
+   "activation_name": "Earthquake in Turkey",
+   "activation_time": "2020-10-30T14:44:00Z",
+   "delta_t_h": 2.88,
+   "distance_km": 66.6,
+   "expected_event": {
+    "magnitude": 7.0,
+    "time": "2020-10-30T11:51:27.348000Z",
+    "title": "M 7.0 - 13 km NNE of Néon Karlovásion, Greece",
+    "usgs_id": "us7000c7y0"
+   }
+  },
+  {
+   "activation": "EMSR491",
+   "activation_name": "Earthquake in Petrinja- Croatia",
+   "activation_time": "2020-12-29T14:26:00Z",
+   "delta_t_h": 3.1,
+   "distance_km": 33.6,
+   "expected_event": {
+    "magnitude": 6.4,
+    "time": "2020-12-29T11:19:54.762000Z",
+    "title": "M 6.4 - 2 km WSW of Petrinja, Croatia",
+    "usgs_id": "us6000d3zh"
+   }
+  },
+  {
+   "activation": "EMSR493",
+   "activation_name": "Earthquake in Sulawesi- Indonesia",
+   "activation_time": "2021-01-15T13:16:00Z",
+   "delta_t_h": 18.79,
+   "distance_km": 60.7,
+   "expected_event": {
+    "magnitude": 6.2,
+    "time": "2021-01-14T18:28:18.093000Z",
+    "title": "M 6.2 - 32 km S of Mamuju, Indonesia",
+    "usgs_id": "us7000d030"
+   }
+  },
+  {
+   "activation": "EMSR536",
+   "activation_name": "Earthquake in Haiti",
+   "activation_time": "2021-08-14T16:08:00Z",
+   "delta_t_h": 3.65,
+   "distance_km": 38.9,
+   "expected_event": {
+    "magnitude": 7.2,
+    "time": "2021-08-14T12:29:08.454000Z",
+    "title": "M 7.2 - Nippes, Haiti",
+    "usgs_id": "us6000f65h"
+   }
+  },
+  {
+   "activation": "EMSR584",
+   "activation_name": "Earthquake in Afghanistan",
+   "activation_time": "2022-06-22T14:47:00Z",
+   "delta_t_h": 17.87,
+   "distance_km": 6.5,
+   "expected_event": {
+    "magnitude": 6.0,
+    "time": "2022-06-21T20:54:34.410000Z",
+    "title": "M 6.0 - 55 km SW of Kh?st, Afghanistan",
+    "usgs_id": "us7000hj3u"
+   }
+  },
+  {
+   "activation": "EMSR585",
+   "activation_name": "Earthquake in southern Iran",
+   "activation_time": "2022-07-02T22:14:00Z",
+   "delta_t_h": 24.7,
+   "distance_km": 9.1,
+   "expected_event": {
+    "magnitude": 6.0,
+    "time": "2022-07-01T21:32:07.977000Z",
+    "title": "M 6.0 - 52 km NE of Bandar-e Lengeh, Iran",
+    "usgs_id": "us6000hz8x"
+   }
+  },
+  {
+   "activation": "EMSR612",
+   "activation_name": "Earthquake in the Philippines",
+   "activation_time": "2022-07-27T09:39:00Z",
+   "delta_t_h": 8.93,
+   "distance_km": 6.5,
+   "expected_event": {
+    "magnitude": 7.0,
+    "time": "2022-07-27T00:43:26.871000Z",
+    "title": "M 7.0 - 11 km NE of Bantay, Philippines",
+    "usgs_id": "us6000i5rd"
+   }
+  },
+  {
+   "activation": "EMSR641",
+   "activation_name": "Earthquake in Indonesia",
+   "activation_time": "2022-11-22T09:26:00Z",
+   "delta_t_h": 27.08,
+   "distance_km": 11.0,
+   "expected_event": {
+    "magnitude": 5.6,
+    "time": "2022-11-21T06:21:07.066000Z",
+    "title": "M 5.6 - 11 km NE of Sukabumi, Indonesia",
+    "usgs_id": "us7000ir9t"
+   }
+  },
+  {
+   "activation": "EMSR648",
+   "activation_name": "Earthquake in East Anatolian Fault Zone",
+   "activation_time": "2023-02-06T04:43:00Z",
+   "delta_t_h": 3.42,
+   "distance_km": 75.0,
+   "expected_event": {
+    "magnitude": 7.8,
+    "time": "2023-02-06T01:17:34.342000Z",
+    "title": "M 7.8 - Pazarcik earthquake, Kahramanmaras earthquake sequence",
+    "usgs_id": "us6000jllz"
+   }
+  },
+  {
+   "activation": "EMSR695",
+   "activation_name": "Earthquake in Marrakesh-Safi Region, Morocco",
+   "activation_time": "2023-09-09T09:06:00Z",
+   "delta_t_h": 10.92,
+   "distance_km": 84.3,
+   "expected_event": {
+    "magnitude": 6.8,
+    "time": "2023-09-08T22:11:01.405000Z",
+    "title": "M 6.8 - Al Haouz, Morocco",
+    "usgs_id": "us7000kufc"
+   }
+  },
+  {
+   "activation": "EMSR782",
+   "activation_name": "Earthquake in Vanuatu",
+   "activation_time": "2024-12-17T16:57:00Z",
+   "delta_t_h": 15.16,
+   "distance_km": 25.2,
+   "expected_event": {
+    "magnitude": 7.3,
+    "time": "2024-12-17T01:47:25.741000Z",
+    "title": "M 7.3 - 24 km WNW of Port-Vila, Vanuatu",
+    "usgs_id": "us7000nzf3"
+   }
+  },
+  {
+   "activation": "EMSR798",
+   "activation_name": "Earthquakes in Myanmar",
+   "activation_time": "2025-03-28T09:42:00Z",
+   "delta_t_h": 3.35,
+   "distance_km": 44.8,
+   "expected_event": {
+    "magnitude": 7.7,
+    "time": "2025-03-28T06:20:52.715000Z",
+    "title": "M 7.7 - 2025 Mandalay, Burma (Myanmar) Earthquake",
+    "usgs_id": "us7000pn9s"
+   }
+  },
+  {
+   "activation": "EMSR814",
+   "activation_name": "Earthquake in Guatemala",
+   "activation_time": "2025-07-09T04:10:00Z",
+   "delta_t_h": 6.47,
+   "distance_km": 14.3,
+   "expected_event": {
+    "magnitude": 5.7,
+    "time": "2025-07-08T21:41:31.063000Z",
+    "title": "M 5.7 - 3 km SSW of Amatitlán, Guatemala",
+    "usgs_id": "us7000qbfv"
+   }
+  },
+  {
+   "activation": "EMSR839",
+   "activation_name": "Earthquake in Afghanistan",
+   "activation_time": "2025-09-01T10:00:00Z",
+   "delta_t_h": 14.71,
+   "distance_km": 25.4,
+   "expected_event": {
+    "magnitude": 6.0,
+    "time": "2025-08-31T19:17:34.124000Z",
+    "title": "M 6.0 - 35 km WSW of Asadābād, Afghanistan",
+    "usgs_id": "us7000qsvj"
+   }
+  },
+  {
+   "activation": "EMSR882",
+   "activation_name": "Earthquake in the southern Philippines",
+   "activation_time": "2026-06-11T09:34:00Z",
+   "delta_t_h": 81.94,
+   "distance_km": 46.6,
+   "expected_event": {
+    "magnitude": 7.8,
+    "time": "2026-06-07T23:37:41.970000Z",
+    "title": "M 7.8 - 25 km SW of Kablalan, Philippines",
+    "usgs_id": "us7000srb1"
+   }
+  },
+  {
+   "activation": "EMSR884",
+   "activation_name": "Earthquake in Venezuela",
+   "activation_time": "2026-06-25T03:51:00Z",
+   "delta_t_h": 5.77,
+   "distance_km": 73.4,
+   "expected_event": {
+    "magnitude": 7.5,
+    "time": "2026-06-24T22:05:04.053000Z",
+    "title": "M 7.5 - 20 km W of Catia La Mar, Venezuela",
+    "usgs_id": "us6000t7zp"
+   }
+  },
+  {
+   "activation": "EMSR916",
+   "activation_name": "Earthquake in Colombia",
+   "activation_time": "2026-08-10T17:13:00Z",
+   "delta_t_h": 4.64,
+   "distance_km": 112.4,
+   "expected_event": {
+    "magnitude": 7.4,
+    "time": "2026-08-10T12:34:28.009000Z",
+    "title": "M 7.4 - 2 km SE of San José del Palmar, Colombia",
+    "usgs_id": "us6000tjl2"
+   }
+  }
+ ],
+ "rule_scope": "R2: attivazioni Copernicus EMS di categoria 'earthquake' e terremoti USGS M≥5,5 dal 2015-01-01",
+ "thresholds": {
+  "P17_recall_min": 0.9,
+  "P18_precision_min": 0.95,
+  "P19_max_negatives_with_insight": 1
+ },
+ "version": 1
+}

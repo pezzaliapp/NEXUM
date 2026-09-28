@@ -1,0 +1,535 @@
+{
+ "records": [
+  {
+   "geometry": {
+    "coordinates": [
+     0.0,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "TRIG-A",
+   "identifiers": [
+    [
+     "trigid",
+     "TRIG-A"
+    ]
+   ],
+   "kind": "event",
+   "label": "TRIG-A",
+   "method": "measured",
+   "properties": {
+    "note": "trigger"
+   },
+   "t_ms": 1700000000000,
+   "t_precision": "minute",
+   "type": "syn.trigger"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     0.179864,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-A1",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-A1"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-A1",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.9
+   },
+   "t_ms": 1699989200000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     0.044966,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-A2",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-A2"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-A2",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.4
+   },
+   "t_ms": 1699992800000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     0.089932,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-A3",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-A3"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-A3",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.3
+   },
+   "t_ms": 1699991000000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     10.0,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "TRIG-B",
+   "identifiers": [
+    [
+     "trigid",
+     "TRIG-B"
+    ]
+   ],
+   "kind": "event",
+   "label": "TRIG-B",
+   "method": "measured",
+   "properties": {
+    "note": "trigger"
+   },
+   "t_ms": 1702592000000,
+   "t_precision": "minute",
+   "type": "syn.trigger"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     10.089932,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-B1",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-B1"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-B1",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.5
+   },
+   "t_ms": 1702584800000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     10.134898,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-B2",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-B2"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-B2",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.3
+   },
+   "t_ms": 1702581200000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     12.248304,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-B3",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-B3"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-B3",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.95
+   },
+   "t_ms": 1702160000000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     12.338236,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-B4",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-B4"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-B4",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.4
+   },
+   "t_ms": 1702163600000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     20.0,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "TRIG-C",
+   "identifiers": [
+    [
+     "trigid",
+     "TRIG-C"
+    ]
+   ],
+   "kind": "event",
+   "label": "TRIG-C",
+   "method": "measured",
+   "properties": {
+    "note": "trigger"
+   },
+   "t_ms": 1705184000000,
+   "t_precision": "minute",
+   "type": "syn.trigger"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     20.179864,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-C1",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-C1"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-C1",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.4
+   },
+   "t_ms": 1705180400000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     20.22483,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-C2",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-C2"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-C2",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.35
+   },
+   "t_ms": 1705178600000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     19.730204,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-C3",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-C3"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-C3",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.99
+   },
+   "t_ms": 1704896000000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     30.0,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "TRIG-E",
+   "identifiers": [
+    [
+     "trigid",
+     "TRIG-E"
+    ]
+   ],
+   "kind": "event",
+   "label": "TRIG-E",
+   "method": "measured",
+   "properties": {
+    "note": "trigger"
+   },
+   "t_ms": 1707776000000,
+   "t_precision": "minute",
+   "type": "syn.trigger"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     31.798643,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-E1",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-E1"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-E1",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.95
+   },
+   "t_ms": 1707740000000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     30.539593,
+     0.0
+    ],
+    "type": "Point"
+   },
+   "id": "SIG-E2",
+   "identifiers": [
+    [
+     "sigid",
+     "SIG-E2"
+    ]
+   ],
+   "kind": "event",
+   "label": "SIG-E2",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.2
+   },
+   "t_ms": 1707743600000,
+   "t_precision": "minute",
+   "type": "syn.signal"
+  },
+  {
+   "id": "ASSET-1",
+   "identifiers": [
+    [
+     "assetid",
+     "ASSET-1"
+    ]
+   ],
+   "kind": "object",
+   "label": "ASSET-1",
+   "properties": {
+    "kind": "synthetic"
+   },
+   "type": "syn.asset"
+  },
+  {
+   "id": "ASSET-2",
+   "identifiers": [
+    [
+     "assetid",
+     "ASSET-2"
+    ]
+   ],
+   "kind": "object",
+   "label": "ASSET-2",
+   "properties": {
+    "kind": "synthetic"
+   },
+   "type": "syn.asset"
+  },
+  {
+   "id": "ALERT-D",
+   "identifiers": [
+    [
+     "alertid",
+     "ALERT-D"
+    ]
+   ],
+   "kind": "event",
+   "label": "ALERT-D",
+   "method": "measured",
+   "properties": {
+    "note": "alert"
+   },
+   "t_ms": 1710368000000,
+   "type": "syn.alert"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "assetid",
+      "type": "syn.asset",
+      "value": "ASSET-1"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "REP-D1",
+   "identifiers": [
+    [
+     "repid",
+     "REP-D1"
+    ]
+   ],
+   "kind": "event",
+   "label": "REP-D1",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.3
+   },
+   "t_ms": 1710364400000,
+   "type": "syn.report"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "assetid",
+      "type": "syn.asset",
+      "value": "ASSET-1"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "REP-D2",
+   "identifiers": [
+    [
+     "repid",
+     "REP-D2"
+    ]
+   ],
+   "kind": "event",
+   "label": "REP-D2",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.8
+   },
+   "t_ms": 1710296000000,
+   "type": "syn.report"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "assetid",
+      "type": "syn.asset",
+      "value": "ASSET-2"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "REP-D3",
+   "identifiers": [
+    [
+     "repid",
+     "REP-D3"
+    ]
+   ],
+   "kind": "event",
+   "label": "REP-D3",
+   "method": "measured",
+   "properties": {
+    "intensity": 0.95
+   },
+   "t_ms": 1710332000000,
+   "type": "syn.report"
+  }
+ ]
+}

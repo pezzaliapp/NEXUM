@@ -1,0 +1,42 @@
+# Fixture anti-overfitting per il raggruppamento dei candidati (solo test). Tipi sintetici generici.
+
+[object_type."syn.asset"]
+label = "Risorsa sintetica"
+geometry = "none"
+identity_schemes = ["assetid"]
+[object_type."syn.asset".properties]
+kind = { kind = "text" }
+
+[event_type."syn.trigger"]
+label = "Evento innesco (sintetico, con coordinate)"
+geometry = "point"
+identity_schemes = ["trigid"]
+roles = []
+[event_type."syn.trigger".properties]
+note = { kind = "text" }
+
+[event_type."syn.signal"]
+label = "Segnale candidato (sintetico, con coordinate)"
+geometry = "point"
+identity_schemes = ["sigid"]
+roles = []
+severity = { property = "intensity", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.signal".properties]
+intensity = { kind = "float", required = true }
+
+[event_type."syn.alert"]
+label = "Allerta (sintetica, senza coordinate)"
+geometry = "none"
+identity_schemes = ["alertid"]
+roles = ["subject"]
+[event_type."syn.alert".properties]
+note = { kind = "text" }
+
+[event_type."syn.report"]
+label = "Segnalazione candidata (sintetica, senza coordinate)"
+geometry = "none"
+identity_schemes = ["repid"]
+roles = ["subject"]
+severity = { property = "intensity", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.report".properties]
+intensity = { kind = "float", required = true }
