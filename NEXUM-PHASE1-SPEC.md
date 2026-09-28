@@ -612,6 +612,7 @@ explain = "template con {variabili}"
 | Identità | `same_identifier(A, B, scheme)` | no |
 | Attributi | `where` su claim correnti, con unità | no |
 | Conteggio | `count(pattern) ≥ n` entro una finestra | no |
+| **Raggruppamento dei candidati** *(aggiunto con R2 v2)* | `group(var, link=[criteri], support, representative)` — vedi §19.7 | **no**: i criteri di collegamento sono scelti dalla regola (tempo, spazio se disponibile, partecipazione condivisa, relazione) |
 
 ### 19.4 Stesso motore, due paradigmi
 
@@ -655,12 +656,30 @@ I nomi di dominio compaiono **solo nelle regole e nei tipi**, mai nel motore.
 6. Scrittura atomica di insight + evidenze + provenienza + change log.
 7. Invalidazione quando un membro cambia (nuova versione ⇒ ricalcolo; il vecchio insight passa a `superseded`).
 
+### 19.7 Primitiva di raggruppamento dei candidati *(approvata il 2026-09-28)*
+
+Modello: **CANDIDATES → CANDIDATE GROUPS → GROUP SUPPORT → REPRESENTATIVE → INSIGHT**.
+
+| Passo | Cosa fa il Core | Cosa dichiara la regola |
+|---|---|---|
+| Candidati | tutte le assegnazioni valide della variabile raggruppata (vincoli soddisfatti), ciascuna con il suo punteggio | la variabile (`group.var`) |
+| Gruppi | componenti connesse (single-linkage, deterministiche) della relazione "collegati" tra candidati | i criteri `link`: `within_time`, `within_distance` (falso se manca la geometria), `shares_participant`, `related`; tutti devono valere |
+| Supporto del gruppo | `max_member` (miglior punteggio tra i membri) o `representative` | `support` |
+| Rappresentante | primo membro secondo un ordinamento di chiavi generiche: `severity`, `score`, `time`, `confidence` | `representative` (es. `[["severity","desc"],["score","desc"]]`) |
+| Insight | soglia applicata al **supporto del gruppo**; membri = assegnazione del rappresentante + altri membri del gruppo (`A~group#nnn`) | `emit_threshold`, `unique` |
+
+Il Core **non** conosce concetti di dominio (evento principale, replica, sequenza): valuta primitive generiche con parametri forniti dalla regola. La `severity` è la proprietà dichiarata dal tipo nel vocabolario; il suo significato e il suo ordinamento appartengono al dominio. La stessa primitiva è usata, con criteri diversi e senza coordinate, nella fixture anti-overfitting (`shares_participant` invece della distanza).
+
+**Provenienza del raggruppamento**: ogni insight prodotto con raggruppamento conserva in `insight.grouping_json` candidati considerati (con punteggio, severità, distanza, Δt, gruppo), gruppi prodotti, criteri di collegamento, metodo e valore del supporto, membro che fornisce il supporto, rappresentante e motivo della scelta, candidati scartati con motivo, regola e versione. La confidenza dell'insight è il supporto del gruppo; la spiegazione usa distanza e tempo del rappresentante.
+
+**Versionamento**: gli insight conservano `rule_id` e `rule_version`; la tabella `rule` conserva il testo di ogni versione usata; le versioni respinte restano in `rules/archive/`. Un cambio di versione ritira gli insight della versione precedente (`superseded`) senza cancellarli.
+
 ### 19.6 Regole dei test
 
 | Regola | Test | Output | Parametri |
 |---|---|---|---|
 | R1 `exposure_context` | PoC 1 | context | oggetti di tipo configurato entro un raggio funzione della severità: 100 / 200 / 300 km per M 5,5–6,4 / 6,5–7,4 / ≥ 7,5; filtri `scheduled_service = yes`, tipi large/medium |
-| R2 `event_event_association` | PoC 1 | association | Δt ∈ [−1 h, +7 g]; ≤ 300 km; bonus per luogo condiviso; unicità per attivazione |
+| R2 `event_event_association` **v2** | PoC 1 | association | Δt ∈ [−1 h, +7 g]; ≤ 300 km; bonus per luogo condiviso; **raggruppamento dei candidati A: collegamento entro 72 h e 150 km (parametri della regola), supporto = miglior membro, rappresentante = severità dichiarata dal tipo, poi punteggio**; un solo gruppo per attivazione. La v1 (solo punteggio individuale) è stata respinta: §27.6 |
 | R3 `composite_context` | PoC 1 | composite | R1 + R2 dello stesso evento; confidenza = minimo dei componenti |
 | N1 `independently_supported_temporal_association` | Test 2 | association | relazione con ≥ 2 gruppi indipendenti; evento sul soggetto entro 30 giorni dall'evento di pubblicazione |
 | N2 `shared_neighbor_exposure` | Test 2 | relation_hypothesis | due oggetti condividono un vicino colpito |
@@ -955,7 +974,8 @@ insight(       insight_id TEXT PK, kind TEXT, rule_id TEXT, rule_version TEXT,
                confidence REAL, factors_json TEXT, confidence_text TEXT, explanation TEXT,
                t_start_ms INT NULL, t_end_ms INT NULL, min_lon REAL NULL, max_lon REAL NULL,
                min_lat REAL NULL, max_lat REAL NULL, status TEXT, superseded_by TEXT NULL,
-               created_at_ms INT, run_id TEXT→run, prov_id TEXT→provenance, world_version INT )
+               created_at_ms INT, run_id TEXT→run, prov_id TEXT→provenance, world_version INT,
+               grouping_json TEXT NULL )   -- provenienza del raggruppamento (§19.7)
 
 -- ── Indici di navigazione ───────────────────────────────────────────────
 edge(          src_kind TEXT, src_id TEXT, dst_kind TEXT, dst_id TEXT,
@@ -1006,7 +1026,8 @@ Il database è un **artefatto derivato**: `rebuild` lo ricrea da Raw Store + con
 | **Domain-agnostic dinamico** | il Test 2 aggiunge un dominio **senza modificare file sotto `nexum/core/`** (verifica sul diff) |
 | **Test architetturale non geografico** | §28: mondo senza geometria; tutte le operazioni non spaziali funzionano; N1–N3 producono gli insight attesi e nessun altro |
 | **Mondo misto** | PoC 1 + Test 2 nello stesso database: nessuna interferenza; risultati identici ai DB separati |
-| Golden di correlazione | PoC 1: ≥ 20 positivi e ≥ 20 negativi reali verificati a mano; Test 2: insight attesi enumerati nella fixture |
+| Golden di correlazione | PoC 1: golden set congelato (§27.6); Test 2: insight attesi enumerati nella fixture |
+| **Anti-overfitting del raggruppamento** | fixture sintetica congelata `fixtures/r2_grouping/`: variante D corretta su 5/5 scenari, varianti B e v1 falliscono come previsto |
 | **Cross-view** | per un campione di elementi: stesso `EntityRef` in `project_map`, `neighborhood`, `project_timeline`, `search`, `context`, `locate` |
 | **Traversal** | catene di pivot §27.4 e §28.4 eseguite passo per passo |
 | **Budget** | ogni operazione rispetta `max_items`, `max_nodes`, `max_bytes`; `truncated` corretto; nessuna operazione senza limite |
@@ -1122,6 +1143,34 @@ Ogni passo: una chiamata `context`; stesso `EntityRef` in MAP, GRAPH, TIMELINE e
 ### 27.5 Validazione sull'Italia
 
 Aeroporti `IT` contenuti nel poligono Italia (salvo casi documentati); terremoti USGS in Italia con partecipazione `location` Italia; attivazioni Copernicus con paese Italia risolte all'oggetto Italia.
+
+### 27.6 Storia della regola R2: v1 respinta, v2 approvata (2026-09-28)
+
+**Golden set** congelato prima di qualsiasi modifica (commit `1d52690`): `tests/golden/r2_golden_set.json`, SHA-256 `d5412eafa7371244a575bb84de74ae5b70f82b2e50f61eea41e3afa824b178a1`; metodologia in `tests/golden/METHODOLOGY.md`. 43 attivazioni `earthquake`: 36 positivi, 3 da non abbinare (valutazione del rischio, esercitazione, analisi post-evento), 4 esclusi (fuori perimetro); 20 eventi negativi M ≥ 6,5.
+
+**R2 v1 (come da specifica v0.2) — FAIL**: TP 29, FP 6, FN 7; precisione 82,9 %, recall 80,6 %. Myanmar abbinato alla replica M6.7 invece della M7.7.
+
+**Problema scoperto**: v1 usava un unico punteggio di prossimità sia per decidere *se* l'associazione è sostenuta sia per *quale* evento la rappresenta. Nelle sequenze di eventi dello stesso tipo vinceva il membro più vicino al centro dell'area mappata (errori: EMSR137, EMSR240, EMSR304, EMSR317, EMSR798, EMSR882) e un evento lontano nel tempo scendeva sotto soglia (EMSR393). La mitigazione prevista ("unicità per attivazione") non era sufficiente.
+
+**Varianti confrontate (simulazione sullo stesso golden set, confronto per magnitudo)**:
+
+| Variante | TP | FP | FN | Precisione | Recall | Nota |
+|---|---|---|---|---|---|---|
+| A. v1 | 29 | 6 | 7 | 82,9 % | 80,6 % | respinta |
+| B. candidato più severo | 33 | 0 | 3 | 100 % | 91,7 % | la soglia usa solo il rappresentante |
+| C. B + scala temporale 14 g | 35 | 0 | 1 | 100 % | 97,2 % | parametro scelto dopo aver visto i dati: scartata |
+| D. raggruppamento generico | 35 | 0 | 1 | 100 % | 97,2 % | stabile per finestre ≥ 72 h e 50–300 km |
+| E. severità come fattore del punteggio | 32 | 3 | 4 | 91,4 % | 88,9 % | scartata |
+
+**Decisione**: R2 v2 = variante D (primitiva generica §19.7). Motivazione architetturale: separa la forza dell'associazione (supporto del gruppo, dalla prossimità) dalla scelta del rappresentante (proprietà generica dichiarata dal tipo); non introduce concetti di dominio nel Core; vale anche senza geografia.
+
+**Rischio di overfitting**: parametri 72 h / 150 km documentati come parametri della regola, non scelti per massimizzare il golden set (risultato identico da 72 a 168 h e da 50 a 300 km). Nel golden set reale nessuna finestra contiene due gruppi separati, quindi il vantaggio di D su B è dimostrato dalla **fixture anti-overfitting** sintetica (`fixtures/r2_grouping/`, congelata con i risultati attesi prima dell'implementazione): D corretto in 5/5 scenari (sequenza con evento dominante, due sequenze indipendenti, evento molto severo nel gruppo sbagliato, raggruppamento senza coordinate via partecipazione, rappresentante diverso dal candidato più vicino), B in 1/5, v1 in 2/5.
+
+**Risultato reale di R2 v2 (motore, confronto per identificatore USGS)**: TP 34, FP 1, FN 2; **precisione 97,1 %, recall 94,4 %**; 0 negativi con insight. P17, P18, P19: PASS. Errori residui:
+- **EMSR393 (Ambon)**: FN — supporto sotto soglia per il decadimento temporale (Δt 107 h); il decadimento non è stato modificato.
+- **EMSR585 (Iran meridionale)**: FP + FN — due eventi M6.0 a due ore di distanza (doppietta); il golden set indica il primo (`us6000hz8x`), la regola a parità di severità sceglie il secondo per punteggio (`us6000hz9v`). L'attribuzione è intrinsecamente ambigua; il golden set **non** è stato modificato. La simulazione precedente (35/0/1) contava i due eventi come equivalenti perché confrontava la magnitudo, non l'identificatore.
+
+**Correzione separata di P15 (entity resolution)**: alias espliciti legati all'identificatore canonico in `vocab/geography.toml` — `Viet Nam` → VNM, `Myanmar/Burma` → MMR, `Türkiye` → TUR, `Mayotte` → FRA (contenimento geografico verificato: in Natural Earth 1:50m Mayotte è inclusa nella feature France). `United States Minor Outlying Islands` resta non risolto di proposito (nessuna feature, identità ISO distinta). Nessun fuzzy matching. Risultato: **1.127 nomi di paese risolti su 1.128 (99,91 %)**, 1 non risolto (UM); le partecipazioni distinte sono 1.124 perché in 3 attivazioni "France" e "Mayotte" risolvono allo stesso oggetto.
 
 ---
 
@@ -1337,3 +1386,34 @@ Nessuna contraddizione con i vincoli non negoziabili, con la decisione A o con l
 | I.2 | Dataset sintetico di scala D2/D3 come base dei benchmark di densità | sì · no | **sì** |
 | I.3 | Persistenza del *trail* di indagine | Fase 1 (tabella nel Core) · Fase 2 (con la UI) | **Fase 2**; formato definito ora |
 | I.4 | Uso di `nexum.pezzaliapp.com` | sito di progetto statico · demo con snapshot statico · nessun uso fino alla Fase 6 | decidere entro la Fase 2; **nessun impatto sulla Fase 1** |
+
+---
+
+## 34. Note di implementazione della Fase 1 (2026-09-29)
+
+Scelte fisiche adottate durante l'implementazione. Non cambiano requisiti, soglie o contratto logico; sono registrate qui per trasparenza.
+
+| Tema | Schema logico (§24) | Implementazione | Motivo |
+|---|---|---|---|
+| Evidence | `evidence_id` come chiave | chiave naturale `(supports_id, support_id, role)`; `evidence_id` calcolato in modo deterministico ed esposto nei DTO | spazio (B14 su D2) |
+| Archi del grafo | `src_kind`, `dst_kind`, `confidence` copiata | tipo di entità ricavato dal prefisso dell'ID; chiave primaria sull'origine; confidenza letta dalla riga canonica (relazione/partecipazione) | spazio; nessun dato duplicato da mantenere coerente |
+| Relazioni e partecipazioni | indici per estremo | lettura per estremo attraverso gli archi (`edge`), già indicizzati nelle due direzioni | indici duplicati eliminati |
+| `degree` | tutti i gruppi | **cache dei soli gruppi grandi** (≥ 100 archi, "hub"); gli altri conteggi sono calcolati a richiesta; gruppi distinti trovati con ricerche mirate sull'indice | spazio; risultati identici |
+| Provenienza | `prov_id` testuale | handle intero; la chiave deterministica resta in `provenance.prov_key`; per le affermazioni asserite la provenienza è per payload (raw), il collegamento puntuale è `evidence → record → raw_locator` | spazio |
+| `record.parser_version` | per record | versione del connettore in `raw_processed` (per payload) | ridondanza |
+| Full-text | tabella con contenuto | FTS5 *contentless* con cancellazione, legata a `rid_map` | spazio |
+| Alias | anche l'etichetta | solo nomi aggiuntivi (fonte, vocabolario) e l'etichetta dei tipi con `name_match`; la risoluzione per nome usa anche la ricerca full-text sull'etichetta con confronto esatto normalizzato | spazio; nessun fuzzy matching |
+| Claim | anche valori mancanti | solo valori presenti (un valore assente non è un'affermazione) | correttezza e spazio |
+| Change log | ogni modifica | nei caricamenti massivi iniziali si registra un "floor"; `changes_since` sotto il floor risponde `reset_required` (serve un ricaricamento completo) | spazio e tempo |
+| Manutenzione | — | `VACUUM` a fine costruzione (`Nexum.compact`); i benchmark riportano la dimensione prima e dopo | frammentazione delle B-tree con chiavi hash |
+| Rate limit per host | in memoria | ricostruito dal `fetch_log` persistente all'avvio di ogni sessione | **bug trovato dal test P3**: una nuova sessione poteva interrogare lo stesso host subito dopo la precedente |
+| Budget della mappa | — | in modalità aggregata, se le celle superano `max_items` il livello di aggregazione diventa più grossolano; solo al livello minimo si tronca e si segnala | DENSITY WITHOUT CHAOS; bug trovato dal test P33 |
+| OBJECT MODE | insight con il fuoco come membro | anche gli insight costruiti su quelli (compositi), un livello di transitività | il nesso composito deve comparire nel contesto dell'evento |
+| Backfill USGS | finestre mensili | finestre annuali FDSN (12 richieste invece di ~140) | meno carico sulla fonte |
+| CLI e configurazioni dei mondi | `nexum/core/cli` | `nexum/cli.py` e `nexum/worlds.py`, **fuori dal Core** | i percorsi dei mondi sono configurazione di installazione, non concetti del Core |
+| Generatore D2 | — | coppie di eventi piantate e distribuzione dei tipi corrette per rispettare i parametri approvati (50.000 insight, 40 % senza geometria) prima della misura finale | la prima versione del generatore non rispettava i parametri |
+| Ordine di risoluzione dei pattern | ordine di dichiarazione delle variabili | ordinamento dinamico: prima la variabile collegata da un vincolo generativo a una già assegnata (join ordering generico); risultati indipendenti dall'ordine | benchmark B11 su D3 (648 ms → ~135 ms), stessi insight |
+| Correlazione incrementale su grandi cambiamenti | sempre incrementale | se cambia più del 20 % del mondo si esegue un passaggio batch (risultati identici, verificati da P8) | prima ingestione di mondi grandi |
+| Mappa a zoom locale (z ≥ 10) | celle di aggregazione | viewport **esatto** con conteggi dal vivo (R*Tree); le celle servono solo quando la densità supera il budget; conteggi, faccette e verifica indipendente usano la stessa semantica | B18: l'aggancio alle celle di livello 8 includeva un'area troppo grande |
+| Ricerca su termini molto comuni | sempre ordinata per rilevanza | pianificazione della query: i token con oltre 20.000 documenti (o prefissi che si espandono in migliaia di termini) non guidano la ricerca full-text ma filtrano i candidati su etichetta, alias e identificatori; se tutti i token sono frequenti i risultati sono restituiti senza ranking e la risposta lo dichiara (`ranked: false`, stima dei risultati); le frequenze dei termini sono in cache per versione del mondo | B10: le liste di documenti dei termini frequenti dominavano il costo |
+

@@ -1,0 +1,34 @@
+id = "usgs.earthquakes"
+name = "USGS Earthquake Hazards Program"
+owner = "U.S. Geological Survey"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-09-28"
+independence_group = "usgs"
+connector = "connectors.usgs_earthquakes"
+
+[license]
+id = "public-domain-us-gov"
+url = "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits"
+attribution = "U.S. Geological Survey"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "geojson"
+auth = "none"
+allowed_hosts = ["earthquake.usgs.gov"]
+
+[politeness]
+min_interval_s = 60
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "poll"
+min_poll_interval_s = 60
+
+[options]
+backfill_start_year = 2015
+backfill_min_magnitude = 5.5

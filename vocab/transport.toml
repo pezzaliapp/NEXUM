@@ -1,0 +1,29 @@
+# Trasporti — tipi di dominio (fuori dal Core)
+
+[object_type."transport.airport"]
+label = "Aeroporto"
+geometry = "point"
+identity_schemes = ["ourairports", "icao"]
+display = { family = "transport", density_priority = 3 }
+[object_type."transport.airport".properties]
+airport_type = { kind = "text", required = true }
+scheduled_service = { kind = "bool", required = true }
+elevation = { kind = "float", unit = "m" }
+municipality = { kind = "text" }
+iso_country = { kind = "text" }
+iso_region = { kind = "text" }
+
+[relation_type."located_in"]
+label = "si trova in"
+nature = "spatial"
+from = ["transport.airport"]
+to = ["place.country"]
+
+[[enrichment]]
+id = "object_containment"
+when_kind = "object"
+when_types = ["transport.airport"]
+container_type = "place.country"
+produce = "relation"
+relation_type = "located_in"
+fallback_nearest_km = 0

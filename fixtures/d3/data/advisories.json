@@ -1,0 +1,348 @@
+{
+ "records": [
+  {
+   "id": "ORG-ALPHA",
+   "identifiers": [
+    [
+     "orgid",
+     "ORG-ALPHA"
+    ]
+   ],
+   "kind": "object",
+   "label": "ORG-ALPHA",
+   "properties": {
+    "sector": "manufacturing"
+   },
+   "type": "org.organization"
+  },
+  {
+   "id": "ORG-BETA",
+   "identifiers": [
+    [
+     "orgid",
+     "ORG-BETA"
+    ]
+   ],
+   "kind": "object",
+   "label": "ORG-BETA",
+   "properties": {
+    "sector": "finance"
+   },
+   "type": "org.organization"
+  },
+  {
+   "id": "ORG-GAMMA",
+   "identifiers": [
+    [
+     "orgid",
+     "ORG-GAMMA"
+    ]
+   ],
+   "kind": "object",
+   "label": "ORG-GAMMA",
+   "properties": {
+    "sector": "energy"
+   },
+   "type": "org.organization"
+  },
+  {
+   "id": "PRODUCT-X",
+   "identifiers": [
+    [
+     "prodid",
+     "PRODUCT-X"
+    ]
+   ],
+   "kind": "object",
+   "label": "PRODUCT-X",
+   "properties": {
+    "line": "test"
+   },
+   "type": "software.product"
+  },
+  {
+   "id": "PRODUCT-Y",
+   "identifiers": [
+    [
+     "prodid",
+     "PRODUCT-Y"
+    ]
+   ],
+   "kind": "object",
+   "label": "PRODUCT-Y",
+   "properties": {
+    "line": "test"
+   },
+   "type": "software.product"
+  },
+  {
+   "id": "PRODUCT-Z",
+   "identifiers": [
+    [
+     "prodid",
+     "PRODUCT-Z"
+    ]
+   ],
+   "kind": "object",
+   "label": "PRODUCT-Z",
+   "properties": {
+    "line": "test"
+   },
+   "type": "software.product"
+  },
+  {
+   "id": "PRODUCT-W",
+   "identifiers": [
+    [
+     "prodid",
+     "PRODUCT-W"
+    ]
+   ],
+   "kind": "object",
+   "label": "PRODUCT-W",
+   "properties": {
+    "line": "test"
+   },
+   "type": "software.product"
+  },
+  {
+   "id": "SW-TEST-lib",
+   "identifiers": [
+    [
+     "swid",
+     "SW-TEST-lib"
+    ]
+   ],
+   "kind": "object",
+   "label": "SW-TEST-lib",
+   "properties": {
+    "ecosystem": "test"
+   },
+   "type": "software.package"
+  },
+  {
+   "id": "SW-TEST-util",
+   "identifiers": [
+    [
+     "swid",
+     "SW-TEST-util"
+    ]
+   ],
+   "kind": "object",
+   "label": "SW-TEST-util",
+   "properties": {
+    "ecosystem": "test"
+   },
+   "type": "software.package"
+  },
+  {
+   "id": "SW-TEST-core",
+   "identifiers": [
+    [
+     "swid",
+     "SW-TEST-core"
+    ]
+   ],
+   "kind": "object",
+   "label": "SW-TEST-core",
+   "properties": {
+    "ecosystem": "test"
+   },
+   "type": "software.package"
+  },
+  {
+   "id": "TECH-TEST-01",
+   "identifiers": [
+    [
+     "techid",
+     "TECH-TEST-01"
+    ]
+   ],
+   "kind": "object",
+   "label": "TECH-TEST-01",
+   "properties": {
+    "family": "test"
+   },
+   "type": "security.technique"
+  },
+  {
+   "id": "CMP:SW-TEST-lib:PRODUCT-X",
+   "kind": "relation",
+   "object": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-X"
+   },
+   "subject": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-lib"
+   },
+   "type": "component_of"
+  },
+  {
+   "id": "CMP:SW-TEST-lib:PRODUCT-Y",
+   "kind": "relation",
+   "object": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-Y"
+   },
+   "subject": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-lib"
+   },
+   "type": "component_of"
+  },
+  {
+   "id": "CMP:SW-TEST-util:PRODUCT-Z",
+   "kind": "relation",
+   "object": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-Z"
+   },
+   "subject": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-util"
+   },
+   "type": "component_of"
+  },
+  {
+   "id": "CMP:SW-TEST-core:PRODUCT-W",
+   "kind": "relation",
+   "object": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-W"
+   },
+   "subject": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-core"
+   },
+   "type": "component_of"
+  },
+  {
+   "id": "PRD:PRODUCT-X:ORG-ALPHA",
+   "kind": "relation",
+   "object": {
+    "scheme": "orgid",
+    "type": "org.organization",
+    "value": "ORG-ALPHA"
+   },
+   "subject": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-X"
+   },
+   "type": "produced_by"
+  },
+  {
+   "id": "PRD:PRODUCT-Y:ORG-BETA",
+   "kind": "relation",
+   "object": {
+    "scheme": "orgid",
+    "type": "org.organization",
+    "value": "ORG-BETA"
+   },
+   "subject": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-Y"
+   },
+   "type": "produced_by"
+  },
+  {
+   "id": "PRD:PRODUCT-Z:ORG-GAMMA",
+   "kind": "relation",
+   "object": {
+    "scheme": "orgid",
+    "type": "org.organization",
+    "value": "ORG-GAMMA"
+   },
+   "subject": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-Z"
+   },
+   "type": "produced_by"
+  },
+  {
+   "id": "PRD:PRODUCT-W:ORG-GAMMA",
+   "kind": "relation",
+   "object": {
+    "scheme": "orgid",
+    "type": "org.organization",
+    "value": "ORG-GAMMA"
+   },
+   "subject": {
+    "scheme": "prodid",
+    "type": "software.product",
+    "value": "PRODUCT-W"
+   },
+   "type": "produced_by"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "prodid",
+      "type": "software.product",
+      "value": "PRODUCT-X"
+     },
+     "type": "concerns"
+    },
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "orgid",
+      "type": "org.organization",
+      "value": "ORG-ALPHA"
+     },
+     "type": "publisher"
+    },
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0001"
+     },
+     "type": "subject"
+    },
+    {
+     "kind": "relation_evidence",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0001"
+     },
+     "to": {
+      "scheme": "swid",
+      "type": "software.package",
+      "value": "SW-TEST-lib"
+     },
+     "type": "affects"
+    }
+   ],
+   "id": "ADV-0001",
+   "identifiers": [
+    [
+     "advid",
+     "ADV-0001"
+    ]
+   ],
+   "kind": "event",
+   "label": "ADV-0001",
+   "properties": {
+    "advisory_level": "high"
+   },
+   "t_ms": 1768521600000,
+   "type": "security.advisory_issued"
+  }
+ ]
+}

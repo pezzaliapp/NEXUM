@@ -1,0 +1,19 @@
+{
+ "records": [
+  {
+   "id": "M:AFF:VULN-TEST-0003:SW-TEST-core",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-core"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0003"
+   },
+   "type": "affects"
+  }
+ ]
+}

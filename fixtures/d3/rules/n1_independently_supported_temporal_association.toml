@@ -1,0 +1,57 @@
+# N1 — associazione temporale su relazione sostenuta da fonti indipendenti (D3, senza geografia).
+[rule]
+id = "independently_supported_temporal_association"
+version = "1"
+label = "Associazione su relazione sostenuta"
+output = "association"
+anchor = "E"
+strength = 0.8
+emit_threshold = 0.3
+explain = "La relazione «{V.label} colpisce {S.label}» è sostenuta da {groups.V.S} fonti indipendenti; l'inserimento nell'elenco di sfruttamenti ({E.label}) è avvenuto {dt.P.E|delta} dopo la pubblicazione ({P.label}). Associazione temporale, non un rapporto di causa verificato."
+
+[[rule.var]]
+name = "E"
+kind = "event"
+types = ["security.exploitation_listed"]
+
+[[rule.var]]
+name = "V"
+kind = "object"
+types = ["security.vulnerability"]
+
+[[rule.var]]
+name = "P"
+kind = "event"
+types = ["security.vulnerability_published"]
+
+[[rule.var]]
+name = "S"
+kind = "object"
+types = ["software.package"]
+
+[[rule.constraint]]
+op = "concerns"
+a = "E"
+b = "V"
+roles = ["subject"]
+
+[[rule.constraint]]
+op = "concerns"
+a = "P"
+b = "V"
+roles = ["subject"]
+
+[[rule.constraint]]
+op = "within_time"
+a = "P"
+b = "E"
+min = "0d"
+max = "30d"
+score = true
+
+[[rule.constraint]]
+op = "related"
+a = "V"
+b = "S"
+type = "affects"
+min_independent_groups = 2

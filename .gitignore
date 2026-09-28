@@ -1,0 +1,9 @@
+# Dati locali generati o scaricati (mai versionati)
+/data/
+__pycache__/
+*.pyc
+.pytest_cache/
+/bench/results/*.tmp
+data_build.log
+data_tests.log
+data_bench.log

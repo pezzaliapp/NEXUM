@@ -1,0 +1,59 @@
+# R2 v1 — RESPINTA il 2026-09-28 (archiviata, non caricata). Recall 80,6 %, precisione 82,9 % sul golden set: sceglieva il candidato con miglior prossimità individuale, confondendo forza dell'associazione e scelta del rappresentante. Vedi NEXUM-PHASE1-SPEC.md §27.6.
+[rule]
+id = "event_event_association"
+version = "1"
+label = "Associazione tra eventi"
+output = "association"
+anchor = "B"
+unique = true
+strength = 0.8
+emit_threshold = 0.3
+max_candidates = 500
+explain = "L'attivazione Copernicus EMS {B.ident.cems} ({B.prop.category}, {B.prop.countries|join}) è avvenuta {dt.A.B|delta} dopo il terremoto M{A.prop.magnitude|num1} {A.ident.usgs} del {A.time|date}, con centro dell'area a {dist.A.B|num1} km dall'epicentro. Associazione spazio-temporale, non un rapporto di causa verificato."
+
+[[rule.var]]
+name = "B"
+kind = "event"
+types = ["emergency.mapping_activation"]
+where = [["category", "==", "earthquake"]]
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["seismic.earthquake"]
+where = [["magnitude", ">=", 5.5]]
+
+[[rule.constraint]]
+op = "within_time"
+a = "A"
+b = "B"
+min = "-1h"
+max = "7d"
+score = true
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "B"
+km = 300
+score = true
+
+[[rule.var]]
+name = "P"
+kind = "object"
+types = ["place.country"]
+optional = true
+
+[[rule.constraint]]
+op = "concerns"
+a = "A"
+b = "P"
+roles = ["location", "nearest_location"]
+
+[[rule.constraint]]
+op = "concerns"
+a = "B"
+b = "P"
+roles = ["affected_area"]
+optional = true
+penalty = 0.7

@@ -1,0 +1,70 @@
+# R2 v2 — associazione spazio-temporale tra eventi di fonti diverse (PoC 1).
+# Approvata il 2026-09-28 in sostituzione di R2 v1 (archiviata in rules/archive/).
+# Modello: CANDIDATES → CANDIDATE GROUPS → GROUP SUPPORT → REPRESENTATIVE → INSIGHT.
+# I parametri del raggruppamento (72 h / 150 km) sono parametri di QUESTA regola, non del Core.
+# "severity" è la proprietà generica dichiarata dal tipo di evento nel vocabolario (vocab/),
+# il Core non ne conosce il significato di dominio.
+[rule]
+id = "event_event_association"
+version = "2"
+label = "Associazione tra eventi"
+output = "association"
+anchor = "B"
+unique = true
+strength = 0.8
+emit_threshold = 0.3
+max_candidates = 500
+explain = "L'attivazione Copernicus EMS {B.ident.cems} ({B.prop.category}, {B.prop.countries|join}) è avvenuta {dt.A.B|delta} dopo il terremoto M{A.prop.magnitude|num1} {A.ident.usgs} del {A.time|date}, con centro dell'area a {dist.A.B|num1} km dall'epicentro. Associazione spazio-temporale, non un rapporto di causa verificato."
+
+[rule.group]
+var = "A"
+link = [ { op = "within_time", max = "72h" }, { op = "within_distance", km = 150 } ]
+support = "max_member"
+representative = [["severity", "desc"], ["score", "desc"]]
+
+[[rule.var]]
+name = "B"
+kind = "event"
+types = ["emergency.mapping_activation"]
+where = [["category", "==", "earthquake"]]
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["seismic.earthquake"]
+where = [["magnitude", ">=", 5.5]]
+
+[[rule.var]]
+name = "P"
+kind = "object"
+types = ["place.country"]
+optional = true
+
+[[rule.constraint]]
+op = "within_time"
+a = "A"
+b = "B"
+min = "-1h"
+max = "7d"
+score = true
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "B"
+km = 300
+score = true
+
+[[rule.constraint]]
+op = "concerns"
+a = "A"
+b = "P"
+roles = ["location", "nearest_location"]
+
+[[rule.constraint]]
+op = "concerns"
+a = "B"
+b = "P"
+roles = ["affected_area"]
+optional = true
+penalty = 0.7

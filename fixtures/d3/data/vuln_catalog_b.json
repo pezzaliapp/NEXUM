@@ -1,0 +1,44 @@
+{
+ "records": [
+  {
+   "id": "B:AFF:VULN-TEST-0001:SW-TEST-lib",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-lib"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0001"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "B:AFF:VULN-TEST-0002:SW-TEST-util",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-util"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0002"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "B-NAME-ONLY-lib",
+   "identifiers": [],
+   "kind": "object",
+   "label": "SW-TEST-lib",
+   "properties": {
+    "ecosystem": "test"
+   },
+   "type": "software.package"
+  }
+ ]
+}

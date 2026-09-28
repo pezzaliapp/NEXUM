@@ -1,0 +1,27 @@
+# R3 — insight composito: associazione tra eventi + contesto di esposizione dello stesso evento (PoC 1).
+[rule]
+id = "composite_context"
+version = "1"
+label = "Contesto composito"
+output = "composite"
+anchor = "I2"
+strength = 1.0
+emit_threshold = 0.3
+explain = "{I2.explanation} {I1.explanation}"
+
+[[rule.var]]
+name = "I2"
+kind = "insight"
+rule = "event_event_association"
+
+[[rule.var]]
+name = "I1"
+kind = "insight"
+rule = "exposure_context"
+
+[[rule.constraint]]
+op = "same_member"
+a = "I2"
+b = "I1"
+var_a = "A"
+var_b = "A"

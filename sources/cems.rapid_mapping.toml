@@ -1,0 +1,30 @@
+id = "cems.rapid_mapping"
+name = "Copernicus Emergency Management Service — Rapid Mapping"
+owner = "European Commission — Joint Research Centre (Copernicus EMS)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-09-28"
+independence_group = "copernicus_ems"
+connector = "connectors.cems_rapid_mapping"
+
+[license]
+id = "copernicus-open-access"
+url = "https://mapping.emergency.copernicus.eu/terms-and-conditions/"
+attribution = "Copernicus Emergency Management Service (© European Union)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["mapping.emergency.copernicus.eu"]
+
+[politeness]
+min_interval_s = 600
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "poll"
+min_poll_interval_s = 600

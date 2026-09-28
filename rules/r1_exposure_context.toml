@@ -1,0 +1,31 @@
+# R1 — contesto di esposizione (PoC 1). Regola di configurazione, non codice del Core.
+[rule]
+id = "exposure_context"
+version = "1"
+label = "Contesto di esposizione"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 2000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'epicentro del terremoto M{A.prop.magnitude|num1} ({A.ident.usgs}, {A.time|date}) si trovano {n.O} aeroporti con voli di linea; il più vicino è {first.O.label} ({first.O.ident.icao}) a {first.O.dist|num1} km. Informazione di contesto sull'esposizione, non una stima di danni."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["seismic.earthquake"]
+where = [["magnitude", ">=", 5.5]]
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["transport.airport"]
+where = [["airport_type", "in", ["large_airport", "medium_airport"]], ["scheduled_service", "==", true]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km_steps = { var = "A", property = "magnitude", steps = [[5.5, 100], [6.5, 200], [7.5, 300]] }
+score = true

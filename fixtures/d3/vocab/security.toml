@@ -1,0 +1,85 @@
+# D3 — vocabolario sintetico non geografico (solo test). Nessun tipo ammette geometria.
+
+[object_type."security.vulnerability"]
+label = "Vulnerabilità (sintetica)"
+geometry = "none"
+identity_schemes = ["vulnid"]
+[object_type."security.vulnerability".properties]
+severity_score = { kind = "float", required = true }
+
+[object_type."software.package"]
+label = "Pacchetto software (sintetico)"
+geometry = "none"
+identity_schemes = ["swid"]
+name_match = true
+[object_type."software.package".properties]
+ecosystem = { kind = "text" }
+
+[object_type."software.product"]
+label = "Prodotto (sintetico)"
+geometry = "none"
+identity_schemes = ["prodid"]
+[object_type."software.product".properties]
+line = { kind = "text" }
+
+[object_type."org.organization"]
+label = "Organizzazione (sintetica)"
+geometry = "none"
+identity_schemes = ["orgid"]
+[object_type."org.organization".properties]
+sector = { kind = "text" }
+
+[object_type."security.technique"]
+label = "Tecnica (sintetica)"
+geometry = "none"
+identity_schemes = ["techid"]
+[object_type."security.technique".properties]
+family = { kind = "text" }
+
+[event_type."security.vulnerability_published"]
+label = "Pubblicazione di vulnerabilità"
+geometry = "none"
+identity_schemes = ["pubid"]
+roles = ["subject"]
+[event_type."security.vulnerability_published".properties]
+channel = { kind = "text" }
+
+[event_type."security.exploitation_listed"]
+label = "Inserimento in elenco di sfruttamenti"
+geometry = "none"
+identity_schemes = ["exid"]
+roles = ["subject"]
+[event_type."security.exploitation_listed".properties]
+list_name = { kind = "text" }
+
+[event_type."security.advisory_issued"]
+label = "Avviso pubblicato"
+geometry = "none"
+identity_schemes = ["advid"]
+roles = ["subject", "concerns", "publisher"]
+[event_type."security.advisory_issued".properties]
+advisory_level = { kind = "text" }
+
+[relation_type."affects"]
+label = "colpisce"
+nature = "technological"
+from = ["security.vulnerability"]
+to = ["software.package"]
+
+[relation_type."component_of"]
+label = "è componente di"
+nature = "technological"
+from = ["software.package"]
+to = ["software.product"]
+
+[relation_type."produced_by"]
+label = "prodotto da"
+nature = "organizational"
+from = ["software.product"]
+to = ["org.organization"]
+
+[relation_type."associated_with"]
+label = "associata a"
+nature = "technological"
+from = ["security.vulnerability"]
+to = ["security.technique"]

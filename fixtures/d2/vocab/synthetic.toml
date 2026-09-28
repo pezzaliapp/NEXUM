@@ -1,0 +1,321 @@
+# D2 — vocabolario sintetico di scala (solo benchmark). 30 tipi.
+
+[object_type."syn.o00"]
+label = "Oggetto sintetico 00"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 1 }
+[object_type."syn.o00".properties]
+v = { kind = "float" }
+
+[object_type."syn.o01"]
+label = "Oggetto sintetico 01"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 2 }
+[object_type."syn.o01".properties]
+v = { kind = "float" }
+
+[object_type."syn.o02"]
+label = "Oggetto sintetico 02"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 3 }
+[object_type."syn.o02".properties]
+v = { kind = "float" }
+
+[object_type."syn.o03"]
+label = "Oggetto sintetico 03"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 4 }
+[object_type."syn.o03".properties]
+v = { kind = "float" }
+
+[object_type."syn.o04"]
+label = "Oggetto sintetico 04"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 5 }
+[object_type."syn.o04".properties]
+v = { kind = "float" }
+
+[object_type."syn.o05"]
+label = "Oggetto sintetico 05"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 1 }
+[object_type."syn.o05".properties]
+v = { kind = "float" }
+
+[object_type."syn.o06"]
+label = "Oggetto sintetico 06"
+geometry = "none"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 2 }
+[object_type."syn.o06".properties]
+v = { kind = "float" }
+
+[object_type."syn.o07"]
+label = "Oggetto sintetico 07"
+geometry = "none"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 3 }
+[object_type."syn.o07".properties]
+v = { kind = "float" }
+
+[object_type."syn.o08"]
+label = "Oggetto sintetico 08"
+geometry = "none"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 4 }
+[object_type."syn.o08".properties]
+v = { kind = "float" }
+
+[object_type."syn.o09"]
+label = "Oggetto sintetico 09"
+geometry = "none"
+identity_schemes = ["sid"]
+display = { family = "synthetic", density_priority = 5 }
+[object_type."syn.o09".properties]
+v = { kind = "float" }
+
+[event_type."syn.e00"]
+label = "Evento sintetico 00"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e00".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e01"]
+label = "Evento sintetico 01"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e01".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e02"]
+label = "Evento sintetico 02"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e02".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e03"]
+label = "Evento sintetico 03"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e03".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e04"]
+label = "Evento sintetico 04"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e04".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e05"]
+label = "Evento sintetico 05"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e05".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e06"]
+label = "Evento sintetico 06"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e06".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e07"]
+label = "Evento sintetico 07"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e07".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e08"]
+label = "Evento sintetico 08"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e08".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e09"]
+label = "Evento sintetico 09"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e09".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e10"]
+label = "Evento sintetico 10"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e10".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e11"]
+label = "Evento sintetico 11"
+geometry = "point"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e11".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e12"]
+label = "Evento sintetico 12"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e12".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e13"]
+label = "Evento sintetico 13"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e13".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e14"]
+label = "Evento sintetico 14"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e14".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e15"]
+label = "Evento sintetico 15"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e15".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e16"]
+label = "Evento sintetico 16"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e16".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e17"]
+label = "Evento sintetico 17"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e17".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e18"]
+label = "Evento sintetico 18"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e18".properties]
+v = { kind = "float", required = true }
+
+[event_type."syn.e19"]
+label = "Evento sintetico 19"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["at", "about"]
+severity = { property = "v", min = 0.0, max = 1.0, clamp = true }
+[event_type."syn.e19".properties]
+v = { kind = "float", required = true }
+
+[relation_type."syn.r00"]
+label = "Relazione sintetica 00"
+nature = "spatial"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r01"]
+label = "Relazione sintetica 01"
+nature = "logical"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r02"]
+label = "Relazione sintetica 02"
+nature = "temporal"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r03"]
+label = "Relazione sintetica 03"
+nature = "infrastructural"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r04"]
+label = "Relazione sintetica 04"
+nature = "organizational"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r05"]
+label = "Relazione sintetica 05"
+nature = "technological"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r06"]
+label = "Relazione sintetica 06"
+nature = "informational"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r07"]
+label = "Relazione sintetica 07"
+nature = "logical"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r08"]
+label = "Relazione sintetica 08"
+nature = "technological"
+from = ["any"]
+to = ["any"]
+
+[relation_type."syn.r09"]
+label = "Relazione sintetica 09"
+nature = "infrastructural"
+from = ["any"]
+to = ["any"]

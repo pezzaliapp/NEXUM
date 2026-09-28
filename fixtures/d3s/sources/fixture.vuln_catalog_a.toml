@@ -1,0 +1,23 @@
+id = "fixture.vuln_catalog_a"
+name = "Catalogo vulnerabilità A (sintetico)"
+owner = "NEXUM test fixtures"
+verdict = "fixture"
+reliability_tier = "T2"
+verified_at = "2026-09-28"
+independence_group = "grpA"
+connector = "connectors.fixture_json"
+
+[license]
+id = "MIT"
+attribution = "NEXUM synthetic fixture (fictitious identifiers)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "local"
+auth = "none"
+path = "data/d3s/inputs/vuln_catalog_a.json"
+
+[politeness]
+min_interval_s = 0
+max_rps = 100

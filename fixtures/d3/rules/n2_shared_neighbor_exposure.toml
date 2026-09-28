@@ -1,0 +1,54 @@
+# N2 — ipotesi di esposizione comune: due oggetti condividono un vicino colpito (D3, senza geografia).
+[rule]
+id = "shared_neighbor_exposure"
+version = "1"
+label = "Esposizione comune"
+output = "relation_hypothesis"
+anchor = "S"
+strength = 0.6
+emit_threshold = 0.3
+hypothesis = { from = "P1", to = "P2", type = "shared_component_exposure" }
+explain = "{P1.label} e {P2.label} condividono il componente {S.label}, colpito da {V.label}. Ipotesi di esposizione comune da verificare, non un fatto accertato."
+
+[[rule.var]]
+name = "S"
+kind = "object"
+types = ["software.package"]
+
+[[rule.var]]
+name = "V"
+kind = "object"
+types = ["security.vulnerability"]
+
+[[rule.var]]
+name = "P1"
+kind = "object"
+types = ["software.product"]
+
+[[rule.var]]
+name = "P2"
+kind = "object"
+types = ["software.product"]
+
+[[rule.constraint]]
+op = "related"
+a = "V"
+b = "S"
+type = "affects"
+
+[[rule.constraint]]
+op = "related"
+a = "S"
+b = "P1"
+type = "component_of"
+
+[[rule.constraint]]
+op = "related"
+a = "S"
+b = "P2"
+type = "component_of"
+
+[[rule.constraint]]
+op = "ordered"
+a = "P1"
+b = "P2"

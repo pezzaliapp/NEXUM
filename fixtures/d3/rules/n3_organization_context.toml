@@ -1,0 +1,73 @@
+# N3 — contesto di un'organizzazione (D3, senza geografia).
+[rule]
+id = "organization_context"
+version = "1"
+label = "Contesto dell'organizzazione"
+output = "context"
+anchor = "O"
+strength = 0.7
+emit_threshold = 0.3
+collect = { var = "P", limit = 20, count = ["S", "V", "E", "A"] }
+explain = "{O.label}: {n.P} prodotti, {n.S} componenti colpiti, {n.V} vulnerabilità ({n.E} con sfruttamento elencato), {n.A} avvisi pubblicati. Quadro di contesto, non una valutazione di rischio."
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["org.organization"]
+
+[[rule.var]]
+name = "P"
+kind = "object"
+types = ["software.product"]
+
+[[rule.var]]
+name = "S"
+kind = "object"
+types = ["software.package"]
+
+[[rule.var]]
+name = "V"
+kind = "object"
+types = ["security.vulnerability"]
+
+[[rule.var]]
+name = "E"
+kind = "event"
+types = ["security.exploitation_listed"]
+optional = true
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["security.advisory_issued"]
+optional = true
+
+[[rule.constraint]]
+op = "related"
+a = "P"
+b = "O"
+type = "produced_by"
+
+[[rule.constraint]]
+op = "related"
+a = "S"
+b = "P"
+type = "component_of"
+
+[[rule.constraint]]
+op = "related"
+a = "V"
+b = "S"
+type = "affects"
+
+[[rule.constraint]]
+op = "concerns"
+a = "E"
+b = "V"
+roles = ["subject"]
+
+[[rule.constraint]]
+op = "concerns"
+a = "A"
+b = "P"
+roles = ["concerns"]

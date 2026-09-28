@@ -1,0 +1,42 @@
+# Variante: rules_b_max_severity
+[rule]
+id = "grouping_spatial"
+version = "1"
+label = "Associazione con raggruppamento (spaziale)"
+output = "association"
+anchor = "B"
+unique = true
+strength = 0.8
+emit_threshold = 0.3
+explain = "{B.label} associato a {A.label} ({dist.A.B|num1} km, {dt.A.B|delta} prima). Associazione, non un rapporto di causa verificato."
+
+[rule.group]
+var = "A"
+link = []
+support = "representative"
+representative = [["severity", "desc"], ["score", "desc"]]
+
+[[rule.var]]
+name = "B"
+kind = "event"
+types = ["syn.trigger"]
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["syn.signal"]
+
+[[rule.constraint]]
+op = "within_time"
+a = "A"
+b = "B"
+min = "-1h"
+max = "7d"
+score = true
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "B"
+km = 300
+score = true

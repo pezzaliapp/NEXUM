@@ -1,0 +1,247 @@
+{
+ "records": [
+  {
+   "id": "VULN-TEST-0001",
+   "identifiers": [
+    [
+     "vulnid",
+     "VULN-TEST-0001"
+    ]
+   ],
+   "kind": "object",
+   "label": "VULN-TEST-0001",
+   "properties": {
+    "severity_score": 9.1
+   },
+   "type": "security.vulnerability"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0001"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "PUB-0001",
+   "identifiers": [
+    [
+     "pubid",
+     "PUB-0001"
+    ]
+   ],
+   "kind": "event",
+   "label": "PUB-0001",
+   "properties": {
+    "channel": "catalog_a"
+   },
+   "t_ms": 1768003200000,
+   "type": "security.vulnerability_published"
+  },
+  {
+   "id": "VULN-TEST-0002",
+   "identifiers": [
+    [
+     "vulnid",
+     "VULN-TEST-0002"
+    ]
+   ],
+   "kind": "object",
+   "label": "VULN-TEST-0002",
+   "properties": {
+    "severity_score": 7.5
+   },
+   "type": "security.vulnerability"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0002"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "PUB-0002",
+   "identifiers": [
+    [
+     "pubid",
+     "PUB-0002"
+    ]
+   ],
+   "kind": "event",
+   "label": "PUB-0002",
+   "properties": {
+    "channel": "catalog_a"
+   },
+   "t_ms": 1768003200000,
+   "type": "security.vulnerability_published"
+  },
+  {
+   "id": "VULN-TEST-0003",
+   "identifiers": [
+    [
+     "vulnid",
+     "VULN-TEST-0003"
+    ]
+   ],
+   "kind": "object",
+   "label": "VULN-TEST-0003",
+   "properties": {
+    "severity_score": 8.0
+   },
+   "type": "security.vulnerability"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0003"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "PUB-0003",
+   "identifiers": [
+    [
+     "pubid",
+     "PUB-0003"
+    ]
+   ],
+   "kind": "event",
+   "label": "PUB-0003",
+   "properties": {
+    "channel": "catalog_a"
+   },
+   "t_ms": 1768003200000,
+   "type": "security.vulnerability_published"
+  },
+  {
+   "id": "VULN-TEST-0004",
+   "identifiers": [
+    [
+     "vulnid",
+     "VULN-TEST-0004"
+    ]
+   ],
+   "kind": "object",
+   "label": "VULN-TEST-0004",
+   "properties": {
+    "severity_score": 5.0
+   },
+   "type": "security.vulnerability"
+  },
+  {
+   "assertions": [
+    {
+     "kind": "participation",
+     "target": {
+      "scheme": "vulnid",
+      "type": "security.vulnerability",
+      "value": "VULN-TEST-0004"
+     },
+     "type": "subject"
+    }
+   ],
+   "id": "PUB-0004",
+   "identifiers": [
+    [
+     "pubid",
+     "PUB-0004"
+    ]
+   ],
+   "kind": "event",
+   "label": "PUB-0004",
+   "properties": {
+    "channel": "catalog_a"
+   },
+   "t_ms": 1768003200000,
+   "type": "security.vulnerability_published"
+  },
+  {
+   "id": "A:AFF:VULN-TEST-0001:SW-TEST-lib",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-lib"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0001"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "A:AFF:VULN-TEST-0002:SW-TEST-util",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-util"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0002"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "A:AFF:VULN-TEST-0003:SW-TEST-core",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-core"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0003"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "A:AFF:VULN-TEST-0004:SW-TEST-util",
+   "kind": "relation",
+   "object": {
+    "scheme": "swid",
+    "type": "software.package",
+    "value": "SW-TEST-util"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0004"
+   },
+   "type": "affects"
+  },
+  {
+   "id": "A:ASSOC:VULN-TEST-0001:TECH-TEST-01",
+   "kind": "relation",
+   "object": {
+    "scheme": "techid",
+    "type": "security.technique",
+    "value": "TECH-TEST-01"
+   },
+   "subject": {
+    "scheme": "vulnid",
+    "type": "security.vulnerability",
+    "value": "VULN-TEST-0001"
+   },
+   "type": "associated_with"
+  }
+ ]
+}

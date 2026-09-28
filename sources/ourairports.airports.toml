@@ -1,0 +1,30 @@
+id = "ourairports.airports"
+name = "OurAirports — airports"
+owner = "OurAirports (David Megginson)"
+verdict = "adopt"
+reliability_tier = "T3"
+verified_at = "2026-09-28"
+independence_group = "ourairports"
+connector = "connectors.ourairports_airports"
+
+[license]
+id = "public-domain"
+url = "https://ourairports.com/data/"
+attribution = "OurAirports"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["davidmegginson.github.io"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400

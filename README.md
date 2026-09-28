@@ -10,7 +10,24 @@ NEXUM è una piattaforma open-source, local-first e a costo operativo €0 per l
 DATA → OBJECTS → RELATIONS → EVENTS → TIMELINE → CORRELATION → INSIGHT
 ```
 
-> Stato: **fase di ricerca e architettura**. Il repository contiene solo documentazione di progetto; nessun codice applicativo.
+> Stato: **Fase 1 — NEXUM Core** (motore domain-agnostic, senza interfaccia grafica). Specifica: [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md).
+
+## Uso (Fase 1)
+
+Requisiti: Python ≥ 3.12 (solo libreria standard) e `pytest` per i test. Nessuna chiave, nessun account, nessun servizio a pagamento.
+
+```bash
+python3 bench/run_phase1.py --clean --build   # scarica le 4 fonti reali (D1) e costruisce D1, D3, D3 scalato, mondo misto, D2
+python3 bench/run_phase1.py --tests           # suite completa (criteri P1–P42)
+python3 bench/run_phase1.py --bench           # benchmark B1–B28 → data/reports/benchmarks.json
+
+python3 -m nexum.cli d1 query context '{"focus": "<id>"}'   # contratto di query in-process (HTTP locale in Fase 2)
+python3 -m nexum.cli d1 attributions                         # attribuzioni delle fonti usate
+```
+
+Struttura: `nexum/core/` (Core domain-agnostic), `connectors/` (un modulo per fonte), `vocab/` (tipi di dominio),
+`sources/` (registro delle fonti), `rules/` (regole di correlazione), `fixtures/` (mondi sintetici di test),
+`tests/`, `bench/`. I dati scaricati e generati stanno in `data/` e non sono versionati.
 
 ## Documenti
 

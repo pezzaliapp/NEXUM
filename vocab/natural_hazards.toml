@@ -1,0 +1,28 @@
+# Eventi naturali — tipi di dominio (fuori dal Core)
+
+[event_type."seismic.earthquake"]
+label = "Terremoto"
+geometry = "point"
+identity_schemes = ["usgs"]
+roles = ["location", "nearest_location"]
+severity = { property = "magnitude", min = 4.0, max = 9.0, clamp = true }
+display = { family = "natural_event", density_priority = 2 }
+[event_type."seismic.earthquake".properties]
+magnitude = { kind = "float", unit = "magnitude", required = true }
+magnitude_type = { kind = "text" }
+depth = { kind = "float", unit = "m" }
+place = { kind = "text" }
+significance = { kind = "int" }
+tsunami_flag = { kind = "bool" }
+network = { kind = "text" }
+url = { kind = "text" }
+
+[[enrichment]]
+id = "event_location"
+when_kind = "event"
+when_types = ["seismic.earthquake"]
+container_type = "place.country"
+produce = "participation"
+role = "location"
+fallback_nearest_km = 200
+fallback_role = "nearest_location"
