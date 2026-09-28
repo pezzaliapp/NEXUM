@@ -4,6 +4,16 @@
 
 Stato: bozza di progetto v0.1 — nessuna implementazione. Gli schemi sono descritti in forma logica; la sintassi SQL definitiva sarà scelta in fase di implementazione (vedi [NEXUM-ARCHITECTURE.md](NEXUM-ARCHITECTURE.md)).
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** Decisioni successive che aggiornano questo documento (senza cancellarne la storia; le parti superate sono marcate):
+
+> - **Tipi come configurazione**: le tassonomie di §4.1, §5.1, §6.2 sono **esempi**; i tipi reali sono dichiarati in file di configurazione (`vocab/`) con identità, geometria ammessa, estremi e **natura** delle relazioni (`spatial`, `logical`, `temporal`, `infrastructural`, `organizational`, `technological`, `informational`). Il Core non conosce tipi di dominio.
+> - **Location opzionale**: la geografia è una proprietà, non l'architettura.
+> - **Evidence**: concetto autonomo; ogni relazione è **canonica** (una per tipo, estremi, inizio validità) e ha **più evidenze** (da record di fonte o da eventi), con conteggio dei gruppi di fonti indipendenti.
+> - **ID deterministici** (§1), relazione `near` su richiesta (§5.1), **Insight** al posto di Hypothesis (§11), confidenza deterministica e non probabilistica (§8).
+> - Nuovo tipo di esempio: `emergency.mapping_activation`.
+> - Riferimento normativo: [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md) §4, §8.4, §11, §15, §16, §20.
+
 ---
 
 ## 1. Visione d'insieme
@@ -36,7 +46,7 @@ Regole fondamentali:
 2. **Un oggetto del mondo reale esiste una sola volta** (ONE OBJECT). Più fonti che parlano della stessa cosa producono più *identificatori* e più *claim* sullo stesso oggetto, non oggetti duplicati.
 3. **Ogni affermazione ha provenienza e confidenza.** Nessuna eccezione.
 4. **Il tempo è bitemporale**: *quando è vero nel mondo* (valid time) e *quando NEXUM l'ha saputo* (recorded time).
-5. **Identificatori stabili**: ogni entità NEXUM ha un ID ULID (ordinabile nel tempo, generabile offline, senza coordinamento centrale).
+5. **Identificatori stabili**: ~~ogni entità NEXUM ha un ID ULID~~ *(superato il 2026-09-28)*: le entità del mondo hanno **ID deterministici** derivati dalla chiave di identità del tipo; gli ULID restano solo per esecuzioni, raw record e log (specifica Fase 1 §8.4). Motivo: gli ULID casuali impediscono la riproducibilità richiesta dall'architettura.
 
 ---
 
@@ -77,7 +87,7 @@ Una fonte con `verdict = reject` non può avere un connettore attivo. Una fonte 
 | `payload_ref` | percorso del file compresso nell'archivio locale (content-addressed) |
 | `parser_id`, `parser_version` | chi lo ha interpretato |
 
-I payload sono conservati come file compressi (`zstd`) indirizzati per hash. Questo permette di **rigiocare** l'intera derivazione con un parser corretto senza riscaricare nulla.
+I payload sono conservati come file compressi (`zstd` nel progetto originale; **gzip** nella Fase 1, con campo `codec`, perché zstd non è nella libreria standard di Python 3.12) indirizzati per hash. Questo permette di **rigiocare** l'intera derivazione con un parser corretto senza riscaricare nulla.
 
 ---
 
@@ -164,7 +174,7 @@ Una Relation è un arco **tipizzato, orientato e datato** tra due Object.
 | Tipo | Esempio | Derivazione tipica |
 |---|---|---|
 | `located_in` | aeroporto → città → paese | asserita / calcolata (point-in-polygon) |
-| `near` | centrale → vulcano (con `distance_km`) | calcolata |
+| `near` | centrale → vulcano (con `distance_km`) | calcolata **su richiesta**; materializzata solo come evidenza di un insight (revisione 2026-09-28) |
 | `part_of` | sottostazione → rete; zona di offerta → paese | asserita |
 | `connects` | cavo sottomarino → punto di approdo; interconnettore → zone | asserita |
 | `operated_by` | aeroporto → ente gestore (persona giuridica) | asserita |
@@ -219,7 +229,7 @@ Un Event è qualcosa che **accade**: ha un tempo e, spesso, un luogo.
 | Internet | `internet.outage` (misure aggregate per paese/ASN) |
 | Economia | `econ.indicator_release` |
 | Informazione | `info.article` (solo metadati: titolo, link, data, fonte) |
-| Sistema | `nexum.hypothesis_created` (eventi generati dal motore di correlazione) |
+| Sistema | ~~`nexum.hypothesis_created`~~ → `nexum.insight_created` (revisione 2026-09-28) |
 
 ### 6.3 Evento vs. Claim
 
@@ -261,7 +271,7 @@ La confidenza è un numero in `[0, 1]` **sempre accompagnato dalla sua scomposiz
 | `method` | come è stato ottenuto il dato | valore misurato > derivato > estratto da testo |
 | `precision` | precisione spazio-temporale | coordinate a 10 m vs centroide di paese |
 | `corroboration` | numero di fonti **indipendenti** concordi | USGS + EMSC + INGV |
-| `freshness` | età rispetto alla frequenza attesa della fonte | feed fermo da 3 giorni = penalità |
+| `freshness` | età rispetto alla frequenza attesa della fonte; **solo per viste di stato corrente**, non per eventi storici (revisione 2026-09-28) | feed fermo da 3 giorni = penalità |
 | `status` | stato dichiarato dalla fonte | `preliminary` < `reviewed` |
 
 ### 8.2 Tier di affidabilità delle fonti (classificazione NEXUM)
@@ -280,7 +290,7 @@ I pesi sono **configurabili** e documentati: nessun numero magico nascosto.
 ### 8.3 Composizione
 
 - Singola fonte: `c = reliability × method × precision × freshness × status`.
-- Più fonti indipendenti che concordano: combinazione *noisy-OR*, `c = 1 − Π(1 − cᵢ)`, applicata **solo** a fonti marcate come indipendenti (due mirror dello stesso dato non si sommano).
+- Più fonti indipendenti che concordano: combinazione del supporto per gruppi di indipendenza, `c = 1 − Π(1 − cᵍ)` con `cᵍ` = miglior evidenza del gruppo `g`; due mirror dello stesso dato non si sommano. *(Revisione 2026-09-28: la confidenza è un **grado di supporto deterministico, non una probabilità**; formula unica e fattori completi nella specifica Fase 1 §16.)*
 - Correlazioni: la confidenza di un'ipotesi è limitata dalla confidenza del suo anello più debole moltiplicata per la forza della regola (vedi [NEXUM-ARCHITECTURE.md](NEXUM-ARCHITECTURE.md) §6).
 
 La UI mostra sempre la confidenza in forma leggibile (es. *alta — 3 fonti istituzionali concordi, dato revisionato*).
@@ -296,7 +306,7 @@ La Timeline non è una tabella separata: è una **vista unificata** su tutto ci�
 | Eventi | `Event.t_start` / `t_end` |
 | Cambiamenti di stato | `Claim.valid_from` (es. capacità di una centrale cambiata) |
 | Nascita/fine di relazioni | `Relation.valid_from` / `valid_to` |
-| Ipotesi di correlazione | evento `nexum.hypothesis_created` |
+| Insight (ex "ipotesi di correlazione") | evento `nexum.insight_created` |
 
 ### 9.1 Regole temporali
 
@@ -324,7 +334,7 @@ I dettagli sono in [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md).
 
 ---
 
-## 11. Correlation / Hypothesis
+## 11. Correlation / Hypothesis *(rinominato **Insight** il 2026-09-28 — vedi specifica Fase 1 §20)*
 
 | Campo | Note |
 |---|---|

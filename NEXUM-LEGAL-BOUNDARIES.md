@@ -2,6 +2,9 @@
 
 Stato: v0.1 · Questo documento non è una consulenza legale. Descrive le regole che il progetto si impone e i criteri con cui ammette o esclude fonti e funzioni.
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** I vincoli di questo documento restano invariati. Aggiunto il verdetto tecnico FIXTURE (§3.1). La decisione "Opzione A — zero import" di OSIRIS ([NEXUM-OSIRIS-CODE-AUDIT.md](NEXUM-OSIRIS-CODE-AUDIT.md)) conferma §8.
+
 ---
 
 ## 1. Vincoli non negoziabili
@@ -45,6 +48,7 @@ Ogni fonte ammessa è registrata nel **Source Registry** con licenza, attribuzio
 | **ADOPT WITH CONDITIONS** | Uso consentito con vincoli operativi: chiave personale dell'utente, rate limit stretti, solo metadati, nessuna redistribuzione, uso non commerciale. Le condizioni sono dichiarate nel registro e applicate dal codice. |
 | **OPT-IN** | Connettore disattivato per default; l'utente lo abilita consapevolmente dopo aver letto le condizioni (es. licenze non commerciali). |
 | **REJECT** | Non utilizzabile. Il motivo è documentato in [NEXUM-SOURCES.md](NEXUM-SOURCES.md). |
+| **FIXTURE** *(aggiunto 2026-09-28)* | Fonte sintetica con identificatori fittizi, ammessa **solo** nei test e nei benchmark (mondo non geografico D3, dataset di scala D2); mai usata come prova di accuratezza su fenomeni reali. |
 
 ## 4. Licenze dei dati e licenza del codice
 

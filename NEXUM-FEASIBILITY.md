@@ -2,6 +2,9 @@
 
 Data: 2026-09-28 · Autore: Alessandro Pezzali · Fase: ricerca e architettura
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** L'esito di fattibilità è confermato. La Fase 1 approvata costruisce un Core domain-agnostic (NEXUM WORLD) verificato con tre prove distinte: D1 dati reali (USGS, OurAirports, Natural Earth, Copernicus EMS), D2 scala sintetica, D3 mondo non geografico sintetico.
+
 ---
 
 ## 1. Esito
@@ -91,8 +94,8 @@ Nessun componente richiede server, database gestiti o servizi a pagamento.
 
 ## 7. Raccomandazione
 
-Procedere con la **Fase 1** di [NEXUM-ROADMAP.md](NEXUM-ROADMAP.md) (fondamenta a riga di comando con 5 fonti senza autenticazione) dopo:
+Procedere con la **Fase 1** di [NEXUM-ROADMAP.md](NEXUM-ROADMAP.md) (fondamenta a riga di comando con 5 fonti senza autenticazione — *superato il 2026-09-28: 4 fonti ADOPT reali più due dataset sintetici di test, vedi [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md)*) dopo:
 
 1. revisione e approvazione di questi documenti;
 2. chiusura delle decisioni aperte (linguaggio, regione di prova, politica di conservazione);
-3. riverifica, alla data di inizio della Fase 1, delle licenze delle 5 fonti iniziali.
+3. riverifica, alla data di inizio della Fase 1, delle licenze delle fonti iniziali (4 nella specifica approvata).

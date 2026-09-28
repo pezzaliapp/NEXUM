@@ -4,6 +4,9 @@
 
 Autore: Alessandro Pezzali · Licenza: MIT · Stato: fase di ricerca e architettura (nessun codice applicativo)
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** Questa visione è integrata dalla sezione §7 *Product Vision* (frase fondante, STORY, NEXUM WORLD, WORLD/OBJECT MODE, differenza da una mappa di eventi). In caso di dubbio prevale la [specifica della Fase 1](NEXUM-PHASE1-SPEC.md) §1.
+
 ---
 
 ## 1. Cos'è NEXUM
@@ -61,9 +64,51 @@ Ogni esempio è un'**ipotesi di correlazione**, non un'affermazione di causalit�
 | Documento | Contenuto |
 |---|---|
 | [NEXUM-FEASIBILITY.md](NEXUM-FEASIBILITY.md) | Relazione di fattibilità |
+| [NEXUM-OSIRIS-CODE-AUDIT.md](NEXUM-OSIRIS-CODE-AUDIT.md) | Audit del codice OSIRIS e decisione "zero import" |
+| [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md) | Specifica approvata della Fase 1 (NEXUM Core) |
 | [NEXUM-ARCHITECTURE.md](NEXUM-ARCHITECTURE.md) | Architettura a €0, local-first, moduli, motore di correlazione |
 | [NEXUM-DATA-MODEL.md](NEXUM-DATA-MODEL.md) | Object, Relation, Event, Timeline, Provenance, Confidence |
 | [NEXUM-SOURCES.md](NEXUM-SOURCES.md) | Catalogo fonti verificate per dominio, con licenze e verdetti |
 | [NEXUM-OSIRIS-ASSESSMENT.md](NEXUM-OSIRIS-ASSESSMENT.md) | Analisi di OSIRIS e di cosa è riutilizzabile |
 | [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md) | Confini legali ed etici, criteri di ammissione delle fonti |
 | [NEXUM-ROADMAP.md](NEXUM-ROADMAP.md) | Roadmap incrementale |
+
+## 7. Product Vision (approvata il 2026-09-28)
+
+### 7.1 Frase fondante
+
+> **"NEXUM is a world of Objects, Relations and Events that can be observed through Map, Graph, Timeline and Search."**
+> *NEXUM è un mondo di Objects, Relations ed Events che può essere osservato attraverso Map, Graph, Timeline e Search.*
+
+**Geography is a property of the world, not the architecture.** La mappa può essere una superficie operativa principale, ma **non è il modello dati**: alcuni Objects hanno coordinate, altri no; alcune Relations sono spaziali, altre logiche, temporali, infrastrutturali, organizzative, tecnologiche o informative.
+
+### 7.2 STORY (requisito di prodotto, non testo promozionale)
+
+*Unisci i puntini. Decodifica la complessità.*
+
+Il problema non è trovare altri dati. È capire quali hanno qualcosa in comune. Mappe, eventi, infrastrutture, fenomeni naturali, trasporti, cybersecurity, spazio e altre informazioni provenienti da mondi diversi normalmente rimangono separate. NEXUM prova a metterle in relazione.
+
+Non una raccolta di dashboard. Non un'altra mappa piena di punti. Objects. Relations. Events. Timeline.
+
+Ogni informazione mantiene la propria fonte, il proprio tempo e il proprio contesto. NEXUM cerca le relazioni tra gli eventi e mostra perché quel nesso esiste. Dati separati raccontano fatti. Collegati, possono raccontare qualcosa in più.
+
+La traduzione di ogni frase in requisiti verificabili è nella [specifica della Fase 1](NEXUM-PHASE1-SPEC.md) §1.1.
+
+### 7.3 ONE WORLD — MULTIPLE VIEWS
+
+MAP, GRAPH, TIMELINE, SEARCH, OBJECT VIEW, EVENT VIEW, RELATIONS, INSIGHTS, SOURCES e FILTERS sono **viste dello stesso NEXUM WORLD**: non applicazioni separate, non dashboard, nessuna copia indipendente dei dati. Il riferimento di un elemento resta stabile passando da una vista all'altra.
+
+- **WORLD MODE**: il quadro globale di fenomeni, oggetti ed eventi, con densità controllata.
+- **OBJECT MODE**: selezionato un elemento, NEXUM ricostruisce il contesto (fonti, evidenze, relazioni, oggetti ed eventi collegati, timeline, geografia se esiste, insight) e permette di spostare il centro dell'indagine senza tornare alla home.
+
+**DENSITY WITHOUT CHAOS**: l'esperienza finale dovrà essere un workspace operativo ricco, denso e fluido; la densità è controllata dal Core (aggregazioni, livelli di dettaglio, limiti) e dalla UI.
+
+### 7.4 Cosa NEXUM non deve diventare
+
+Un clone di EarthRadar o "EarthRadar con più layer"; una raccolta di dashboard; una semplice mappa OSINT; una mappa con un correlation engine aggiunto; un fork o clone di OSIRIS; un clone di prodotti proprietari. Una mappa di eventi risponde soprattutto a *"cosa sta succedendo e dove?"*; NEXUM deve rispondere anche a *"che cosa sto osservando? a cosa è collegato? quando? quali altri eventi? quali fonti e quali evidenze? perché questo nesso è interessante? come cambia il contesto se parto da un altro Object?"*.
+
+### 7.5 Identità
+
+- Nome: **NEXUM** · Claim: **ONE OBJECT. MANY RELATIONS. ONE TIMELINE.**
+- Destinazione prevista: **nexum.pezzaliapp.com** (nessun deployment né DNS nella Fase 1).
+- Identità, architettura, codice e UX originali; OSIRIS e prodotti commerciali restano solo riferimenti concettuali.

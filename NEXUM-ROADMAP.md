@@ -2,9 +2,12 @@
 
 Principio: **ogni fase produce qualcosa di utilizzabile, verificato e documentato** prima di aprire la successiva. Nessuna fase introduce costi operativi. Le date non sono fissate: si avanza per criteri di uscita, non per calendario.
 
+
+> **Revisione 2026-09-28.** Dopo l'approvazione della Product Vision e della specifica della Fase 1 v0.2, la roadmap è aggiornata nella sezione finale **"Roadmap aggiornata"**. Le sezioni originali restano per tracciabilità e sono marcate dove superate.
+
 ---
 
-## Fase 0 — Ricerca e architettura *(in corso)*
+## Fase 0 — Ricerca e architettura *(completata il 2026-09-28)*
 
 **Obiettivo**: decidere cosa costruire e con quali fonti, prima di scrivere codice.
 
@@ -15,13 +18,15 @@ Principio: **ogni fase produce qualcosa di utilizzabile, verificato e documentat
 - [x] Modello dati → [NEXUM-DATA-MODEL.md](NEXUM-DATA-MODEL.md)
 - [x] Architettura e motore di correlazione → [NEXUM-ARCHITECTURE.md](NEXUM-ARCHITECTURE.md)
 - [x] Relazione di fattibilità → [NEXUM-FEASIBILITY.md](NEXUM-FEASIBILITY.md)
-- [ ] Revisione e approvazione dei documenti da parte dell'autore
+- [x] Revisione e approvazione dei documenti da parte dell'autore
+- [x] Audit del codice OSIRIS → [NEXUM-OSIRIS-CODE-AUDIT.md](NEXUM-OSIRIS-CODE-AUDIT.md) (decisione: Opzione A — zero import)
+- [x] Specifica della Fase 1 v0.2 approvata → [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md)
 
 **Criterio di uscita**: documenti approvati; scelte aperte (§ "Decisioni aperte") risolte.
 
 ---
 
-## Fase 1 — Fondamenta (MVP tecnico, sola riga di comando)
+## Fase 1 — Fondamenta (MVP tecnico, sola riga di comando) *(piano originale, superato — vedi "Roadmap aggiornata")*
 
 **Obiettivo**: dimostrare la catena DATA → OBJECTS → EVENTS con provenienza, su fonti senza autenticazione.
 
@@ -44,7 +49,7 @@ Principio: **ogni fase produce qualcosa di utilizzabile, verificato e documentat
 
 ---
 
-## Fase 2 — Timeline e interfaccia locale
+## Fase 2 — Timeline e interfaccia locale *(piano originale, superato — vedi "Roadmap aggiornata")*
 
 **Obiettivo**: vedere e navigare ONE OBJECT / ONE TIMELINE.
 
@@ -57,7 +62,7 @@ Principio: **ogni fase produce qualcosa di utilizzabile, verificato e documentat
 
 ---
 
-## Fase 3 — Correlazione v1
+## Fase 3 — Correlazione v1 *(piano originale, in parte anticipato in Fase 1)*
 
 **Obiettivo**: prime ipotesi spiegabili tra domini.
 
@@ -122,7 +127,7 @@ Ordine suggerito, dal più semplice al più complesso:
 
 ---
 
-## Decisioni aperte (da chiudere prima della Fase 1)
+## Decisioni aperte (da chiudere prima della Fase 1) *(chiuse il 2026-09-28: Python per il Core; UI candidata TypeScript + MapLibre, decisione in Fase 2; Italia come area di validazione con architettura globale; conservazione dei raw PoC a tempo indeterminato; contributi esterni: da definire)*
 
 1. **Linguaggio**: Python proposto (ecosistema geo/feed maturo). Alternativa: TypeScript end-to-end.
 2. **Framework UI**: nessun framework pesante vs. libreria leggera; da decidere in Fase 2.
@@ -139,3 +144,16 @@ Ordine suggerito, dal più semplice al più complesso:
 | Crescita del volume dati su un solo PC | Conservazione configurabile, aggregazione, esportazioni Parquet |
 | Scope creep verso funzioni di sorveglianza | Elenco di funzioni vietate in [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md) §7, non negoziabile |
 | Correlazioni spurie | Regole con test storici, confidenza esplicita, ipotesi mai presentate come fatti |
+
+## Roadmap aggiornata (2026-09-28)
+
+| Fase | Contenuto | Stato |
+|---|---|---|
+| 0 | Ricerca, architettura, fonti, audit OSIRIS, specifica Fase 1 | completata |
+| 1 | **NEXUM Core domain-agnostic**: NEXUM WORLD (objects, relations, events, evidence, provenance, confidence, timeline, insight), motore di correlazione a pattern, contratto di query multi-vista (WORLD/OBJECT MODE, budget, livelli di dettaglio, traversal), tre prove distinte: **D1** dati reali (USGS, OurAirports, Natural Earth, Copernicus EMS — caso Myanmar), **D2** scala sintetica, **D3** mondo non geografico sintetico | in corso |
+| 2 | **Workspace multi-vista** (ONE WORLD — MULTIPLE VIEWS): API HTTP locale, MAP (candidato TypeScript + MapLibre, basemap PMTiles locale), GRAPH, TIMELINE, SEARCH, OBJECT/EVENT VIEW, RELATIONS, INSIGHTS, SOURCES, FILTERS; persistenza dell'investigation trail | pianificata |
+| 3 | Estensione delle regole di correlazione e taratura su casi reali | pianificata |
+| 4 | Espansione dei domini **come nuovi tipi e regole nello stesso mondo**: ogni blocco deve portare almeno una regola che lo collega ad altri domini | pianificata |
+| 5 | Trasporti e spazio con mitigazioni privacy | pianificata |
+| 6 | Esportazione e condivisione a €0; eventuale pubblicazione su **nexum.pezzaliapp.com** | pianificata |
+| 7 | Consolidamento | pianificata |

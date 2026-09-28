@@ -2,6 +2,9 @@
 
 Data analisi: 2026-09-28 · Repository analizzato: `github.com/simplifaisoul/osiris` (commit `7a3daec`, clone locale di sola lettura, fuori dal repository NEXUM)
 
+
+> **Aggiornamento 2026-09-28.** Questa valutazione iniziale è stata approfondita dall'audit file per file [NEXUM-OSIRIS-CODE-AUDIT.md](NEXUM-OSIRIS-CODE-AUDIT.md). I risultati di questo documento restano validi; l'autore ha scelto l'**Opzione A — zero import**: nessun codice, asset, dato o componente UI di OSIRIS entra in NEXUM.
+
 ---
 
 ## 1. Sintesi

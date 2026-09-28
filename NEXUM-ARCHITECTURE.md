@@ -2,6 +2,15 @@
 
 Stato: progetto v0.1 — nessuna implementazione. Tutte le tecnologie proposte sono open source e utilizzabili a costo €0.
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** Aggiornamenti architetturali (dettaglio normativo in [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md)):
+
+> - **NEXUM WORLD**: un solo mondo di Objects, Relations ed Events; Map, Graph, Timeline e Search sono proiezioni, nessuna vista possiede dati (§4, §21).
+> - **Core domain-agnostic**: tipi, ruoli, severità, arricchimenti spaziali e regole sono configurazione; un test verifica l'assenza di termini di dominio nel Core (§5).
+> - **Correlazione a pattern** con primitive di tempo, spazio (facoltativo), grafo, partecipazione, evidenza e identità (§19); sostituisce l'impostazione di §6 di questo documento.
+> - **Indici aggiuntivi**: grafo (`edge`, `degree`), aggregati per densità, change log per aggiornamenti incrementali (§18).
+> - Raw Store in gzip; zero dipendenze di runtime; HTTP locale in Fase 2.
+
 ---
 
 ## 1. Requisiti architetturali
@@ -67,7 +76,7 @@ File dichiarativi (YAML/TOML), uno per fonte, versionati in Git. Contengono i ca
 
 ### 3.4 Raw Store
 
-Directory locale di file compressi (`zstd`), indirizzati per SHA-256, con indice nel database. Immutabile. Politiche di conservazione configurabili per fonte (es. posizioni di trasporto: 7 giorni di dettaglio, poi solo aggregati).
+Directory locale di file compressi (`zstd` nel progetto originale; **gzip + campo `codec` nella Fase 1**), indirizzati per SHA-256, con indice nel database. Immutabile. Politiche di conservazione configurabili per fonte (es. posizioni di trasporto: 7 giorni di dettaglio, poi solo aggregati).
 
 ### 3.5 Pipeline
 
@@ -97,9 +106,11 @@ Vedi §6.
 
 ### 3.8 Local API
 
-Server HTTP legato a `127.0.0.1` (non esposto in rete per default). Endpoint di sola lettura per UI e script: oggetti, eventi in finestra spazio-temporale, vicini nel grafo, timeline di un oggetto, ipotesi, attribuzioni.
+Server HTTP legato a `127.0.0.1` (non esposto in rete per default), previsto in Fase 2. ~~Endpoint per oggetti, eventi in finestra spazio-temporale, vicini, timeline, ipotesi~~ *(superato il 2026-09-28)*: il contratto è quello della specifica Fase 1 §22 — `Scope` condiviso, `Budget`, livelli di dettaglio, aggregazioni, `context` (OBJECT MODE), traversal di grafo/timeline/evidenze, `changes_since`. Nella Fase 1 il contratto è implementato in-process.
 
 ### 3.9 Web UI locale
+
+> *Revisione 2026-09-28*: la UI futura è un **workspace multi-vista** (ONE WORLD — MULTIPLE VIEWS): MAP, GRAPH, TIMELINE, SEARCH, OBJECT/EVENT VIEW, RELATIONS, INSIGHTS, SOURCES, FILTERS come viste dello stesso mondo, con WORLD MODE e OBJECT MODE. La mappa è una delle viste, non la prima per importanza architetturale. Candidato: TypeScript + MapLibre (decisione in Fase 2). L'elenco seguente resta valido come dettaglio delle singole viste.
 
 - **Mappa**: MapLibre GL JS (BSD-3-Clause), con mappa di base **vettoriale locale** in un file PMTiles (formato aperto, BSD) generato da dati OpenStreetMap (ODbL, con attribuzione). Nessun tile server esterno richiesto; funziona offline.
 - **Timeline**: vista temporale unica, filtrabile per dominio, con replay.
@@ -108,6 +119,8 @@ Server HTTP legato a `127.0.0.1` (non esposto in rete per default). Endpoint di 
 - Identità visiva **originale**: palette, icone (set open source con licenza compatibile, es. MIT/ISC) e terminologia NEXUM.
 
 ## 4. Stack proposto (da confermare in fase di implementazione)
+
+> *Revisione 2026-09-28*: nella **Fase 1** il Core usa **solo la libreria standard di Python 3.12** (sqlite3 con R*Tree e FTS5, urllib, tomllib, gzip) e `pytest` per i test; nessuna dipendenza di runtime. Le librerie elencate sotto restano opzioni future.
 
 | Componente | Proposta | Licenza | Costo |
 |---|---|---|---|
@@ -178,7 +191,7 @@ explain: >
 
 ### 6.4 Punteggio
 
-`score = strength(regola) × min(confidenza dei membri) × fattore_prossimità × fattore_temporale`
+`score = strength(regola) × min(confidenza dei membri) × fattore_prossimità × fattore_temporale` *(superato il 2026-09-28 dalla formula unica della specifica Fase 1 §16.3, che aggiunge supporto indipendente e rende la prossimità spaziale facoltativa)*
 
 - `fattore_prossimità` e `fattore_temporale` decrescono linearmente con distanza e Δt entro la finestra della regola.
 - Più regole indipendenti sulla stessa coppia di eventi si combinano con noisy-OR.

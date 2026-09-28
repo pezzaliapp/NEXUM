@@ -19,6 +19,9 @@ Salvo diversa indicazione, **costo reale €0** e nessuna carta di credito richi
 
 **Regola generale per chiavi e account:** le credenziali gratuite sono **personali dell'utente**, inserite nella sua configurazione locale. NEXUM non distribuisce chiavi.
 
+
+> **Revisione 2026-09-28 — Fase 1 v0.2 approvata.** Le quattro fonti del PoC reale della Fase 1 (USGS, OurAirports, Natural Earth, Copernicus EMS) sono ADOPT e sono state riverificate il 2026-09-28; note di qualità aggiunte per Natural Earth e Copernicus EMS. Nuovo verdetto tecnico `fixture` per fonti sintetiche ammesse **solo** nei test (vedi [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md) §3.1).
+
 ---
 
 ## 1. Geografia e dati di base
@@ -28,7 +31,7 @@ Salvo diversa indicazione, **costo reale €0** e nessuna carta di credito richi
 | OpenStreetMap (OSMF) | estratti bulk `.osm.pbf` | — | ODbL 1.0 | usare estratti, non le API di editing | mondo · continuo | sì; attribuzione "© OpenStreetMap contributors", share-alike sui DB derivati | sì | basso | **ADOPT** | T3 | A |
 | Geofabrik (Geofabrik GmbH) | `download.geofabrik.de` | — | ODbL | niente download massivi paralleli; estratti pubblici senza dati degli utenti | regioni · giornaliero | sì (ODbL) | sì | basso | **ADOPT** | T3 | A |
 | Protomaps / PMTiles | build planet `maps.protomaps.com/builds`, `pmtiles extract` | — | dati ODbL (produced work) | ~120 GB planet; estrarre regioni; **non** fare hotlink, ospitare localmente | mondo · giornaliero | sì, locale | sì | basso | **ADOPT** — basemap locale predefinita | — | A |
-| Natural Earth | download | — | PD | — | mondo · raro | sì | sì | basso | **ADOPT** — confini e basemap a bassa scala | T1 | A |
+| Natural Earth | download (`naciscdn.org/naturalearth/…`; l'URL del sito ha restituito 500 il 2026-09-28) | — | PD | alcuni paesi hanno `ISO_A2 = -99`: usare `ISO_A2_EH`/`ISO_A3_EH` | mondo · raro | sì | sì | basso | **ADOPT** — confini e basemap a bassa scala | T1 | A |
 | GeoNames | dump giornalieri; web service | key (username) per WS | CC BY 4.0 | WS 10.000 crediti/giorno, 1.000/ora | mondo · giornaliero | sì con attribuzione | sì | basso | **ADOPT** (dump locali; WS raramente) | T3 | A |
 | Wikidata (Wikimedia) | dump, API entità, SPARQL `query.wikidata.org` | — | CC0 | timeout 60 s; User-Agent descrittivo obbligatorio; dal 2025 grafo scientifico separato | mondo · continuo | sì | sì | basso (dati) / medio (motore SPARQL) | **COND** — preferire API entità e dump, cache | T3 | A |
 | Wikipedia / Wikimedia API | Action API, REST | — | testi CC BY-SA 4.0 | 2026: 10 req/min senza UA conforme, 200/min con UA conforme | mondo | sì, share-alike, testi separati dal codice | sì | basso-medio | **COND** — solo estratti brevi con link | T3 | A |
@@ -50,7 +53,7 @@ Salvo diversa indicazione, **costo reale €0** e nessuna carta di credito richi
 | Smithsonian Global Volcanism Program | RSS/CAP settimanale; database VOTW | — | termini Smithsonian: uso **non commerciale** per contenuti non-PD | robots.txt esclude alcune directory | vulcani olocenici mondiali · settimanale | riassunto + link, citazione | limitato/non chiaro | basso | **COND** — solo metadati e link; segnalare il limite non commerciale | T1 | M |
 | USGS Volcano Hazards (HANS) | `volcanoes.usgs.gov/hans-public/api/` | — | PD | — | vulcani USA · a evento | sì | sì | basso | **ADOPT** | T1 | M |
 | NOAA NCEI Natural Hazards | REST, database storici | — | PD | — | mondo · storico | sì | sì | basso | **ADOPT** — base storica per correlazioni | T1 | M |
-| Copernicus EMS Rapid Mapping | `mapping.emergency.copernicus.eu/activations/api/` | — | accesso libero e aperto (Reg. UE 2021/696) | alcuni prodotti riservati | mondo, su attivazione | sì, con citazione | sì | basso | **ADOPT** | T1 | A |
+| Copernicus EMS Rapid Mapping | `mapping.emergency.copernicus.eu/activations/api/` | — | accesso libero e aperto (Reg. UE 2021/696) | alcuni prodotti riservati; **`activationTime` senza fuso** (assunto UTC con incertezza); testo descrittivo talvolta incoerente con i campi strutturati (prevalgono i campi strutturati) | mondo, su attivazione | sì, con citazione | sì | basso | **ADOPT** | T1 | A |
 | EFFIS (JRC / CEMS) | WMS/WFS, download | — | CC BY 4.0 | storici tramite modulo (import manuale) | Europa, MENA · giornaliero/NRT | sì con attribuzione | sì | basso | **ADOPT** | T1 | A |
 | GWIS (JRC / CEMS) | servizi web | — | CC BY 4.0 | — | mondo · giornaliero | sì | sì | basso | **ADOPT** (da verificare in dettaglio) | T1 | M |
 | GloFAS / EFAS (CEMS / ECMWF) | EWDS (stesso stack del CDS), WMS | acct | CC BY 4.0 (dal 2025-07) | code di elaborazione; alcuni prodotti EFAS riservati alle autorità | mondo / Europa · giornaliero | sì con citazione | sì | basso | **OPT-IN** — dati pesanti, GDACS copre già gli allarmi | T1 | M |

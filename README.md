@@ -2,6 +2,8 @@
 
 **ONE OBJECT. MANY RELATIONS. ONE TIMELINE.**
 
+> *NEXUM is a world of Objects, Relations and Events that can be observed through Map, Graph, Timeline and Search.*
+
 NEXUM è una piattaforma open-source, local-first e a costo operativo €0 per la correlazione di dati pubblici, leciti e gratuiti:
 
 ```
@@ -20,6 +22,8 @@ DATA → OBJECTS → RELATIONS → EVENTS → TIMELINE → CORRELATION → INSIG
 | [NEXUM-DATA-MODEL.md](NEXUM-DATA-MODEL.md) | Object, Relation, Event, Timeline, Provenance, Confidence |
 | [NEXUM-SOURCES.md](NEXUM-SOURCES.md) | Catalogo delle fonti verificate per dominio |
 | [NEXUM-OSIRIS-ASSESSMENT.md](NEXUM-OSIRIS-ASSESSMENT.md) | Valutazione di OSIRIS |
+| [NEXUM-OSIRIS-CODE-AUDIT.md](NEXUM-OSIRIS-CODE-AUDIT.md) | Audit del codice OSIRIS, decisione zero import |
+| [NEXUM-PHASE1-SPEC.md](NEXUM-PHASE1-SPEC.md) | Specifica approvata della Fase 1 (NEXUM Core) |
 | [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md) | Confini legali ed etici |
 | [NEXUM-ROADMAP.md](NEXUM-ROADMAP.md) | Roadmap incrementale |
 
