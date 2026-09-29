@@ -623,7 +623,7 @@ Dopo il congelamento non si abbassano soglie, non si eliminano test falliti, non
 | A3 | D2 | `GET /context/{id}` sui 10 hub | tempo di andata e ritorno | p95 ≤ 200 ms | 50 ripetizioni per hub (500 richieste) | p95 ≤ 200 ms | sì |
 | A4 | D2 | `GET /graph/expand` pagina da 200 | tempo di andata e ritorno | p95 ≤ 100 ms | 10 hub × prime 5 pagine con cursore × 10 ripetizioni | p95 ≤ 100 ms | sì |
 | A5 | D2 | cancellazione: richiesta costosa sul canale X, poi richiesta più recente sullo stesso canale dopo 20 ms | tempo dall'arrivo della richiesta più recente alla terminazione di quella superata (timestamp del servizio) | p95 ≤ 50 ms | 50 prove con richieste costose fisse (timeline e mappa senza aggregati a scope ampio) | p95 ≤ 50 ms | sì |
-| A6 | D2 | scenario API di 30 minuti (mix di A2, A3, A4, A9, `explain`, timeline) | RSS massimo del processo servizio (`ps -o rss`, campionato ogni 5 s) | ≤ 1,5 GB | scenario ciclico con fixture fisse | massimo campionato ≤ 1,5 GB | sì |
+| A6 | D2 | scenario API di 30 minuti (mix di A2, A3, A4, A9, `explain`, timeline) | **emendato il 2026-09-29 (approvato dall'autore):** Σ `phys_footprint` di tutti i processi del servizio (`footprint`, campionato ogni 5 s); riportati senza soglia: Σ RSS, pagine di file mappate, page cache del file del database contata una volta (`mincore`). *Metodo originale: RSS massimo del processo servizio (`ps -o rss`)* | ≤ 1,5 GB | scenario ciclico con fixture fisse | massimo campionato ≤ 1,5 GB | sì |
 | A7 | D2 | 4 canali concorrenti (map, timeline, search, graph) | p95 di ciascun canale in concorrenza vs isolato | ≤ 2× | 4 thread client, 200 richieste per canale; poi lo stesso mix per canale da solo | per ogni canale p95 concorrente ≤ 2 × p95 isolato | sì |
 | A8 | D1 | `GET /explain/{id}` | tempo di andata e ritorno | p95 ≤ 100 ms | i 35 insight R2 × 10 ripetizioni | p95 ≤ 100 ms | sì |
 | A9 | D2 | `GET /search` a ogni carattere | tempo di andata e ritorno | p95 ≤ 150 ms | 10 termini fissi estratti con seed dalle etichette di D2, digitati carattere per carattere dal 2°, senza debounce | p95 ≤ 150 ms | sì |
@@ -804,3 +804,66 @@ Ogni slice deve funzionare, con test e verifica visiva in Chrome, prima di passa
 8. Prestazioni su D2 + irrobustimento responsive; suite completa e benchmark da ambiente pulito; report.
 
 Le condizioni di STOP della Fase 1 restano valide, con in più: qualunque dipendenza non in §M, qualunque richiesta di rete esterna e qualunque necessità di modificare il Core oltre D1.
+
+---
+
+## S. Note di implementazione della Fase 2 (2026-09-29) — nessun criterio, soglia o benchmark modificato
+
+### S.1 Scelte fisiche
+
+| Tema | Specifica | Implementazione | Motivo |
+|---|---|---|---|
+| Worker del servizio | pool di 6 thread | **4 processi** (`multiprocessing`, stdlib), ciascuno con la propria connessione in sola lettura; cancellazione tramite array condiviso delle sequenze per canale e deadline su orologio monotono di sistema | il Core fa molto lavoro in Python: con i thread il GIL impediva il parallelismo (A7 falliva: ricerca 2,6 → 28 ms in concorrenza); con i processi A7 passa. Nessun requisito cambiato |
+| Gestore di progresso SQLite | — | ogni 100 istruzioni VM | il Core esegue molte istruzioni brevi: con 2.000 l'interruzione poteva non scattare |
+| Canali di cancellazione | canale per vista | canale = sessione della pagina + vista | una pagina ricaricata riparte da seq 1: senza sessione le sue richieste risultavano "superate" (bug trovato nella verifica visiva) |
+| Budget della mappa | default 2.000 → max 5.000 | desktop 5.000 · tablet 2.500 · telefono 300 | §L (budget per classe di schermo) e U4 (≥ 4.000 feature) |
+| Zoom del Core | — | zoom Core = zoom MapLibre + 3 (tile da 512 px) | celle aggregate di 12–30 px a schermo |
+| Budget minimo di `/context` | 25 per sezione | minimo 10, dichiarato in `budget_applied` | `context()` del Core restituisce sempre fino a 10 elementi vicini: il limite è reso esplicito, non nascosto |
+| Relazioni oltre 50 per gruppo | "altri N" | pagine con `expand` del Core (cursore) | `relations()` del Core elenca al massimo 50 elementi per gruppo |
+| Filtro testuale sullo Scope (§H "Mostra nello scope") | `Scope.text` per tutte le viste | **non implementato** | nessuna operazione del Core usa `Scope.text`: un pulsante senza effetto sarebbe stato ingannevole; servirebbe una modifica al Core oltre D1 |
+| Basemap | Natural Earth dal Raw Store | provider generico `raw-polygons`, fonte in `config/basemap.toml`, attribuzione dal registro | nessun termine di dominio nel codice dell'API (W9) |
+| Etichette mappa | overlay HTML | modulo isolato, al massimo 30 (12 su telefono), collisioni per rettangolo | D4 |
+| Nodi del grafo | forma per natura | programma WebGL NEXUM su `NodeProgram` pubblico di Sigma (cerchio, quadrato, rombo) | nessun pacchetto aggiuntivo |
+| Budget del grafo | 200 → 2.000 | selettore 200 / 1.000 / 2.000 nodi (archi = 2 × nodi) | §F, U5 |
+| Aggiornamento dopo un cambio di `world_version` | via `changes_since` | le viste si riinterrogano | U10 è informativo; documentato |
+| Telefono | status bar nascosta | riga di attribuzione compatta sulla mappa | le attribuzioni restano visibili (licenze) |
+| Token `--faint` | `#6F797F` | `#808A90` | contrasto 3,73:1 → 4,71:1 (W30) |
+
+### S.2 Errata della versione congelata (non cambiano il significato dei criteri)
+
+1. **W18**: l'ID della regola R2 è `event_event_association` (il file è `rules/r2_event_event_association.toml`); il testo congelato riportava il nome del file. Il test verifica la regola R2 versione 2 con il suo ID reale.
+2. **§M.2**: `@types/react` e `@types/react-dom` (MIT, solo sviluppo, dichiarazioni di tipo) sono necessari a qualunque progetto React in TypeScript (D2) e non erano elencati. Da ratificare.
+3. **W10**: il confronto per righe con OSIRIS-REFERENCE segnalava quattro idiomi React/TypeScript generici (per esempio `const [open, setOpen] = useState(false);`): le variabili sono state rinominate. `ui/package-lock.json` condivide righe di metadati di pacchetti di terze parti (dipendenze di MapLibre) con il lockfile di OSIRIS: nel test W10 è confrontato solo per hash. Il test **P25 della Fase 1 non è stato modificato** e fallisce per lo stesso lockfile (vedi il report).
+
+### S.3 Questioni aperte che richiedono una decisione dell'autore (STOP condition)
+
+1. **A3 / Core su hub (modifica del Core oltre D1).** `related_events()` ed `entity_timeline()` del Core caricano e ordinano tutte le partecipazioni di un oggetto: su un hub D2 (~67.000 partecipazioni) `context()` impiega ~1,1 s (A3: p95 1.156 ms contro 200 ms). Soluzione proposta: nel Core, `related_events`/`entity_timeline` paginano con una query ordinata e limitata (indice su `edge(dst_id, edge_kind)` con join ordinato sul tempo dell'evento) e contano con `COUNT(*)` o con la cache dei gradi degli hub; risultati identici, API invariata.
+2. **Licenza MPL-2.0 (W2).** Vite 8 installa `lightningcss` (MPL-2.0, anche come binario per darwin-arm64), usato solo durante la build e non incluso nel bundle. Opzioni: (a) ammettere MPL-2.0 per i soli strumenti di sviluppo non distribuiti; (b) passare a una versione di Vite che non lo installa.
+3. **P25 e lockfile (W12).** Il test congelato della Fase 1 confronta per righe anche i lockfile generati. Opzione proposta: escludere dal confronto per righe i lockfile di dipendenze, mantenendo il confronto per hash.
+
+### S.4 Dopo la baseline ufficiale (2026-09-29, autorizzazioni dell'autore)
+
+- **Baseline ufficiale pre-correzione** conservata in `baseline/phase2-2026-09-29-pre-fix/` (report, log, screenshot). Esito: W2, W12, W32 FAIL; tutti gli altri PASS.
+- **A3 — ottimizzazione autorizzata del Core.** Causa misurata: N+1 in `related_events()` ed `entity_timeline()` (67.112 `SELECT * FROM event WHERE event_id=?` per sezione, 134.266 per un `context()` sull'hub da 67.112 partecipazioni; le singole query usano la chiave primaria). Intervento: un solo recupero in blocco (`json_each`, colonne necessarie), cache derivata dell'ultimo elemento per `world_version` (le due sezioni di `context()` lo condividono), ordinamenti parziali `heapq.nsmallest` equivalenti all'ordinamento stabile completo. Output logico identico su 147 elementi (hash degli output di `context()`, `related_events()` e `entity_timeline()` anche con scope e cursore). Suite della Fase 1 PASS (hash, rebuild, idempotenza). Delta: `context()` sull'hub ~990 → ~175 ms con mmap, ~221 ms a freddo con le impostazioni dei worker (mmap 0). **A3 via API: p95 233 ms con mmap 0 (FAIL), 182 ms con mmap 1 GB (PASS) ma A6 sale a 2.313 MB in 3 minuti (FAIL).** Decisione richiesta all'autore.
+- **W1** emendato secondo l'autorizzazione: il Core può differire solo per `explain` (D1) e per le funzioni dell'ottimizzazione A3; il test lo verifica funzione per funzione.
+- **P25** corretto metodologicamente: classificazione per contenuto (codice, asset, dati, metadati di dipendenze verificati strutturalmente, altro); fixture positive e negative generate a runtime. W10 usa lo stesso classificatore.
+- **W2** analizzato: `lightningcss@1.33.0` (MPL-2.0) è una dipendenza **diretta e obbligatoria** di `vite@8.3.1` (non opzionale né peer), minificatore CSS predefinito della build (`build.cssMinify = "lightningcss"`); binario nativo usato solo in build, non distribuito nel bundle (nel CSS compilato compare solo un suo effetto: `--lightningcss-light/dark` per `color-scheme`). Nessuna configurazione lo evita (l'alternativa `"esbuild"` richiede un pacchetto non presente in Vite 8). `vite@7.3.6` lo dichiara come peer opzionale e non lo installa. Decisione richiesta all'autore.
+- **Benchmark UI (informativi, dopo la correzione del harness)**: U1, U2, U3, U7, U8 PASS; U4 area scelta dagli aggregati: 3.617 feature (< 4.000); U5 il presupposto "2.000 nodi / 4.000 archi a profondità 2" non è raggiungibile su D2 con la semantica del Core (550 nodi); U6 la UI usa il bucket automatico del Core (mese oltre 90 giorni): 400 bucket giornalieri non si presentano; U9 heap 36,5 → 46,3 MB (+27%, soglia 10%).
+
+### S.5 Decisioni dell'autore (2026-09-29, seconda serie) — stato
+
+- **W2** — eccezione MPL-2.0 **solo build-time, nominale** (`lightningcss` e binari di piattaforma), verificata automaticamente (non runtime, non nel bundle, non copiata nel progetto); policy in `ui/license-policy.json` con classi *runtime/distributed* e *build-only*; nessuna allowlist MPL generale. Test con casi negativi.
+- **U4/U5/U6** — mondo sintetico deterministico dei benchmark UI `ubench` (`bench/phase2/generate_ubench.py`, `fixtures/ubench/`), separato da D1/D2/D3, costruito con la pipeline normale: U4 4.506 elementi nella vista a z 10; U5 2.000 nodi e 4.000 archi renderizzati con un nodo di sintesi dell'hub; U6 400 bucket annuali con il bucketing automatico del Core (nessuna regola della UI disattivata). Tutti PASS.
+- **W25** — difetto trovato con U5: il grafo poteva superare il budget di nodi aggiungendo i nodi aggregati; ora il budget li include e le foglie omesse sono dichiarate.
+- **U9** — causa misurata: cache delle risposte limitata in voci ma non in byte (16,9 MB di 39,5 MB di heap; +4 MB tra i passi 100 e 200). Correzione: cache limitata a 6 MB, risposte > 512 kB non conservate (revalidazione ETag). U9: +3,3 %, +2,8 %, +6,0 % in tre esecuzioni da browser pulito (PASS). Lo scenario di U9 usava uno zoom casuale: reso deterministico come richiede §P.
+- **A6** — l'implementazione del mix di A6 non conteneva tutte le operazioni prescritte (A3, A4, explain): corretta secondo §P.1.
+- **A3/A6** — misure in `memory_probe_*.json`; decisione dell'autore richiesta sul metodo di A6 (vedi il report della sessione): con mmap 0 A3 FAIL (p95 250 ms) e A6 PASS; con mmap 1 GB A3 PASS (p95 182 ms) e A6 FAIL col metodo attuale (Σ RSS 2.409 MB) ma Σ phys_footprint 756 MB.
+
+### S.6 Emendamento di A6 e configurazione dei worker (approvati dall'autore il 2026-09-29)
+
+- **A6**: il criterio si applica alla somma dei `phys_footprint` (memoria privata sporca e compressa attribuita dal sistema a ciascun processo) di tutti i processi del servizio; soglia invariata (1,5 GB). Motivo: con `mmap` le pagine del file SQLite sono page cache pulita e condivisa, contata nell'RSS una volta per ogni processo che la mappa (misurato: 1.378 MB sommati sui worker, ~1.025 MB contati più volte), mentre senza `mmap` la stessa cache esiste ma non entra nell'RSS; la memoria privata è la stessa nelle due configurazioni (784 MB con mmap 0, 756 MB con mmap 1 GB). Σ RSS, pagine mappate e page cache (contata una volta con `mincore`) restano riportati.
+- **Worker del Core**: `mmap_size` = 1 GB (prima 0), che porta A3 sotto 200 ms.
+
+### S.7 Correzioni responsive dopo il giro ufficiale (2026-09-29)
+
+Solo UI (CSS e componente del grafo): controlli del grafo mai coperti dall'inspector su tablet, etichette dei nodi dentro il canvas e senza sovrapposizioni su tablet e telefono, barra del grafo in una sola riga sul telefono. Nessuna modifica a Core, API, dati, benchmark o soglie. Esiti in `NEXUM-PHASE2-VALIDATION.md` §2.

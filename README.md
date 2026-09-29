@@ -48,3 +48,16 @@ Struttura: `nexum/core/` (Core domain-agnostic), `connectors/` (un modulo per fo
 
 Codice e documentazione: [MIT](LICENSE) © 2026 Alessandro Pezzali.
 I dati delle fonti esterne restano soggetti alle rispettive licenze e non sono inclusi nel repository.
+
+## Fase 2 — workspace locale
+
+```bash
+# una volta: dipendenze e build della UI (Node serve solo in sviluppo)
+cd ui && npm ci && npm run build && cd ..
+# servizio locale (solo 127.0.0.1) con la UI: apri http://127.0.0.1:8765/
+python3 -m nexum.api serve d1          # oppure d2, d3, mixed
+# verifica completa da ambiente pulito
+python3 bench/phase2/run_phase2.py --phase1 --ui-clean --tests --bench --report
+```
+
+Specifica: `NEXUM-PHASE2-SPEC.md` (criteri W1–W32, benchmark A1–A10 e U1–U10, note di implementazione §S).

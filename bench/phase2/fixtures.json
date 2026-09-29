@@ -1,0 +1,1217 @@
+{
+ "seed": 20260929,
+ "myanmar": {
+  "mm": "obj_4udqxu3wzcmt7ge7nrtfpuqkxq",
+  "vymd": "obj_r67mjum3oegfzbyykyabuoxj3y",
+  "quake": "evt_52533tha44nldvbuqjsciuqz3m",
+  "m67": "evt_rkp2glf4cgtlqoivljy6dzc5hy",
+  "act": "evt_c73mg4j3n5kc4k5djdxgn2tyre",
+  "r2": "ins_qdfvgnnovqi35yrp7gqjogtr5y",
+  "r3": "ins_sa24v3os2lw35wnzusykr2ngda",
+  "r1": "ins_vc4xi6lmoiyhumglgbpheclix4"
+ },
+ "d3": {
+  "vuln": "obj_3dxfhegelhrpb5fkjljo4sp34y",
+  "org": "obj_ora7gdg45ooy4enfo5brhixeo4",
+  "n1": "ins_5j625jg7ns5dtnvovk6epsmj6u"
+ },
+ "linked_d1": [
+  "obj_mnmsrpg7eg4cclbdgxuvvvldxi",
+  "obj_t5qgii3jnyz7kz4vivyardma44",
+  "obj_i7v47mlkrezjou3b5emuvnzi2q",
+  "obj_qiu4qqogxoevuoohxzg7ug73wa",
+  "obj_ba325igqifvg7gufu6avr75xt4",
+  "obj_p7fr5ksgshdwtbkd6n6lfy665y",
+  "obj_flb23oroyyxnit3igio772wadm",
+  "obj_x57y73umqsseg4jrf4zfzj6xmm",
+  "obj_ludellsxsknxzcmhgxhvbso2dy",
+  "obj_rgovqxqxhzfl25eokj7tepvrt4",
+  "obj_5eyhrlsfevkgq7klubh7yv3cou",
+  "obj_solxyxzmpcj5gly6hwp3uwgo3u",
+  "obj_2ipnli4ow4f4nb54youoa2yavi",
+  "obj_j7jf3dzza6ecu4gkdbigue34fq",
+  "evt_obkihjilnihvxwwkmfplql66la",
+  "evt_rf4h6hmaei6gx42bw45qjmg5ei",
+  "evt_rqvii3rxqcgzt6gf33wmh3dc3e",
+  "evt_l4kfnwb3nayrpkdmopx7nfp6ge",
+  "evt_mkzh6dki43ytnin46csdx4ytdy",
+  "evt_m25dmhfpby3flaj4vbagpfgdse",
+  "evt_oacdye54z6fp4qnupga3eu6ib4",
+  "evt_m5gagphqbg5hz2kwx5yt5zef4y",
+  "evt_uvrw7neg7e73fhrrvymnig3zsq",
+  "evt_7grqaqtz3ni7hqtgba3zalrkqy",
+  "evt_vwoajftup574eerbl2efezwige",
+  "evt_z54xeomowgccmpslete3hwby4a",
+  "evt_4fuygpoggcovw4lrf74cnmzmse",
+  "evt_bpxktgwuqk5suxqbew7yujv7wi",
+  "ins_j5bmbbkyubljtmxlzcr7cetn6u",
+  "ins_he3tnbtyqj43mu7f3sfgmqkvoi",
+  "ins_4ypiazf7wexsbwmyvgm3eigfmm",
+  "ins_63p6nozlqxahmg5ulyyuxdy5ke",
+  "ins_a7dit7g4uvtyrxurcahybm37x4",
+  "ins_oatej5jvtutwfgwugnwjtgabcm",
+  "rel_jde3om3k7fr3t3zfua2sxcefpu",
+  "rel_rvry5ezsd4qf76wrrt2rc3u6tm",
+  "rel_b32b4y3jqnun23xqzlx57gcgce",
+  "rel_2hpjvtvw5exxuyooizscxehhty",
+  "rel_adythv23aeuo6vnts6p5mvnao4",
+  "rel_sfkol5t6ymnx5kw7b6dpq4lt2a"
+ ],
+ "linked_d3": [
+  "obj_wahvl6zwk54vdo5aldqaw4iqea",
+  "obj_svaqa75txbkyjh3dyavcg3snau",
+  "obj_mnmwrfspgpituomb2tkirqnrve",
+  "obj_qols3gno36sb5ht6xgkt6r7tay",
+  "evt_hyr24tvozttv2ikrwagmhvhcfq",
+  "evt_uionp6dczyqwtggtdmyfhbi6ia",
+  "evt_4qd7vjq7p4nls4j7ireacrbuae",
+  "ins_5j625jg7ns5dtnvovk6epsmj6u",
+  "ins_agymckfvr5pt4f5cgg57pozpia",
+  "rel_gs3hfbudcywqoadqpgvnsht2si"
+ ],
+ "relations": [
+  "rel_d62a5d4sxenhn7fjuzj4restsa",
+  "rel_45z5s4qdi7jjiv27mwecu7uohm",
+  "rel_vzrlymnbse6tj3c5aztp67to6m",
+  "rel_m7sqe2qat5adwybzgq5dcwgnve",
+  "rel_32ux3wd2mwnxmunzj7ly37igwy",
+  "rel_obbmlo2crs6gapyavyfp2zpia4",
+  "rel_ghrfh5v33m6cv5j7wemx4ywvcm",
+  "rel_tdjxkvmht2bhw4x4sljswdmkbe",
+  "rel_vwsh7kqvqt2sg7qgqyor5jvuke",
+  "rel_fszpi3ugdqnfmf2obyllow6rqi",
+  "rel_k7xyjfvel3rgudem2hi5h7lth4",
+  "rel_p53ccxdrrztctppgyd4dvpefja",
+  "rel_yhnpjtawo7tat7x22ssbrwwon4",
+  "rel_rp5esu5uf55s6vwxsh3ujrohvu",
+  "rel_rkanxob2jvtw3tniauot6wlovm",
+  "rel_4slcgqwsp4clirpg75ueghwjtq",
+  "rel_263mwc3vdv6bz7zpjv6kzs2x3a",
+  "rel_4rhqruudn3s3xiaph7gwgmzq4a",
+  "rel_scz2a4bb3o3tdw3aqz2eqdr5em",
+  "rel_sa3qoa6iqb4jkruai5gv4pk7um"
+ ],
+ "path_pairs": [
+  [
+   "evt_wiuesozruaetosq3xm67dzypwu",
+   "obj_mh3woxfy4mrpswymblx6epb4cy"
+  ],
+  [
+   "evt_bla6rsexabqvopxgyc6mmwbyi4",
+   "obj_5avfoppw2bdi3w3asoanvblnzm"
+  ],
+  [
+   "evt_6yacos7ddqfwn2g6pckhhvh3pm",
+   "obj_nt5bvccz2zszkmfi4dr5kddpfu"
+  ],
+  [
+   "evt_ltu776zzvjlv6dwyvz7rmkusla",
+   "obj_4kzdyq5grrpfmha5hntgjuqypq"
+  ],
+  [
+   "evt_4lfctesi2ej4v3gzozfceptjxu",
+   "obj_7puc6ihzym65lqdhadu7p357mm"
+  ],
+  [
+   "evt_eftalrsyps266rpxh35nayd7wa",
+   "obj_fewkeicgy6m5nvrsxvthu2rlwe"
+  ],
+  [
+   "evt_df4zgpagflvydd2vl5jllwl6nu",
+   "obj_o74bnvpxycwlq2ez5ohc4e3kiq"
+  ],
+  [
+   "evt_zutcxe5ctqsh3a3oqy5g4sjl5u",
+   "obj_ajyme5q2jcv2x72sexpy2rno5m"
+  ],
+  [
+   "evt_apgisaaxj4ptbsjyqqaqfr3cay",
+   "obj_6gccgamzrp25h47xdyi5qbkhyy"
+  ],
+  [
+   "evt_gjhyyg5glnvsqjqmh5qozpg55y",
+   "obj_nyspwy6lz6rq5nx5bpz6zo6bui"
+  ],
+  [
+   "evt_km7f22a22bp77ibwvrdhymknuy",
+   "obj_l2q7jj6uz5ttgqtmgdguhsw2di"
+  ],
+  [
+   "evt_phstotzxauhyqvnfsu72vfhvk4",
+   "obj_e5e2ppdytusasde5xyu2x2fhye"
+  ],
+  [
+   "evt_se2skbqiyqn2nvhuxxnfoqbqfi",
+   "obj_tgmqzjhc5oe4e3aw4wsgnsz4a4"
+  ],
+  [
+   "evt_sq2y75nysrxafwp7hnq65p5ft4",
+   "obj_6ynrbhjxt4zp7yzlrili5zwwli"
+  ],
+  [
+   "evt_shnf6ejv53hzqxhhuht23oqbyi",
+   "obj_2rjfyjjfsnndwfju4ya7eatllu"
+  ],
+  [
+   "evt_5xop6aregnpyo7ihcuckixpctq",
+   "obj_rhgmttg2rdyhtvrtjy7rgou7iq"
+  ],
+  [
+   "evt_qms4h4tvfudssnubmcs6pjhvbu",
+   "obj_usxgf3bdkcilgrnsw5cxeqcxwm"
+  ],
+  [
+   "evt_lc6qexwqzfg4wdcjqu7jxsqexi",
+   "obj_ytvrzc3sxsdmeb77fwvqk34ave"
+  ],
+  [
+   "evt_7uvzpxoacdeiigvkw3lccgsncu",
+   "obj_y5xcbfcr2veigd6dspm6g3733a"
+  ],
+  [
+   "evt_tey2fjshobu6hupwbx64he6kdu",
+   "obj_tum3u53jpds75izwh3zj3c4pby"
+  ],
+  [
+   "evt_gicirjtr4t3ebo6rbepcryleay",
+   "obj_ym556samtbie3wsv2gmq2sf7k4"
+  ],
+  [
+   "evt_qbd6dlbomtefuufzvqbpniv6yy",
+   "obj_kcfiwpxrheide6bl4rua43gqgi"
+  ],
+  [
+   "evt_yj3enmj6awqvdmmlbvazszqkfi",
+   "obj_lqc3zgl6ch7uyyq33qsgnlzxgq"
+  ],
+  [
+   "evt_oxyxznjrqvgpqbn2ucqpev64bi",
+   "obj_5ms75y35xx64ceiwwdanblmhse"
+  ],
+  [
+   "evt_rpehfukdgexngl3mvuuzch7rwm",
+   "obj_452dszios6ruvjypztnc3tg7ki"
+  ],
+  [
+   "evt_a5mmax5i6wxzhjosu6c46eozyq",
+   "obj_tyfjx4tirpbpzlakqbpz6yuvnq"
+  ],
+  [
+   "evt_4m45bf4qav2xfohuigjrheoowq",
+   "obj_cfypkigrjwkhkuophwveu4eixm"
+  ],
+  [
+   "evt_p4ukker3kenwlccbd3nu4l22uq",
+   "obj_zom7ecnk5aunwuhrrced6jkhyu"
+  ],
+  [
+   "evt_dolooqx2jnqdbigpljkhlymbou",
+   "obj_67dnkjoeysf2b3afeppuyvnote"
+  ],
+  [
+   "evt_xe2duotd6zhgvhcvu5fbvygxda",
+   "obj_x3j737fotcqvc4xiqxtcog3cme"
+  ]
+ ],
+ "d2_hubs": [
+  "obj_b635fkfduxbq7k3w72k2khv7bu",
+  "obj_fmzpmxry6gqvc2ckdzmj2vfw7e",
+  "obj_exmq76k6odewwvpuls6zn6uxkm",
+  "obj_pd6f2p3rjmu2nvhbyepztoy2ei",
+  "obj_mqkxzemp3u7nfoisct3dr4pqy4",
+  "obj_vbdkvdrxjympovb2ao3u5nhnsu",
+  "obj_i2rt7wfepdf43kbydmkkkecpte",
+  "obj_6unqlentdhm4rtv2ltlnf33gwa",
+  "obj_7bn4kliivann3k4joijp2zm3z4",
+  "obj_6p7v4wt67qn4dbmtckkf3fjvfe"
+ ],
+ "d2_hub_groups": [
+  [
+   "obj_b635fkfduxbq7k3w72k2khv7bu",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_fmzpmxry6gqvc2ckdzmj2vfw7e",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_exmq76k6odewwvpuls6zn6uxkm",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_pd6f2p3rjmu2nvhbyepztoy2ei",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_mqkxzemp3u7nfoisct3dr4pqy4",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_vbdkvdrxjympovb2ao3u5nhnsu",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_i2rt7wfepdf43kbydmkkkecpte",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_6unqlentdhm4rtv2ltlnf33gwa",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_7bn4kliivann3k4joijp2zm3z4",
+   "participation",
+   "at",
+   "in"
+  ],
+  [
+   "obj_6p7v4wt67qn4dbmtckkf3fjvfe",
+   "participation",
+   "at",
+   "in"
+  ]
+ ],
+ "d2_centers": [
+  [
+   134.2648,
+   48.1772
+  ],
+  [
+   41.6524,
+   42.2336
+  ],
+  [
+   -125.9728,
+   -41.2861
+  ],
+  [
+   108.9056,
+   20.1981
+  ],
+  [
+   40.942,
+   40.1477
+  ],
+  [
+   94.4232,
+   30.445
+  ],
+  [
+   42.1148,
+   -47.0568
+  ],
+  [
+   -89.7096,
+   -29.4156
+  ],
+  [
+   -118.8245,
+   66.5326
+  ],
+  [
+   -62.3998,
+   -29.0876
+  ]
+ ],
+ "d2_terms": [
+  "169118",
+  "027292",
+  "100593",
+  "014524",
+  "154243",
+  "184967",
+  "087068",
+  "160525",
+  "017152",
+  "018085"
+ ],
+ "pivots_d1": [
+  "evt_4lmpcgsaet2c2nllt7cmopshh4",
+  "evt_3bc4ofjjfnw6uh6gb2sa6rn2cm",
+  "evt_za447mx2ku6urmqkscpdnu3tlm",
+  "evt_e3bjfuctq6ccfsywnnjcnehoma",
+  "evt_pmfe2y6z6mbpewxzolsbxni3ze",
+  "evt_hhqghkxklr5oynfh4576ynk6ka",
+  "evt_4yc3ewnxvqsehtb4qxslen4eue",
+  "evt_qbwijvd2bsuteqeaunghq7sfl4",
+  "evt_z57o6hknfnzy4n2jiwekh6oqa4",
+  "evt_l5zepbaer23d2yqy3njrrjjxei",
+  "evt_4tnrpwn2jdy4rjrshl7wymndpi",
+  "evt_tj5qvm6mi6utli7mii24ougtvi",
+  "evt_ibk6eh33jjsbn6pjsucfxsbsd4",
+  "evt_fnkwdxfzp36iycmk2slfdnvmoi",
+  "evt_neupnnr2jx4yegsdqc55rn4a7m",
+  "evt_7xpif6reqsoeeoj3geehwonu6a",
+  "evt_l33q3yzihklkzrygbusah4t7re",
+  "evt_fx3jj3kcoda2p4noqp2hm4qabe",
+  "evt_lefszqb3oqnjvdlqwvaztv6si4",
+  "evt_ebhykbt6zlnt4yeauzczkxas4e",
+  "evt_cil2eohgjukx5chgbrmnltxaau",
+  "evt_y63akztfssulzfijc6f6bjg42a",
+  "evt_gf2mdlul7y2mhpsv4ueg66fvtu",
+  "evt_adeycsmn64pag62ejzl4evuvwa",
+  "evt_hf5gmqoptbr7reubcrta4bisn4",
+  "obj_bvztuarhq3wiqoz3x3py6lxm4e",
+  "obj_vvsfkfprcygocnsvuo6rqhllxq",
+  "obj_2ydsp3skznqh2qjmxaaz5mi6e4",
+  "obj_23yc3pmy6ee3m5l423ihj4x27e",
+  "obj_o4iqmoghpdoamhbpkejnme6jwm",
+  "obj_ln4aqzrttunglpklq4ufjgqxxq",
+  "obj_c42545fea7ln3ewwu7sxsr7i4y",
+  "obj_epn2v7rq6dfy3eagfjsopzlu3m",
+  "obj_unxds3v5f4oherkdwgx4ozxtn4",
+  "obj_wqxradoei5zi6smtbhgbu5xjo4",
+  "obj_zmqohwgovochgdpo6ni7652uga",
+  "obj_cptaedo5j7b43vd4mwblrh3yre",
+  "obj_iimyyr4tmgtmnppm6m7bnolcde",
+  "obj_fvzrjgkeddgvxmo6ea7xhnk3m4",
+  "obj_covmqovalnkuintdvsv56paxi4",
+  "obj_ln6lvkdkwh3rlnyqdbs67acfpe",
+  "obj_jn6zov5tsswqqq2hjrrwrdkrpu",
+  "obj_uwzl7cn3jybvnflivff7fg5sz4",
+  "obj_wagppusrr3nigozpy7jdt2imgq",
+  "obj_bqnadpvcteywod6ci65awc4ov4",
+  "obj_5gfnefoeqopsfmrpm27vdmq4pi",
+  "obj_bjmqewz3alrjzy2hcer4hfzmeu",
+  "obj_fxbtlvi4gb47u3cflfds6efruq",
+  "obj_haqa4uocygtvekbw2hrbssooci",
+  "obj_dccwvqlkvqefpiirq4yjnpvldy"
+ ],
+ "pivots_d2": [
+  "evt_2dilenwkfrxht6vtl4oqarbxvm",
+  "evt_a2uxqd2jx3klnigszqoc5hzz6q",
+  "evt_2l2frpm63qlbgegemrmaoxtbpa",
+  "evt_3sicsadgtd5pa47ibqtp2pld7q",
+  "evt_2gfqhrmn4n3ggmvcledyy3oam4",
+  "evt_5nwbc73ov5lkr5pjzriubb7te4",
+  "evt_2mjppm74quozqelzk2lnupm45u",
+  "evt_3aaze6xehzd7zi3glgd2z36kwe",
+  "evt_7ftxyti5tafvpx53faoc2m2xai",
+  "evt_5tr546hdhwaiq5tzxzubjovmru",
+  "evt_34waty4hmojdaz7vp6srds3ffi",
+  "evt_2ux6uun4gm3tzc2tphohk2ha2a",
+  "evt_2wtorgrs6m5ud6wvbzkhqa2bfm",
+  "evt_5v357c7hgjglpppv7trshq527a",
+  "evt_6fisekcuhelmlsk7emfskzpzom",
+  "evt_3qqmzyz5fc5wf2kq4z5fputkdq",
+  "evt_73gpaneu65vls4awfiluok3yai",
+  "evt_3blnt7mhk7jexx7tdatxgrhq24",
+  "evt_2u5jl357uoh27redgrwb36y5qe",
+  "evt_5ustgtihaevymqk2kcxsl2uowq",
+  "evt_7rbn6dfmbhj5wgg4nahwiwzyf4",
+  "evt_4h5vcvlypuoquyeixhsb77bsqm",
+  "evt_3uw7pvxtri6cu6pzxzt4byudra",
+  "evt_7gi5554w7x3edqhio5yzgev5ty",
+  "evt_4jlui27z6kul5o7l5fknvo26oi",
+  "obj_iwgjplsalj6lae2q3x3u6sgaau",
+  "obj_rs4td5pxfcf35ra7f3pv3mkhum",
+  "obj_jeetzazqebm4fccalo4jl3egvq",
+  "obj_okms45nitvdflspw2zue4e4a3i",
+  "obj_3adcwbe5gmlv36y5p6mgsucw4y",
+  "obj_3j3n7b6nwfl7qw4hczqtzw2znu",
+  "obj_66l2ttliu3hrut4kgqpfh2ffyi",
+  "obj_xeinab6qzpmznuccwo2p5iycnq",
+  "obj_lttaxepdo3eron7fuerhqn4x54",
+  "obj_2e3ep3lset5riy74osraunvlhm",
+  "obj_533mq7pui7q5sjfvyyfsy2gvmq",
+  "obj_fjv6ln3nnrfk5x6nfekg5wohfy",
+  "obj_bqthkw3o73zxq7x2zscx7s7m7a",
+  "obj_5b7r6q4s2ps4ltj6yzglkbgzwe",
+  "obj_q6i5wtfqpnudhtggdkhl6rugrq",
+  "obj_xu2vym5ai7whvrflgdnw3v6soe",
+  "obj_3rdzfsexbs2bpghwzvjxntflte",
+  "obj_ya2i2onrcqvzvzoerqp6v5qsxi",
+  "obj_rlm3zy4ary5tksxft72lps7gpi",
+  "obj_lhlpnszyetago5xsbzw5vbe27a",
+  "obj_3rkwd4dt5f74uyxyddkuqhop4i",
+  "obj_znincitmzihskqzza5qrbsm7gy",
+  "obj_dniqeyanhw5klhm4lbnutegjpy",
+  "obj_4apwfuhboa3blecsqjisi35czq",
+  "obj_ady4lkjll4nbfynposxu2s4sea"
+ ],
+ "r2_insights": [
+  "ins_26p4exo6idlh6i4fj6qfem7zca",
+  "ins_3ohbnsn7dvbx2n55c3ztbctcba",
+  "ins_3wfxkbixlnmpedup5i6g4nzs3q",
+  "ins_4gutzhdi2cord2vsjvalqnjqsq",
+  "ins_57rt744igs7ps3xlkuk3fvncly",
+  "ins_5lpuhv35b4rnxgwj5pgb5rolu4",
+  "ins_7dnxhp5mgmiafhtptmg54rekny",
+  "ins_7fiomcdz32wz6tdw6hpxfhaaiu",
+  "ins_7kll2vdbqcgqaglvodh4hdiygu",
+  "ins_cb7td6dteb4t2lamtlky6ontae",
+  "ins_doacxbl2vrvqxbjbia226z4qwm",
+  "ins_dqgvxlyvwk6fkd2tw7blcwx7hy",
+  "ins_drcdzqm34vidnn5mu5qym3r3su",
+  "ins_emlrnbmkrcoozcfrq2iv4lnoca",
+  "ins_he3tnbtyqj43mu7f3sfgmqkvoi",
+  "ins_ixhjn4z2qfx4lvnwhk3dcsqjai",
+  "ins_j5bmbbkyubljtmxlzcr7cetn6u",
+  "ins_jesw4avl2lxznkrk3wrmp2pbsm",
+  "ins_lahjzaby3wwa4fe5t3vqgwrg44",
+  "ins_mfcmwtdd3ronfe5jnd5ubxtwii",
+  "ins_oa6svgpxcuq5eqctmrw7vtgfre",
+  "ins_oz5ijxw7pm6uhq3piojozdabwm",
+  "ins_pxvntsqoonyisuuqnmltu5gvmu",
+  "ins_q3nzd2scxxjfieglqicq7z5pla",
+  "ins_qdfvgnnovqi35yrp7gqjogtr5y",
+  "ins_qe3nfdnl4psfbpfvvu3d6smt74",
+  "ins_syuil4tqponbsovccsozsaklu4",
+  "ins_tu2ecye4xwumfg66p5jynhqmpe",
+  "ins_uihnodx4nvsxf2kj4mdn2f23pe",
+  "ins_uzgqjrjmf7yzx375myi7c2hgwu",
+  "ins_vgb7g3pbealidcvhe6iadeclc4",
+  "ins_vwfc7jwwimwqvifxqfoo6v2quu",
+  "ins_xsv5lcqawnnxdyhsxzddkbtu2u",
+  "ins_yq2mclne4mvon77agtj3bidzom",
+  "ins_yyhv3xye5xispktbvbuwcn3uqy"
+ ],
+ "scopes_d1": [
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country",
+    "transport.airport"
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "transport.airport",
+    "seismic.earthquake",
+    "place.country",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1638706901991,
+    1768306901991
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "place.country"
+   ],
+   "time_window": [
+    1686892881271,
+    1689484881271
+   ]
+  },
+  {},
+  {
+   "types": [
+    "place.country"
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country",
+    "transport.airport",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1396705858356,
+    1399297858356
+   ]
+  },
+  {
+   "min_confidence": 0.8,
+   "time_window": [
+    1341925414147,
+    1471525414147
+   ]
+  },
+  {
+   "time_window": [
+    1562184240518,
+    1691784240518
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "seismic.earthquake",
+    "place.country",
+    "transport.airport"
+   ],
+   "time_window": [
+    1347404176925,
+    1349996176925
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "min_confidence": 0.8
+  },
+  {},
+  {
+   "types": [
+    "place.country",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1691283913405,
+    1790624707515
+   ]
+  },
+  {
+   "min_confidence": 0.5,
+   "time_window": [
+    1710609217967,
+    1713201217967
+   ]
+  },
+  {
+   "time_window": [
+    1525149209076,
+    1527741209076
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country",
+    "transport.airport"
+   ],
+   "time_window": [
+    1689828800083,
+    1721364800083
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1487772054003,
+    1519308054003
+   ]
+  },
+  {
+   "time_window": [
+    1531052652201,
+    1562588652201
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "transport.airport"
+   ],
+   "time_window": [
+    1624078515871,
+    1655614515871
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "emergency.mapping_activation",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "transport.airport",
+    "seismic.earthquake",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.5,
+   "time_window": [
+    1538092666846,
+    1667692666846
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "emergency.mapping_activation",
+    "transport.airport",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "time_window": [
+    1767884102360,
+    1790624707515
+   ]
+  },
+  {
+   "time_window": [
+    1785585133627,
+    1790624707515
+   ]
+  },
+  {
+   "time_window": [
+    1589028122379,
+    1620564122379
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "emergency.mapping_activation"
+   ],
+   "time_window": [
+    1616804320736,
+    1619396320736
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "time_window": [
+    1466347044245,
+    1497883044245
+   ]
+  },
+  {},
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "emergency.mapping_activation"
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1454955491426,
+    1457547491426
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "time_window": [
+    1698238862399,
+    1700830862399
+   ]
+  },
+  {
+   "time_window": [
+    1616631570454,
+    1619223570454
+   ]
+  },
+  {
+   "time_window": [
+    1667833343171,
+    1699369343171
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "seismic.earthquake",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "time_window": [
+    1448571817133,
+    1480107817133
+   ]
+  },
+  {
+   "min_confidence": 0.8
+  },
+  {
+   "time_window": [
+    1404088024403,
+    1435624024403
+   ]
+  },
+  {
+   "types": [
+    "transport.airport"
+   ],
+   "time_window": [
+    1514028506291,
+    1643628506291
+   ]
+  },
+  {
+   "time_window": [
+    1717569569695,
+    1749105569695
+   ]
+  },
+  {
+   "time_window": [
+    1463669650305,
+    1495205650305
+   ]
+  },
+  {},
+  {
+   "types": [
+    "seismic.earthquake",
+    "place.country"
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "emergency.mapping_activation",
+    "seismic.earthquake",
+    "place.country"
+   ]
+  },
+  {},
+  {
+   "types": [
+    "seismic.earthquake",
+    "place.country",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "transport.airport",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.5,
+   "time_window": [
+    1337267132971,
+    1368803132971
+   ]
+  },
+  {
+   "time_window": [
+    1635420263513,
+    1638012263513
+   ]
+  },
+  {
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "transport.airport",
+    "seismic.earthquake",
+    "emergency.mapping_activation"
+   ]
+  },
+  {},
+  {
+   "types": [
+    "place.country",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1703787476703,
+    1790624707515
+   ]
+  },
+  {},
+  {
+   "types": [
+    "seismic.earthquake",
+    "place.country",
+    "emergency.mapping_activation",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "time_window": [
+    1587818691841,
+    1717418691841
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.5,
+   "time_window": [
+    1765421986239,
+    1790624707515
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "time_window": [
+    1776246166392,
+    1790624707515
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1781174174443,
+    1783766174443
+   ]
+  },
+  {
+   "time_window": [
+    1601626287208,
+    1731226287208
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "transport.airport"
+   ],
+   "time_window": [
+    1481682368745,
+    1611282368745
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1388721423025,
+    1420257423025
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1442906147533,
+    1445498147533
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "place.country",
+    "transport.airport",
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.8
+  },
+  {
+   "time_window": [
+    1698656393203,
+    1790624707515
+   ]
+  },
+  {
+   "types": [
+    "transport.airport"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1579073802701,
+    1610609802701
+   ]
+  },
+  {},
+  {},
+  {
+   "types": [
+    "emergency.mapping_activation"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "transport.airport",
+    "place.country"
+   ],
+   "time_window": [
+    1769516560895,
+    1790624707515
+   ]
+  },
+  {
+   "types": [
+    "transport.airport"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "seismic.earthquake",
+    "place.country",
+    "emergency.mapping_activation",
+    "transport.airport"
+   ],
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "place.country",
+    "emergency.mapping_activation",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1655052232393,
+    1657644232393
+   ]
+  },
+  {},
+  {
+   "min_confidence": 0.8,
+   "time_window": [
+    1586228518351,
+    1617764518351
+   ]
+  },
+  {},
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "seismic.earthquake",
+    "place.country",
+    "transport.airport"
+   ],
+   "time_window": [
+    1416631367247,
+    1448167367247
+   ]
+  },
+  {
+   "time_window": [
+    1703065841414,
+    1705657841414
+   ]
+  },
+  {
+   "min_confidence": 0.5
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1774211672463,
+    1790624707515
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "transport.airport",
+    "seismic.earthquake",
+    "place.country"
+   ],
+   "min_confidence": 0.5,
+   "time_window": [
+    1512926315541,
+    1515518315541
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "transport.airport"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1638395489811,
+    1669931489811
+   ]
+  },
+  {
+   "types": [
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1527701743817,
+    1657301743817
+   ]
+  },
+  {
+   "types": [
+    "place.country"
+   ],
+   "min_confidence": 0.5,
+   "time_window": [
+    1427289777832,
+    1429881777832
+   ]
+  },
+  {
+   "types": [
+    "transport.airport"
+   ],
+   "time_window": [
+    1388827632402,
+    1391419632402
+   ]
+  },
+  {
+   "types": [
+    "transport.airport",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1352802030244,
+    1482402030244
+   ]
+  },
+  {
+   "min_confidence": 0.8,
+   "time_window": [
+    1591428529539,
+    1721028529539
+   ]
+  },
+  {
+   "types": [
+    "place.country",
+    "seismic.earthquake"
+   ],
+   "time_window": [
+    1581621918103,
+    1711221918103
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "transport.airport",
+    "place.country",
+    "seismic.earthquake"
+   ],
+   "min_confidence": 0.8,
+   "time_window": [
+    1431279720265,
+    1560879720265
+   ]
+  },
+  {
+   "types": [
+    "emergency.mapping_activation",
+    "place.country"
+   ]
+  },
+  {
+   "time_window": [
+    1481478534510,
+    1611078534510
+   ]
+  },
+  {
+   "min_confidence": 0.5,
+   "time_window": [
+    1674510291232,
+    1706046291232
+   ]
+  }
+ ]
+}

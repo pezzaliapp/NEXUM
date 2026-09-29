@@ -1,0 +1,30 @@
+{
+  "policy": "NEXUM licence policy for the UI dependency tree (Phase 2). NEXUM is distributed under MIT.",
+  "runtime_distributed": {
+    "description": "Packages reachable from package.json 'dependencies': their code is bundled into ui/dist and distributed.",
+    "allow": ["MIT", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "(MIT OR Apache-2.0)", "MIT OR Apache-2.0"]
+  },
+  "build_only": {
+    "description": "Packages installed only to build and test (not reachable from runtime dependencies, never bundled).",
+    "allow": ["MIT", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "(MIT OR Apache-2.0)", "MIT OR Apache-2.0"],
+    "exceptions": [
+      {
+        "packages": ["lightningcss", "lightningcss-darwin-arm64", "lightningcss-darwin-x64", "lightningcss-linux-x64-gnu",
+                     "lightningcss-linux-x64-musl", "lightningcss-linux-arm64-gnu", "lightningcss-linux-arm64-musl",
+                     "lightningcss-linux-arm-gnueabihf", "lightningcss-win32-x64-msvc", "lightningcss-win32-arm64-msvc",
+                     "lightningcss-freebsd-x64", "lightningcss-android-arm64"],
+        "license": "MPL-2.0",
+        "introduced_by": "vite@8.3.1 (direct, non-optional dependency: default CSS minifier of the build)",
+        "approved_by": "Alessandro Pezzali",
+        "approved_on": "2026-09-29",
+        "conditions": [
+          "build-only: not reachable from runtime dependencies (verified)",
+          "not included in the distributed bundle ui/dist (verified: no file of the package, no import of it)",
+          "not copied or modified inside the project outside node_modules (verified)",
+          "MPL-2.0 is file-level copyleft: it applies to distributed (modified) MPL files; NEXUM distributes none, so the MIT distribution of NEXUM is unaffected"
+        ],
+        "not_a_general_rule": "MPL-2.0 is NOT allowed for any other package"
+      }
+    ]
+  }
+}

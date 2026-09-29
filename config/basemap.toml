@@ -1,0 +1,6 @@
+# Basemap provider configuration (Phase 2, decision D4).
+# The offline backdrop is derived from a zipped polygon shapefile payload already in a local Raw Store.
+# The source must be registered in sources/*.toml; its attribution is taken from the registry.
+provider = "raw-polygons"
+source_id = "naturalearth.admin0"
+precision_decimals = 2

@@ -7,3 +7,5 @@ __pycache__/
 data_build.log
 data_tests.log
 data_bench.log
+# Evidenze di validazione generate (log, screenshot, report JSON): conservate in locale, mai versionate
+/baseline/

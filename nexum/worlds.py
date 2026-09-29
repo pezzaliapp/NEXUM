@@ -40,3 +40,9 @@ def d3s(db="data/d3s/nexum.db", raw="data/d3s/raw") -> Config:
     """D3 scaled for benchmarks (synthetic, non-geographic, generated, never committed)."""
     return Config(str(ROOT), str(ROOT / db), str(ROOT / raw), ["fixtures/d3s/sources"], ["fixtures/d3/vocab"],
                   ["fixtures/d3/rules"], allow_fixture=True)
+
+
+def ubench(db="data/ubench/nexum.db", raw="data/ubench/raw") -> Config:
+    """UI-benchmark world (U4, U5, U6): deterministic synthetic fixture, separate from D1/D2/D3."""
+    return Config(str(ROOT), str(ROOT / db), str(ROOT / raw), ["fixtures/ubench/sources"], ["fixtures/ubench/vocab"],
+                  ["fixtures/ubench/rules"], allow_fixture=True)

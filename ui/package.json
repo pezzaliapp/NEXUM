@@ -1,0 +1,32 @@
+{
+  "name": "nexum-ui",
+  "private": true,
+  "version": "0.2.0",
+  "description": "NEXUM workspace — ONE OBJECT. MANY RELATIONS. ONE TIMELINE.",
+  "author": "Alessandro Pezzali",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "node --test tests/unit/*.test.ts",
+    "test:e2e": "playwright test",
+    "licenses": "node scripts/check-licenses.mjs"
+  },
+  "dependencies": {
+    "graphology": "0.26.0",
+    "maplibre-gl": "6.11.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sigma": "3.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.1"
+  }
+}

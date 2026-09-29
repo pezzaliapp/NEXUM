@@ -1,0 +1,26 @@
+id = "fixture.ubench"
+name = "Mondo sintetico dei benchmark UI (U4, U5, U6)"
+owner = "NEXUM benchmark fixtures"
+verdict = "fixture"
+reliability_tier = "T2"
+verified_at = "2026-09-29"
+independence_group = "grpU"
+connector = "connectors.fixture_jsonl"
+
+[license]
+id = "MIT"
+attribution = "NEXUM synthetic UI-benchmark data (fictitious)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "local"
+auth = "none"
+path = "data/ubench/inputs"
+
+[politeness]
+min_interval_s = 0
+max_rps = 1000
+
+[options]
+chunks = 1

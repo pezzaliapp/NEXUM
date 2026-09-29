@@ -1,0 +1,37 @@
+# Vocabolario sintetico dei benchmark UI (solo benchmark, separato dai dataset funzionali).
+
+[object_type."ub.pt"]
+label = "Punto sintetico"
+geometry = "point"
+identity_schemes = ["sid"]
+display = { family = "ubench", density_priority = 1 }
+[object_type."ub.pt".properties]
+v = { kind = "float" }
+
+[object_type."ub.node"]
+label = "Nodo sintetico"
+geometry = "none"
+identity_schemes = ["sid"]
+display = { family = "ubench", density_priority = 2 }
+[object_type."ub.node".properties]
+v = { kind = "float" }
+
+[event_type."ub.tick"]
+label = "Evento temporale sintetico"
+geometry = "none"
+identity_schemes = ["sid"]
+roles = ["about"]
+[event_type."ub.tick".properties]
+v = { kind = "float" }
+
+[relation_type."ub.link"]
+label = "Collegamento sintetico"
+nature = "logical"
+from = ["any"]
+to = ["any"]
+
+[relation_type."ub.mention"]
+label = "Menzione sintetica"
+nature = "logical"
+from = ["any"]
+to = ["any"]

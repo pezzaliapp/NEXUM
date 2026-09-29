@@ -5,6 +5,7 @@ EntityRefs and never returns the whole world. MAP, GRAPH, TIMELINE, SEARCH and
 the detail views are projections of the same NEXUM WORLD.
 """
 
+import heapq
 import json
 import re
 import time
@@ -317,23 +318,50 @@ class Query:
                     out.setdefault(sid, f"insight:{iid}")
         return out
 
+    # columns needed to filter, sort and reference related events (bulk fetch, see _event_rows)
+    _EVENT_REF_COLS = ("event_id", "type", "label", "t_start_ms", "confidence", "source_id", "lon", "lat",
+                       "recorded_at_ms", "status")
+
+    def _event_rows(self, ids):
+        """Rows of many events in one statement per 20,000 ids (instead of one statement per event)."""
+        ids = list(ids)
+        cols = ", ".join(self._EVENT_REF_COLS)
+        out = {}
+        for i in range(0, len(ids), 20000):
+            for r in self.conn.execute(f"SELECT {cols} FROM event WHERE event_id IN (SELECT value FROM json_each(?))",
+                                       (json.dumps(ids[i:i + 20000]),)):
+                out[r["event_id"]] = r
+        return out
+
+    def _related_with_rows(self, kind, eid):
+        """(related event ids with reasons, their rows): derived data, cached for the last element and world version
+        (context() asks for it twice: related events and timeline)."""
+        key = (kind, eid, self._world_version())
+        cached = getattr(self, "_related_cache", None)
+        if cached is not None and cached[0] == key:
+            return cached[1], cached[2]
+        rel = self._related_event_ids(kind, eid)
+        fetched = self._event_rows(rel)
+        self._related_cache = (key, rel, fetched)
+        return rel, fetched
+
     def related_events(self, eid, scope=None, budget=None, cursor=None):
         t0 = time.perf_counter()
         sc, bu = Scope.of(scope), Budget.of(budget)
         kind, _ = self._require(eid)
-        rel = self._related_event_ids(kind, eid)
+        rel, fetched = self._related_with_rows(kind, eid)
         rows = []
         for ev in rel:
-            r = self._row("event", ev)
+            r = fetched.get(ev)
             if r is None or not self._scope_ok("event", r, sc):
                 continue
             rows.append(r)
-        rows.sort(key=lambda r: (-(r["t_start_ms"] or 0), r["event_id"]))
         by_type = {}
         for r in rows:
             by_type[r["type"]] = by_type.get(r["type"], 0) + 1
         start = 0 if cursor is None else int(cursor)
-        page = rows[start:start + bu.max_items]
+        # partial sort: identical to sorted(rows)[start:start + n] (event ids are unique, so keys never tie)
+        page = heapq.nsmallest(start + bu.max_items, rows, key=lambda r: (-(r["t_start_ms"] or 0), r["event_id"]))[start:]
         items = [dict(self._ref_min("event", r), reason=rel[r["event_id"]]) for r in page]
         nxt = str(start + len(page)) if start + len(page) < len(rows) else None
         return self._envelope({"items": items, "counts_by_type": by_type}, t0, bu, lod="refs", total=len(rows),
@@ -1374,9 +1402,10 @@ class Query:
         entries = []
         if kind == "event":
             entries.append({"t_ms": row["t_start_ms"], "entry": "event", "ref": self.ref("event", eid), "reason": "self"})
-        for ev, reason in self._related_event_ids(kind, eid).items():
-            r = self._row("event", ev)
-            entries.append({"t_ms": r["t_start_ms"], "entry": "event", "ref": self.ref("event", ev, r), "reason": reason})
+        related, fetched = self._related_with_rows(kind, eid)
+        for ev, reason in related.items():
+            r = fetched.get(ev)
+            entries.append((r["t_start_ms"], ev, reason, r))   # related events stay light until they are returned
         for c in self.conn.execute("SELECT claim_id, property, value_json, recorded_at_ms, valid_from_ms FROM claim "
                                    "WHERE subject_id=? ORDER BY recorded_at_ms, claim_id", (eid,)):
             entries.append({"t_ms": c["valid_from_ms"] or c["recorded_at_ms"], "entry": "claim", "property": c["property"],
@@ -1391,11 +1420,21 @@ class Query:
                                         "AND i.status='active'", (eid,)):
             r = self._row("insight", iid)
             entries.append({"t_ms": r["t_start_ms"], "entry": "insight", "ref": self.ref("insight", iid, r)})
+        def t_of(e):
+            return e[0] if isinstance(e, tuple) else e["t_ms"]
+
         if window:
-            entries = [e for e in entries if e["t_ms"] is not None and window[0] <= e["t_ms"] <= window[1]]
-        entries.sort(key=lambda e: (e["t_ms"] if e["t_ms"] is not None else -1, e.get("ref", {}).get("id", "")))
+            entries = [e for e in entries if t_of(e) is not None and window[0] <= t_of(e) <= window[1]]
         total = len(entries)
-        entries = entries[: bu.max_items]
+        # partial, stable sort on precomputed keys (t, id, insertion index): identical to list.sort() then [:n]
+        keys = [((e[0] if e[0] is not None else -1), e[1], i) if isinstance(e, tuple) else
+                ((e["t_ms"] if e["t_ms"] is not None else -1), e.get("ref", {}).get("id", ""), i)
+                for i, e in enumerate(entries)]
+        top = heapq.nsmallest(bu.max_items, keys)
+        entries = [entries[k[2]] for k in top]
+        entries = [e if not isinstance(e, tuple) else
+                   {"t_ms": e[0], "entry": "event", "ref": self.ref("event", e[1], e[3]), "reason": e[2]}
+                   for e in entries]
         return self._envelope({"focus": eid, "entries": entries}, t0, bu, lod="refs", total=total,
                               returned=len(entries), truncated=len(entries) < total, list_key="entries")
 
@@ -1620,3 +1659,148 @@ class Query:
         nxt = page[-1][key] if len(rows) > bu.max_items else None
         return self._envelope({"items": [self._ref_min(kind, r) for r in page]}, t0, bu, lod="refs", total=total,
                               returned=len(page), truncated=nxt is not None, cursor_next=nxt, list_key="items")
+
+    # ── WHY THIS RELATION? (Phase 2, decision D1: read-only, additive) ───────
+    @staticmethod
+    def _na(status, reason):
+        return {"status": status, "reason": reason}
+
+    def _rule_definition(self, rule_id, version):
+        import tomllib
+        row = self.conn.execute("SELECT definition_toml, definition_hash FROM rule WHERE rule_id=? AND version=?",
+                                (rule_id, version)).fetchone()
+        if row is None:
+            return self._na("not_recorded", "definizione della regola non registrata in questo mondo")
+        r = tomllib.loads(row["definition_toml"]).get("rule", {})
+        newer = [v for (v,) in self.conn.execute("SELECT version FROM rule WHERE rule_id=?", (rule_id,))
+                 if v != version and v.isdigit() and version.isdigit() and int(v) > int(version)]
+        return {"id": rule_id, "version": version, "definition_hash": row["definition_hash"],
+                "label": r.get("label", rule_id), "output": r.get("output"), "strength": r.get("strength"),
+                "emit_threshold": r.get("emit_threshold"), "anchor": r.get("anchor"),
+                "variables": [{"name": v.get("name"), "kind": v.get("kind"),
+                               "types": v.get("types", v.get("type", v.get("rule")))}
+                              for v in r.get("var", [])],
+                "constraints": r.get("constraint", []), "group": r.get("group"),
+                "newer_versions": sorted(newer, key=int)}
+
+    def _independence(self, evidence_rows):
+        """Independence groups behind a set of evidence rows, plus registry sources that share a group."""
+        groups = {}
+        for e in evidence_rows:
+            g = e["independence_group"]
+            if not g:
+                continue
+            d = groups.setdefault(g, {"independence_group": g, "sources": set(), "best": 0.0, "evidence": 0})
+            if e["source_id"]:
+                d["sources"].add(e["source_id"])
+            d["best"] = max(d["best"], e["weight"] or 0.0)
+            d["evidence"] += 1
+        out = []
+        for g in sorted(groups):
+            d = groups[g]
+            same = sorted(s.id for s in self.sources.values() if s.independence_group == g and s.id not in d["sources"])
+            out.append({"independence_group": g, "sources": sorted(d["sources"]), "best_value": round(d["best"], 9),
+                        "evidence_count": d["evidence"],
+                        "not_independent": [{"source_id": s, "reason": f"stesso gruppo di indipendenza ({g}): "
+                                             "non conta come fonte indipendente"} for s in same]})
+        return {"count": len(out), "groups": out}
+
+    def _recomputed(self, factors_json, stored):
+        if not factors_json:
+            return self._na("not_recorded", "fattori della confidenza non registrati")
+        v = cf.recompute(json.loads(factors_json))
+        return {"value": v, "stored": stored, "matches": stored is not None and abs(v - stored) <= 1e-9}
+
+    def explain(self, eid):
+        """Why an insight or a relation exists: only what the Core recorded, never reconstructed.
+        Missing parts are reported as not_recorded / not_applicable."""
+        t0 = time.perf_counter()
+        kind, row = self._require(eid)
+        if kind not in ("insight", "relation"):
+            raise QueryError("explain accepts an insight or a relation")
+        causal = "Associazione: non indica un rapporto di causa."
+        limitations = [causal]
+        focus = self._details(kind, row)
+        conf = {"value": row["confidence"], "band": cf.BAND_LABEL[cf.band(row["confidence"])]}
+        if kind == "relation":
+            ev_rows = self.conn.execute("SELECT * FROM evidence WHERE supports_id=? ORDER BY independence_group, "
+                                        "support_id, role", (eid,)).fetchall()
+            ev = self.evidence_of(eid, Budget(max_items=1000))["data"]["items"]
+            na = self._na("not_applicable", "relazione canonica: non prodotta da una regola di correlazione")
+            used_by = self.supported(eid, Budget(max_items=100))
+            data = {"focus": focus, "kind": "relation", "derivation": row["derivation"],
+                    "rule": na, "rule_version": na, "candidates": na, "candidate_groups": na, "group_support": na,
+                    "representative": na, "representative_reason": na, "rejected_candidates": na,
+                    "rejection_reasons": na, "evidence": ev, "independent_sources": self._independence(ev_rows),
+                    "confidence": dict(conf, text=None), "confidence_factors": focus["confidence_factors"],
+                    "recomputed": self._recomputed(row["factors_json"], row["confidence"]),
+                    "components": na,
+                    "explanation": {"text": f"{focus['from']['label']} — {row['type']} → {focus['to']['label']}",
+                                    "origin": "generated_from_refs"},
+                    "used_by": {"items": used_by["data"]["items"], "total": used_by["total"]},
+                    "provenance_complete": self.provenance_chain(eid)["data"]["complete"]}
+            data["limitations"] = limitations
+            return self._envelope(data, t0, Budget.of(None), lod="details", total=1, returned=1)
+        rule = self._rule_definition(row["rule_id"], row["rule_version"])
+        grouping = json.loads(row["grouping_json"]) if row["grouping_json"] else None
+        has_group = isinstance(rule, dict) and bool(rule.get("group"))
+        members = focus["members"]
+        mem_ids = [m["ref"]["id"] for m in members if m["ref"]]
+        ev_rows = list(self.conn.execute("SELECT * FROM evidence WHERE supports_id=?", (eid,)))
+        relation_evidence = []
+        for m in members:
+            if m["ref"] and m["ref"]["kind"] == "relation":
+                rid = m["ref"]["id"]
+                ev_rows += list(self.conn.execute("SELECT * FROM evidence WHERE supports_id=?", (rid,)))
+                relation_evidence.append({"relation": m["ref"],
+                                          "items": self.evidence_of(rid, Budget(max_items=1000))["data"]["items"]})
+        if grouping is None:
+            reason = ("la regola non raggruppa i candidati: è registrato solo il binding emesso" if not has_group
+                      else "raggruppamento non registrato per questo insight")
+            na = self._na("not_recorded", reason)
+            g = {"candidates": na, "candidate_groups": na, "group_support": na, "representative": na,
+                 "representative_reason": na, "rejected_candidates": na, "rejection_reasons": na}
+            limitations.append(reason)
+        else:
+            total_c = sum(len(x["members"]) for x in grouping["groups"])
+            cands = [dict(c, ref=self.ref(kind_of(c["id"]), c["id"])) for c in grouping["candidates"]]
+            chosen = next((x for x in grouping["groups"] if x["index"] == grouping.get("chosen_group")), None)
+            rejected = [dict(d, ref=self.ref(kind_of(d["id"]), d["id"])) for d in grouping.get("discarded", [])]
+            reasons = {}
+            for d in rejected:
+                reasons[d["reason"]] = reasons.get(d["reason"], 0) + 1
+            g = {"candidates": {"var": grouping["var"], "items": cands, "total": total_c,
+                                "truncated": len(cands) < total_c},
+                 "candidate_groups": {"criteria": grouping["criteria"], "items": grouping["groups"],
+                                      "chosen_group": grouping.get("chosen_group")},
+                 "group_support": {"value": grouping.get("support"), "method": grouping["support_method"],
+                                   "support_member": self.ref(kind_of(grouping["support_member"]),
+                                                              grouping["support_member"])
+                                   if grouping.get("support_member") else None},
+                 "representative": self.ref(kind_of(grouping["representative"]), grouping["representative"])
+                 if grouping.get("representative") else None,
+                 "representative_reason": {"order": grouping["representative_order"],
+                                           "text": chosen["representative_reason"] if chosen else None},
+                 "rejected_candidates": {"items": rejected, "total": len(rejected)},
+                 "rejection_reasons": [{"reason": k, "count": v} for k, v in sorted(reasons.items())]}
+            if len(cands) < total_c:
+                limitations.append(f"candidati registrati: {len(cands)} su {total_c}")
+        if isinstance(rule, dict) and rule["newer_versions"]:
+            limitations.append("esiste una versione più recente della regola: " + ", ".join(rule["newer_versions"]))
+        if row["status"] != "active":
+            limitations.append(f"insight in stato {row['status']}")
+        comps = [{"ref": m["ref"], "explanation": self._row("insight", m["ref"]["id"])["explanation"],
+                  "confidence": self._row("insight", m["ref"]["id"])["confidence"]}
+                 for m in members if m["ref"] and m["ref"]["kind"] == "insight"]
+        data = {"focus": focus, "kind": "insight",
+                "rule": rule, "rule_version": row["rule_version"], **g,
+                "evidence": {"members": members, "relation_evidence": relation_evidence},
+                "independent_sources": self._independence(ev_rows),
+                "confidence": dict(conf, text=row["confidence_text"]),
+                "confidence_factors": focus["confidence_factors"],
+                "recomputed": self._recomputed(row["factors_json"], row["confidence"]),
+                "components": comps, "explanation": {"text": row["explanation"], "origin": "rule_template"},
+                "member_ids": mem_ids,
+                "provenance_complete": self.provenance_chain(eid)["data"]["complete"],
+                "limitations": limitations}
+        return self._envelope(data, t0, Budget.of(None), lod="details", total=1, returned=1)
