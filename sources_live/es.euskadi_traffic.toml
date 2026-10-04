@@ -1,0 +1,34 @@
+id = "es.euskadi_traffic"
+name = "Open Data Euskadi — traffic cameras"
+owner = "Basque administrations (Open Data Euskadi)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "es_euskadi_traffic"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): traffic cameras; https images shown, http images link only. Positions converted from ETRS89/UTM 30N.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0"
+url = "https://opendata.euskadi.eus/"
+attribution = "Open Data Euskadi (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["api.euskadi.eus"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

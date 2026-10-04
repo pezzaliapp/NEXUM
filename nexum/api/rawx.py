@@ -1,7 +1,7 @@
 """Extract a single source record from the Raw Store (never the whole payload).
 
 The record is located by the raw_id and the locator recorded in provenance
-(`$.features[79]`, `row:1234`, `shape:12`, `line:5`). The raw_id → sha256
+(`$.features[79]`, `row:1234`, `shape:12`, `line:5`, `zline:5`). The raw_id → sha256
 mapping comes from the Raw Store's append-only manifest, and the payload is
 verified against its hash when read.
 """
@@ -50,6 +50,9 @@ class RawExtractor:
             obj = json.loads(data)
         elif kind == "lines":
             obj = data.decode("utf-8").splitlines()
+        elif kind == "zlines":   # a zipped text file of JSON lines (its first member)
+            z = zipfile.ZipFile(io.BytesIO(data))
+            obj = z.read(z.namelist()[0]).decode("utf-8").splitlines()
         elif kind == "csv":
             obj = list(csv.reader(io.StringIO(data.decode("utf-8"))))
         else:  # zipped shapefile: attribute table only
@@ -86,6 +89,12 @@ class RawExtractor:
         elif re.fullmatch(r"line:\d+", locator or ""):
             lines = self._parsed_payload(entry, "lines")
             n = int(locator[5:])
+            if not 0 <= n < len(lines):
+                raise RawError(f"locator {locator} not found in payload")
+            record, fmt = json.loads(lines[n]), "json_line"
+        elif re.fullmatch(r"zline:\d+", locator or ""):
+            lines = self._parsed_payload(entry, "zlines")
+            n = int(locator[6:])
             if not 0 <= n < len(lines):
                 raise RawError(f"locator {locator} not found in payload")
             record, fmt = json.loads(lines[n]), "json_line"

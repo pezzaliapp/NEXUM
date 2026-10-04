@@ -46,3 +46,11 @@ def ubench(db="data/ubench/nexum.db", raw="data/ubench/raw") -> Config:
     """UI-benchmark world (U4, U5, U6): deterministic synthetic fixture, separate from D1/D2/D3."""
     return Config(str(ROOT), str(ROOT / db), str(ROOT / raw), ["fixtures/ubench/sources"], ["fixtures/ubench/vocab"],
                   ["fixtures/ubench/rules"], allow_fixture=True)
+
+
+def live(db="data/live/nexum.db", raw="data/live/raw") -> Config:
+    """LIVE — the published operational world: the D1 sources plus further approved, free, open sources
+    (sources_live). D1 stays frozen as the validation world of Phases 1–2. Vocabulary: vocab_live is the complete
+    vocabulary of this world (D1's types, extended to the new domains); rules: D1's plus rules_live."""
+    return Config(str(ROOT), str(ROOT / db), str(ROOT / raw), ["sources", "sources_live"], ["vocab_live"],
+                  ["rules", "rules_live"], allow_fixture=False)

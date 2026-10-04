@@ -1,0 +1,33 @@
+id = "ch.bfs_fuel"
+name = "Swiss Federal Statistical Office — CPI average prices of energy and fuels"
+owner = "Federal Statistical Office (FSO/BFS)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "ch_bfs_fuel"
+connector = "connectors.national_fuel"
+
+# World Intelligence (2026-10-03): national fuel prices in the publisher's own unit and currency (fuel gate passed).
+[license]
+id = "OPEN-BY"
+url = "https://opendata.swiss/en/terms-of-use"
+attribution = "Source: Federal Statistical Office (FSO), LIK average prices of energy and fuels"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["dam-api.bfs.admin.ch"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

@@ -1,0 +1,38 @@
+# RITIRATA (2026-10-03, audit di integrità §29): il 91% dei collegamenti univa un'immagine ATTUALE a eventi finiti da oltre
+# un anno, e la chiusura dichiarata dalla fonte (EONET) non è affidabile. Sostituita dal pacchetto «webcam vicino a un
+# evento recente» del livello API (/event-webcams: solo eventi degli ultimi 30 giorni dei dati, entro 25 km).
+# Contesto (Phase 3B · block 1): webcam pubbliche entro 25 km da un evento. Configurazione, non codice del Core.
+# Vicinanza registrata: una webcam vicina NON mostra necessariamente l'evento, e la sua immagine è quella attuale.
+# v2 (2026-10-03, audit di integrità §29): solo eventi IN CORSO secondo la fonte (EONET: nessuna data di chiusura).
+# Un'immagine ATTUALE non è mai collegata a un evento finito da mesi o anni; terremoti e attivazioni (istantanei o
+# senza stato di chiusura) non sono più ancore di questa regola.
+[rule]
+id = "event_webcams_nearby"
+version = "2"
+label = "Webcam pubbliche vicino a un evento"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'evento «{A.label}» ({A.time|date}) ci sono {n.O} webcam pubbliche; la più vicina è «{first.O.label}» a {first.O.dist|num1} km. Evento ancora in corso secondo la fonte. Vicinanza registrata: una webcam vicina non mostra necessariamente l'evento e la sua immagine è quella attuale, non quella del momento dell'evento."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["fire.wildfire", "hydro.flood", "weather.severe_storm", "volcanic.activity", "geo.landslide"]
+where = [["open", "==", true]]
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["camera.public_webcam"]
+where = [["in_service", "==", true]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 25
+score = true

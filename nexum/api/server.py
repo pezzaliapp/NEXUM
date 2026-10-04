@@ -21,7 +21,8 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import tomllib
-from nexum.core.query import LIMITS, Query, QueryError
+from nexum.core import geo
+from nexum.core.query import LIMITS, Budget, Query, QueryError
 from nexum.core.registry import load_registry
 
 from . import API_VERSION
@@ -165,7 +166,20 @@ class Worker:
 
 # ── worker processes (true parallelism: the Core does much of its work in Python) ──
 
-def _worker_main(pipe, db_path, source_dirs, shared, cache_kib, mmap_bytes=0):
+def _watch_parent(parent, every_s=0.5):
+    """A worker lives only as long as the service that started it. Its pipe tells it so only between requests: during
+    a request in pure Python (which the SQLite progress handler cannot interrupt) a service ended by a signal would
+    leave it running, adopted by launchd/init, until that request finished. Exit as soon as the parent is gone."""
+    def watch():
+        while os.getppid() == parent:
+            time.sleep(every_s)
+        os._exit(0)
+    threading.Thread(target=watch, name="parent-watch", daemon=True).start()
+
+
+def _worker_main(pipe, db_path, source_dirs, shared, cache_kib, mmap_bytes=0, parent=None):
+    if parent is not None:
+        _watch_parent(parent)
     sources = load_registry([pathlib.Path(d) for d in source_dirs])
     uri = pathlib.Path(db_path).resolve().as_uri() + "?mode=ro"
     conn = sqlite3.connect(uri, uri=True, isolation_level=None, check_same_thread=False)
@@ -196,7 +210,8 @@ def _worker_main(pipe, db_path, source_dirs, shared, cache_kib, mmap_bytes=0):
         name, args, kwargs, slot, seq, deadline = msg
         cur.update(slot=slot, seq=seq, deadline=deadline, reason=None, at=None)
         try:
-            pipe.send(("ok", getattr(q, name)(*args, **kwargs)))
+            fn = API_OPS.get(name)          # read-only operations of the API layer (not of the Core), on this connection
+            pipe.send(("ok", fn(q, *args, **kwargs) if fn else getattr(q, name)(*args, **kwargs)))
         except sqlite3.OperationalError as e:
             if "interrupt" in str(e):
                 pipe.send(("interrupted", cur["reason"] or "deadline", cur["at"]))
@@ -223,18 +238,40 @@ class _RemoteQuery:
 class ProcWorker:
     """A Core Query in a separate process, reached through a pipe; same interface as Worker (w.q.<op>(...))."""
 
+    OVERRUN_S = 5.0   # beyond its deadline, a request still running is work no one will read: its process is replaced
+
     def __init__(self, ctx, db_path, source_dirs, registry: CancelRegistry, cache_kib, mmap_bytes=0):
-        self.pipe, child = ctx.Pipe()
-        self.proc = ctx.Process(target=_worker_main, args=(child, db_path, source_dirs, registry.shared, cache_kib,
-                                                           mmap_bytes), daemon=True)
-        self.proc.start()
+        self._ctx, self._args = ctx, (db_path, source_dirs, registry.shared, cache_kib, mmap_bytes, os.getpid())
         self.registry = registry
         self.token = None
         self.q = _RemoteQuery(self)
+        self._start()
+
+    def _start(self):
+        self.pipe, child = self._ctx.Pipe()
+        self.proc = self._ctx.Process(target=_worker_main, args=(child, *self._args), daemon=True)
+        self.proc.start()
+        child.close()   # the parent keeps only its own end: the worker's pipe reports EOF when the parent goes
+
+    def _replace(self):
+        """The deadline is enforced inside SQLite statements only; pure-Python work past it (serialization, loops)
+        is stopped here by ending the process and starting a fresh one, so no CPU is spent on an abandoned request."""
+        self.pipe.close()
+        self.proc.terminate()
+        self.proc.join(timeout=5)
+        if self.proc.is_alive():
+            self.proc.kill()
+            self.proc.join(timeout=5)
+        self._start()
 
     def call(self, name, args, kwargs):
         t = self.token
         self.pipe.send((name, args, kwargs, t.slot if t else -1, t.seq if t else None, t.deadline if t else None))
+        if t is not None and t.deadline is not None:
+            if not self.pipe.poll(max(0.0, t.deadline - time.monotonic()) + self.OVERRUN_S):
+                self._replace()
+                t.reason, t.interrupted_at = "deadline", time.monotonic()
+                raise sqlite3.OperationalError("interrupted")
         r = self.pipe.recv()
         if r[0] == "ok":
             return r[1]
@@ -344,6 +381,8 @@ class Service:
                     "counts": f["data"]["facets"]["kind"], "by_type": f["data"]["facets"]["type"],
                     "geometry": geo, "has_geometry": geo.get("with_geometry", 0) > 0,
                     "time_extent": extent,
+                    # when the world last received data from its sources (the newest raw payload): "Dati aggiornati al"
+                    "data_received_ms": api_op(w, "data_received"),
                     "sources": [{"source_id": s["source_id"], "name": s["name"], "attribution": s["attribution"],
                                  "license_id": s["license_id"], "health": s.get("health"),
                                  "last_success_ms": s.get("last_success_ms"), "entities": s.get("entities")}
@@ -356,7 +395,9 @@ class Service:
 
         @route("GET", "/types", 300)
         def types(w, m, p, body):
-            return w.q.list_types(), {}
+            r = w.q.list_types()
+            r["data"]["insight_types"] = api_op(w, "insight_types")   # API layer: the rules' own names (additive)
+            return r, {}
 
         @route("GET", "/sources", 300, cacheable=False)
         def sources(w, m, p, body):
@@ -400,6 +441,42 @@ class Service:
                 raise ApiError(400, "missing_parameter", "q must have at least 2 characters")
             b, red = _budget(p, {"max_items": 50}, {"max_items": 200})
             return w.q.search(qtext[:200], _scope(p), b), red
+
+        @route("GET", "/highlights", 8000)   # computed once per world version (offices, observations): cached after
+        def highlights(w, m, p, body):
+            return api_op(w, "highlights"), {}
+
+        @route("GET", "/observations", 8000)
+        def observations(w, m, p, body):
+            return api_op(w, "observations"), {}
+
+        @route("GET", "/places-index", 8000)
+        def places_index(w, m, p, body):
+            return api_op(w, "places_index"), {}
+
+        @route("GET", "/event-webcams", 8000)
+        def event_webcams(w, m, p, body):
+            return api_op(w, "event_media"), {}
+
+        @route("GET", "/security", 8000)
+        def security(w, m, p, body):
+            return api_op(w, "security"), {}
+
+        @route("GET", "/indicators-catalog", 8000)
+        def indicators_catalog(w, m, p, body):
+            return api_op(w, "indicators_catalog"), {}
+
+        @route("GET", "/indicators/" + ID_RE, 8000)
+        def indicators(w, m, p, body):
+            return api_op(w, "indicators", m["id"]), {}
+
+        @route("GET", "/tenures", 8000)
+        def tenures(w, m, p, body):
+            return api_op(w, "tenures"), {}
+
+        @route("GET", "/insight-summaries", 3000)
+        def insight_summaries(w, m, p, body):
+            return api_op(w, "insight_summaries"), {}
 
         @route("GET", "/insights", 1000)
         def insights(w, m, p, body):
@@ -727,6 +804,11 @@ def make_handler(svc: Service, port: int, verbose=False):
         def _basemap(self, name):
             if name == "style.json":
                 return self._send(200, json.dumps(svc.basemap.style()).encode(), headers={"Cache-Control": "no-cache"})
+            if name == "labels.json":
+                body = svc.basemap.labels()
+                if body is None:
+                    raise ApiError(404, "not_found", "basemap labels not available")
+                return self._send(200, body, headers={"Cache-Control": "max-age=86400"})
             m = re.fullmatch(r"([a-z0-9]+)\.geojson", name)
             body = svc.basemap.layer(m.group(1)) if m else None
             if body is None:
@@ -756,10 +838,20 @@ def make_handler(svc: Service, port: int, verbose=False):
             immutable = "/assets/" in path
             return self._send(200, f.read_bytes(), ctype, headers={
                 "Cache-Control": "public, max-age=31536000, immutable" if immutable else "no-cache",
-                "Content-Security-Policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' "
-                                           "'unsafe-inline'; worker-src 'self' blob:; connect-src 'self'"})
+                "Content-Security-Policy": f"default-src 'self'; img-src 'self' data: blob: {_media_hosts()}; style-src 'self' "
+                                           f"'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' {_media_hosts('connect')}"})
 
     return Handler
+
+
+def _media_hosts(kind: str = "img") -> str:
+    """Origins whose current images the browser may load (img) or ask for their time and availability (connect), on
+    request only (ui/media-hosts.json: explicit, never a wildcard)."""
+    try:
+        hosts = json.loads((pathlib.Path(__file__).resolve().parents[2] / "ui" / "media-hosts.json").read_text()).get(kind, [])
+    except (OSError, ValueError, KeyError):
+        return ""
+    return " ".join(h for h in hosts if re.fullmatch(r"https://[a-z0-9.-]+", h))
 
 
 def serve(svc: Service, host="127.0.0.1", port=8765, verbose=False):
@@ -769,3 +861,675 @@ def serve(svc: Service, host="127.0.0.1", port=8765, verbose=False):
     httpd.RequestHandlerClass = make_handler(svc, httpd.server_address[1], verbose)   # port 0 → the real port
     httpd.daemon_threads = True
     return httpd
+
+
+# ── WORLD MODE highlights (API layer, read-only, additive — not part of the Core) ──────────────────────────────
+def _month_index(ms):
+    import datetime as _dt
+    d = _dt.datetime.fromtimestamp(ms / 1000, _dt.timezone.utc)
+    return d.year * 12 + d.month - 1
+
+
+def _month_start(m):
+    import datetime as _dt
+    return int(_dt.datetime(m // 12, m % 12 + 1, 1, tzinfo=_dt.timezone.utc).timestamp() * 1000)
+
+
+def highlights_of(q, n=8):
+    """What is happening in the world, from the Core's own tables: per event type the count in the last 12 months of
+    the data (whole months, as the workspace's starting period), the most recent notable events, the strongest
+    events of those 12 months, and the most recent outputs of the rules. Severity is the vocabulary's generic,
+    per-type normalised value (the Core does not know its domain meaning)."""
+    import time as _t
+    t0 = _t.perf_counter()
+    conn = q.conn
+    last = conn.execute("SELECT MAX(t_start_ms) FROM event").fetchone()[0]
+    if last is None:
+        return q._envelope({"anchor_ms": None, "window": None, "domains": [], "recent": [], "strongest": [],
+                            "connections": []}, t0, Budget.of(None), lod="refs")
+    a = _month_index(last)
+    win = [_month_start(a - 11), _month_start(a + 1) - 1]
+    domains = [{"type": r[0], "n": r[1], "max_severity": r[2]} for r in conn.execute(
+        "SELECT type, COUNT(*), MAX(severity) FROM event WHERE t_start_ms BETWEEN ? AND ? GROUP BY type ORDER BY 2 DESC, 1",
+        win)]
+
+    hints = _hints(conn)
+
+    def refs(sql, args):   # each event with its headline facts (vocabulary display hints; raw values)
+        return [{**q._ref_min("event", r), "head": _head(json.loads(r["props_json"] or "{}"), hints.get(r["type"], ("", {}))[1])}
+                for r in conn.execute(sql, args)]
+    recent = refs("SELECT * FROM event WHERE COALESCE(severity, 0) >= 0.5 ORDER BY t_start_ms DESC, event_id LIMIT ?", (n,))
+    strongest = refs("SELECT * FROM event WHERE t_start_ms BETWEEN ? AND ? AND severity IS NOT NULL "
+                     "ORDER BY severity DESC, t_start_ms DESC, event_id LIMIT ?", (*win, n))
+    # the most recent rule outputs, at most two per rule (what NEXUM found, varied), each with its readable summary
+    per_rule, picked = {}, []
+    for r in conn.execute("SELECT * FROM insight WHERE status='active' AND t_start_ms IS NOT NULL "
+                          "ORDER BY t_start_ms DESC, insight_id LIMIT 2000"):
+        if per_rule.get(r["rule_id"], 0) >= 2:
+            continue
+        per_rule[r["rule_id"]] = per_rule.get(r["rule_id"], 0) + 1
+        picked.append(r)
+        if len(picked) >= 12:
+            break
+    # the summaries of the outputs shown only (not of every output of the world: 50,000 in D2)
+    summ = insight_summaries_of(q, [r["insight_id"] for r in picked])["data"]["summaries"] if picked else {}
+    connections = [{"ref": q._ref_min("insight", r), "explanation": r["explanation"], "summary": summ.get(r["insight_id"])}
+                   for r in picked]
+    changes, explore = _world_changes(q, last), _explore_suggestions(q)
+    return q._envelope({"anchor_ms": last, "window": win, "domains": domains, "recent": recent, "strongest": strongest,
+                        "connections": connections, "changes": changes, "explore": explore}, t0, Budget.of(None), lod="refs",
+                       total=len(recent) + len(strongest), returned=len(recent) + len(strongest))
+
+
+def _labels(conn, ids):
+    marks = ",".join("?" * len(ids))
+    return dict(conn.execute(f"SELECT object_id, label FROM object WHERE object_id IN ({marks})", tuple(ids)).fetchall()) if ids else {}
+
+
+def _world_changes(q, anchor_ms, n=4):
+    """DOCUMENTED CHANGES of the world, from the Core's own records and the vocabulary's hints (no news, no guess):
+      · a new holder of an office (tenure hint) whose current term started within the 12 months before the data's
+        anchor: who, which office, where, since when, the statement that says so;
+      · the latest release of each measured source (series / wave hints): the newest period it covers and in how many
+        elements it was measured. Nothing else is called a change."""
+    conn = q.conn
+    if anchor_ms is None:
+        return {"tenures": [], "releases": []}
+    since = time.strftime("%Y-%m-%d", time.gmtime(anchor_ms / 1000 - 365 * 86400))
+    tenures, releases = [], []
+    if any(h.get("tenure") for _l, h in _hints(conn).values()):
+        t = tenures_of(q)["data"]
+        where_of = {}
+        for e, offs in t["by_entity"].items():
+            for o in offs:
+                where_of.setdefault(o, []).append(e)
+        for oid, o in t["offices"].items():
+            for x in o["terms"]:
+                if x[4] == "current" and x[2] and len(x[2]) == 10 and x[2] >= since:
+                    tenures.append({"start": x[2], "person": x[0], "person_label": x[1], "office": oid, "office_label": o["label"],
+                                    "role": o["role"], "statement": x[5], "where": where_of.get(oid, [])})
+        tenures.sort(key=lambda c: (c["start"], c["office"]), reverse=True)
+        tenures = tenures[:n]
+        names = _labels(conn, sorted({w for c in tenures for w in c["where"]}))
+        for c in tenures:
+            c["where"] = [[w, names.get(w)] for w in c["where"] if w in names][:1]
+    if any(h.get("series") or h.get("wave") for _l, h in _hints(conn).values()):
+        d = observations_of(q)["data"]
+        latest = {}
+        for e, series in d["by_entity"].items():
+            for s_ in series:
+                df = d["defs"][s_["def"]]
+                p = s_["points"][-1]
+                key = df["source_id"]
+                cur = latest.get(key)
+                end = p[1] or p[0] or ""
+                if cur is None or end > cur["period"][1]:
+                    latest[key] = {"source_id": key, "group": d["groups"].get(df["type"], df["type"]), "kind": df["kind"],
+                                   "dataset": (p[6] if len(p) > 6 and p[6] else df["props"].get("dataset")),
+                                   "period": [p[0], end], "where": {e}}
+                elif end == cur["period"][1]:
+                    cur["where"].add(e)
+        releases = sorted(({**r, "n": len(r["where"]), "where": None} for r in latest.values()),
+                          key=lambda r: (r["period"][1], r["n"], r["source_id"]), reverse=True)[:n + 1]
+        for r in releases:
+            r.pop("where")
+    return {"tenures": tenures, "since": since, "releases": releases}
+
+
+def _explore_suggestions(q, n=8):
+    """Elements of an explorable type (vocabulary hint "explore") with the most information attached to them by
+    elements that are not map layers (offices, observations…): starting points, ranked by data, never by opinion."""
+    conn = q.conn
+    hints = _hints(conn)
+    explore = {t: h["explore"] for t, (_l, h) in hints.items() if h.get("explore")}
+    info = [t for t, (_l, h) in hints.items() if h.get("map") is False]
+    if not explore or not info:
+        return []
+    rows = conn.execute(
+        f"SELECT r.to_id, o.label, o.type, o.props_json, COUNT(DISTINCT f.type) AS kinds FROM relation r "
+        f"JOIN object o ON o.object_id=r.to_id JOIN object f ON f.object_id=r.from_id "
+        f"WHERE o.type IN ({','.join('?' * len(explore))}) AND f.type IN ({','.join('?' * len(info))}) "
+        f"GROUP BY r.to_id", (*explore, *info)).fetchall()
+    def size(r):   # the vocabulary names the property that orders equally documented elements (none: by label)
+        v = json.loads(r[3] or "{}").get((explore[r[2]] or {}).get("rank_property", ""), 0)
+        return v if isinstance(v, (int, float)) else 0
+    rows = sorted(rows, key=lambda r: (-r[4], -size(r), r[1]))[:n]
+    return [[r[0], r[1]] for r in rows]
+
+
+def insight_types_of(q):
+    """The outputs of the world's rules, named by the rules themselves (their `label`, latest version): the UI
+    never needs to know a rule's domain to name what it found."""
+    import tomllib as _toml
+    out, seen = [], set()
+    for rid, ver, toml_text in q.conn.execute("SELECT rule_id, version, definition_toml FROM rule ORDER BY rule_id, version DESC"):
+        if rid in seen:
+            continue
+        seen.add(rid)
+        r = _toml.loads(toml_text).get("rule", {})
+        out.append({"id": rid, "label": r.get("label", rid), "output": r.get("output"), "version": ver})
+    return out
+
+
+def _hints(conn):
+    out = {}
+    for table in ("object_type", "event_type"):
+        for tid, label, dh in conn.execute(f"SELECT type_id, label, display_hints FROM {table}"):
+            out[tid] = (label, json.loads(dh or "{}"))
+    return out
+
+
+def _head(props, hints):
+    """The headline facts of an element, as the vocabulary's display hints name them (raw values; the UI formats)."""
+    parts = []
+    for h in hints.get("headline", []):
+        v = props.get(h["property"])
+        if v is None or v == "" or v == []:
+            continue
+        parts.append([h.get("prefix", ""), v, h.get("suffix", ""), h.get("digits")])
+    return parts
+
+
+def insight_summaries_of(q, ids=None):
+    """A readable summary of every active rule output, from the Core's own records: its members (roles, distances,
+    time gaps from the evidence), their labels and the facts the vocabulary's display hints mark as headline. Nothing
+    is inferred: absent values stay absent. Keys: k output, r rule label, a/b the anchoring members, n the nearest
+    collected member, c the number collected, km/dt the recorded distance and time gap."""
+    conn = q.conn
+    hints = _hints(conn)
+    labels = {rid: lab for rid, lab in ((x["id"], x["label"]) for x in insight_types_of(q))}
+    ent = {}
+
+    def info(kind, eid):
+        if eid not in ent:
+            table, key = ("object", "object_id") if kind == "object" else ("event", "event_id")
+            t_col = "t_start_ms" if kind != "object" else "NULL AS t_start_ms"
+            r = conn.execute(f"SELECT type, label, props_json, {t_col} FROM {table} WHERE {key}=?", (eid,)).fetchone()
+            if r is None:
+                ent[eid] = None
+            else:
+                ent[eid] = [eid, r["type"], r["label"], _head(json.loads(r["props_json"] or "{}"), hints.get(r["type"], ("", {}))[1]),
+                            r["t_start_ms"]]
+        return ent[eid]
+
+    out = {}
+    only = "" if ids is None else f" AND insight_id IN ({','.join('?' * len(ids))})"
+    for i in conn.execute(f"SELECT insight_id, rule_id, kind FROM insight WHERE status='active'{only} ORDER BY insight_id",
+                          list(ids or ())):
+        mem = conn.execute("SELECT role, support_kind, support_id, distance_m, delta_t_ms FROM evidence "
+                           "WHERE supports_kind='insight' AND supports_id=? ORDER BY role, support_id", (i["insight_id"],)).fetchall()
+        if any(m["support_kind"] == "insight" for m in mem):
+            out[i["insight_id"]] = {"k": i["kind"], "r": labels.get(i["rule_id"], i["rule_id"])}
+            continue
+        anchors = [m for m in mem if "#" not in m["role"]]
+        coll = sorted((m for m in mem if "#" in m["role"]), key=lambda m: (m["distance_m"] is None, m["distance_m"] or 0, m["support_id"]))
+        d = {"k": i["kind"], "r": labels.get(i["rule_id"], i["rule_id"])}
+        for slot, m in zip(("a", "b"), anchors):
+            d[slot] = info(m["support_kind"], m["support_id"])
+        dist = [m["distance_m"] for m in anchors if m["distance_m"] is not None]
+        gap = [m["delta_t_ms"] for m in anchors if m["delta_t_ms"] is not None]
+        if dist:
+            d["km"] = round(dist[0] / 1000, 1)
+        if gap:
+            d["dt"] = gap[0]
+        if coll:
+            m = coll[0]
+            d["n"] = info(m["support_kind"], m["support_id"]) + [round(m["distance_m"] / 1000, 1) if m["distance_m"] is not None else None]
+            d["c"] = len(coll)
+        out[i["insight_id"]] = d
+    # A map of small summaries has no list worth halving: the Core's byte budget would cut the members inside the
+    # summaries one by one, re-serializing everything at each cut (hours of pure Python for D2's 50,000 outputs, which
+    # no deadline can interrupt). Whole summaries are kept in order until the budget is met, said as truncated.
+    budget = Budget.of(None)
+    room, size, kept = budget.max_bytes - 65536, 0, {}
+    for k, d in out.items():
+        size += len(json.dumps(d, default=str)) + len(k) + 6
+        if size > room:
+            break
+        kept[k] = d
+    return q._envelope({"summaries": kept}, 0, budget, lod="refs", total=len(out), returned=len(kept),
+                       truncated=len(kept) < len(out))
+
+
+OBS_PROPS = ("question", "answer", "statistic", "unit", "population", "method", "probability_sample", "seasonal",
+             "compare", "dataset", "definition", "frequency", "estimate_flags", "topic", "indicator", "indicator_label",
+             "currency", "area", "taxes", "price_without_taxes")
+
+
+def _wording(question, answer):
+    words = re.sub(r"[^0-9a-z]+", "", re.sub(r"^\s*[a-z]*\d+[a-z]?(\.\d+)*[a-z]?\.?\s*", "", f"{question or ''}".lower()))
+    return hashlib.sha1(f"{words}|{re.sub(r'[^0-9a-z]+', '', (answer or '').lower())}".encode()).hexdigest()[:8]
+
+
+def observations_of(q):
+    """OBSERVATIONS by the entity they are measured in (Phase 3B · block 2), from the Core's own records: the objects
+    whose type the vocabulary marks with a "series" hint (one series per object) or a "wave" hint (one survey wave per
+    object, its items joined across waves only when they carry the same code). Generic: no domain term, no inference;
+    values, dates, samples and instruments as recorded. One package for the whole world (packaging per domain)."""
+    conn = q.conn
+    hints = _hints(conn)
+    kinds = {t: h for t, (_lab, h) in hints.items() if h.get("series") or h.get("wave")}
+    if not kinds:
+        return q._envelope({"by_entity": {}, "defs": {}, "groups": {}}, 0, Budget.of(None), lod="refs", total=0, returned=0)
+    marks = ",".join("?" * len(kinds))
+    out, groups, notes = {}, {}, {}
+    rows = conn.execute(f"SELECT o.object_id, o.type, o.props_json, o.source_id, r.to_id FROM object o JOIN relation r "
+                        f"ON r.from_id=o.object_id AND r.from_kind='object' WHERE o.type IN ({marks}) AND o.status!='retracted' "
+                        f"ORDER BY r.to_id, o.object_id", tuple(kinds)).fetchall()
+    for r in rows:
+        h = kinds[r["type"]]
+        groups[r["type"]] = h.get("group") or r["type"]
+        if (h.get("series") or {}).get("coverage"):
+            notes[r["type"]] = h["series"]["coverage"]
+        props = json.loads(r["props_json"] or "{}")
+        bag = out.setdefault(r["to_id"], {})
+        if h.get("series"):
+            key = props.get("comparable_series_id") or r["object_id"]
+            pts = [list(p) + [r["object_id"]] for p in props.get(h["series"].get("property", "series")) or []]
+            bag[key] = {"id": key, "type": r["type"], "kind": h["series"].get("kind"), "label": props.get("indicator_label"),
+                        "source_id": r["source_id"], "props": {k: props[k] for k in OBS_PROPS if props.get(k) is not None},
+                        "points": pts, "refs": [r["object_id"]]}
+        else:
+            for it in props.get(h["wave"].get("property", "items")) or []:
+                code, label, question, answer, value, n = it[:6]
+                # one series = one code asked with the same words (numbering, spacing, punctuation aside): a question
+                # reworded between waves starts another series, so no change is ever read across two instruments
+                key = f"{r['source_id']}:{code}:{_wording(question, answer)}"
+                s = bag.setdefault(key, {"id": key, "type": r["type"], "kind": "survey", "label": label, "source_id": r["source_id"],
+                                         "props": {"question": question, "answer": answer, "statistic": "share", "unit": "%",
+                                                   "population": props.get("population"), "method": props.get("method"),
+                                                   "probability_sample": props.get("probability_sample"), "compare": "previous_wave",
+                                                   "topic": it[6] if len(it) > 6 else None, "indicator": code},
+                                         "points": [], "refs": []})
+                s["points"].append([props.get("fieldwork_start"), props.get("fieldwork_end"), value, n, None, r["object_id"],
+                                    props.get("dataset")])
+                s["refs"].append(r["object_id"])
+    # one definition table: the series of different entities that share question, answer, population, method and
+    # source share one definition (the package stays small without losing a single point)
+    defs, def_ids, by_entity = {}, {}, {}
+    for e, bag in sorted(out.items()):
+        lst = []
+        for s in sorted(bag.values(), key=lambda s: (s["kind"] or "", s["props"].get("topic") or "", s["label"] or "", s["id"])):
+            d = {k: s[k] for k in ("type", "kind", "label", "source_id", "props")}
+            sig = json.dumps(d, sort_keys=True, default=str)
+            if sig not in def_ids:
+                def_ids[sig] = f"d{len(def_ids)}"
+                defs[def_ids[sig]] = d
+            s["points"].sort(key=lambda p: (p[1] or "", p[0] or ""))
+            lst.append({"id": s["id"], "def": def_ids[sig], "points": s["points"]})
+        by_entity[e] = lst
+    n = sum(len(v) for v in by_entity.values())
+    names = {d["source_id"]: q.sources[d["source_id"]].name for d in defs.values() if d["source_id"] in q.sources}
+    env = q._envelope({"by_entity": by_entity, "defs": defs, "groups": groups, "notes": notes, "source_names": names}, 0, Budget.of({"max_bytes": 10_000_000}),
+                      lod="refs", total=n, returned=n)
+    if env["truncated"]:   # never a silently partial picture of what was measured
+        raise QueryError("observations package exceeds the byte limit")
+    return env
+
+
+def tenures_of(q):
+    """TENURES by the entity an office has competence over (Phase 3B · block 3), from the Core's own records: objects
+    whose type carries a "tenure" hint name (as vocabulary data) the relation saying who holds them and the one saying
+    where. Per office, from its terms as recorded (start = the relation's valid_from, the rest in its attributes):
+      · the open term with the latest start is CURRENT; earlier open terms are SUPERSEDED (end not recorded), never current;
+      · an open term without a start date is UNDATED: it cannot be placed in time, so it is never current;
+      · a collegial office (its collegial property) may have several current holders sharing that latest start; members
+        who started earlier and are still "open" are not shown as current (an unrecorded end is never assumed away:
+        the UI says that members may be missing rather than listing someone who may have left);
+      · several current holders on a non-collegial office, or a preferred rank on a superseded term, is a CONFLICT:
+        every candidate is shown, none is chosen. Outcome: unique · collegial · ambiguous · none.
+    Nothing is inferred beyond this: missing dates stay missing. One package for the whole world (packaging per domain)."""
+    conn = q.conn
+    kinds = {t: h["tenure"] for t, (_lab, h) in _hints(conn).items() if h.get("tenure")}
+    offices, by_entity = {}, {}
+    for t, h in kinds.items():
+        for o in conn.execute("SELECT object_id, label, props_json FROM object WHERE type=? AND status!='retracted' ORDER BY object_id", (t,)):
+            props = json.loads(o["props_json"] or "{}")
+            terms = []
+            for r in conn.execute("SELECT r.to_id, r.attributes_json, r.recorded_at_ms, p.label FROM relation r JOIN object p ON p.object_id=r.to_id "
+                                  "WHERE r.type=? AND r.from_id=? ORDER BY r.valid_from_ms, r.relation_id", (h.get("held_by"), o["object_id"])):
+                a = json.loads(r["attributes_json"] or "{}")
+                terms.append({"person": r["to_id"], "label": r["label"], "start": a.get("start"), "end": a.get("end"),
+                              "status": a.get("status") or ("ended" if a.get("end") else "open"), "rank": a.get("rank"),
+                              "statement": a.get("statement"), "references": a.get("references"), "flags": a.get("flags") or [],
+                              "retrieved_ms": r["recorded_at_ms"]})
+            collegial = bool(props.get(h.get("collegial_property", "collegial")))
+            opens = [x for x in terms if x["status"] == "open"]
+            latest = max((x["start"] for x in opens if x["start"]), default=None)
+            for x in opens:
+                x["status"] = "undated" if not x["start"] else "current" if x["start"] == latest else "superseded"
+            opens = [x for x in opens if x["status"] != "undated"]
+            cur = [x for x in opens if x["status"] == "current"]
+            outcome = "none" if not cur else "collegial" if collegial else "unique"
+            if not collegial and (len({x["person"] for x in cur}) > 1 or any(x["rank"] == "preferred" for x in opens if x["status"] == "superseded")):
+                outcome = "ambiguous"
+                for x in cur:
+                    x["status"] = "conflict"
+            offices[o["object_id"]] = {"label": o["label"], "role": props.get(h.get("role_property", "role")), "collegial": collegial,
+                                       "check": props.get(h.get("check_property", "")), "outcome": outcome,
+                                       "terms": [[x["person"], x["label"], x["start"], x["end"], x["status"], x["statement"],
+                                                  x["references"], x["rank"], x["flags"], x["retrieved_ms"]] for x in terms]}
+            for (e,) in conn.execute("SELECT to_id FROM relation WHERE type=? AND from_id=? ORDER BY to_id", (h.get("scope"), o["object_id"])):
+                by_entity.setdefault(e, []).append(o["object_id"])
+    n = sum(len(v["terms"]) for v in offices.values())
+    env = q._envelope({"by_entity": by_entity, "offices": offices}, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=n, returned=n)
+    if env["truncated"]:
+        raise QueryError("tenures package exceeds the byte limit")
+    return env
+
+
+IND_PROPS = ("indicator", "indicator_label", "unit", "section", "topic", "definition", "statistic", "nature", "frequency",
+             "dataset", "keywords", "group", "order", "digits", "note", "coverage_n", "latest_period")
+_IND_CACHE: dict = {}
+
+
+def _period(p):
+    """A source period ("YYYY", "YYYY-Sn" half-year, "YYYY-MM", "YYYY-MM-DD") as the [start, end] dates of the
+    observation points."""
+    import calendar as _cal
+    if len(p) == 4:
+        return f"{p}-01-01", f"{p}-12-31"
+    if len(p) == 7 and p[5] == "S":
+        return (f"{p[:4]}-01-01", f"{p[:4]}-06-30") if p[6] == "1" else (f"{p[:4]}-07-01", f"{p[:4]}-12-31")
+    if len(p) == 7:
+        y, m = int(p[:4]), int(p[5:7])
+        return f"{p}-01", f"{p}-{_cal.monthrange(y, m)[1]:02d}"
+    return p[:10], p[:10]
+
+
+def _indicators_pkg(q):
+    """PLACE INDICATORS (World Intelligence, 2026-10-03), from the Core's own records: the objects whose type carries
+    an "indicator" hint (one object per indicator, its values per place), read through their "measured in" relations,
+    and the relations whose type carries a "flow" hint (yearly volumes between two places, as the reporting place
+    declares them). Generic: no domain term, no inference, no fill — a place without a value has no point. Computed once
+    per world version."""
+    key = (id(q.conn), q._world_version())
+    if key in _IND_CACHE:
+        return _IND_CACHE[key]
+    conn = q.conn
+    hints = _hints(conn)
+    kinds = {t: h["indicator"] for t, (_lab, h) in hints.items() if h.get("indicator")}
+    by_entity, defs, catalog = {}, {}, []
+    for t, h in kinds.items():
+        for o in conn.execute("SELECT object_id, label, props_json, source_id FROM object WHERE type=? AND status!='retracted' "
+                              "ORDER BY object_id", (t,)):
+            props = json.loads(o["props_json"] or "{}")
+            values = {c: pts for c, pts in props.get(h.get("property", "by_country")) or []}
+            units = dict(props.get("unit_by_country") or [])   # the unit of one place's values, where the source's is generic
+            d = {"type": t, "kind": "indicator", "label": props.get("indicator_label") or o["label"], "source_id": o["source_id"],
+                 "props": {k: props[k] for k in IND_PROPS if props.get(k) is not None}}
+            defs[o["object_id"]] = d
+            catalog.append({"id": o["object_id"], **d})
+            for r in conn.execute("SELECT to_id, attributes_json FROM relation WHERE from_id=? AND type='measured_in' ORDER BY to_id",
+                                  (o["object_id"],)):
+                k = json.loads(r["attributes_json"] or "{}").get("key")
+                pts = values.get(k)
+                if not pts:
+                    continue
+                by_entity.setdefault(r["to_id"], []).append(
+                    {"id": f"{o['object_id']}:{k}", "def": o["object_id"], **({"unit": units[k]} if k in units else {}),
+                     "points": [[*_period(x[0]), x[1], None, None, o["object_id"], x[2] if len(x) > 2 else None] for x in pts]})
+    flows = {}
+    ftypes = [t for t, (_lab, h) in ((r[0], (r[1], json.loads(r[2] or "{}"))) for r in
+              conn.execute("SELECT type_id, label, display_hints FROM relation_type ORDER BY type_id")) if h.get("flow")]
+    labels = {r[0]: r[1] for r in conn.execute("SELECT type_id, label FROM relation_type")}
+    if ftypes:
+        marks = ",".join("?" * len(ftypes))
+        names = {}
+        for r in conn.execute(f"SELECT relation_id, type, from_id, to_id, attributes_json FROM relation WHERE type IN ({marks}) "
+                              f"ORDER BY type, from_id, to_id", tuple(ftypes)):
+            a = json.loads(r["attributes_json"] or "{}")
+            for e, other, direction in ((r["from_id"], r["to_id"], "out"), (r["to_id"], r["from_id"], "in")):
+                if other not in names:
+                    row = conn.execute("SELECT label FROM object WHERE object_id=?", (other,)).fetchone()
+                    names[other] = row[0] if row else None
+                flows.setdefault(e, []).append({"relation": r["relation_id"], "type": r["type"], "type_label": labels.get(r["type"]),
+                                                "direction": direction, "other": other, "other_label": names[other],
+                                                "series": a.get("series") or [], "unit": a.get("unit"), "reporter": a.get("reporter"),
+                                                "dataset": a.get("dataset"), "note": a.get("note"), "label": a.get("label")})
+    # the categories of the place's facilities as their sources name them (vocabulary hint "subtypes"): a count of
+    # "facilities registered" is never shown as a count of one kind (e.g. 103 mixed facilities ≠ 103 of one kind)
+    subtypes = {}
+    for t, (_lab, h) in hints.items():
+        st = h.get("subtypes")
+        if not st or not st.get("property"):
+            continue
+        for place, val, n in conn.execute(
+                "SELECT r.to_id, json_extract(o.props_json, '$.' || ?), COUNT(*) FROM relation r JOIN object o ON o.object_id=r.from_id "
+                "WHERE r.type='located_in' AND o.type=? GROUP BY r.to_id, 2 ORDER BY r.to_id, 3 DESC", (st["property"], t)):
+            subtypes.setdefault(place, {}).setdefault(t, []).append([val, n])
+    srcs = {d["source_id"] for d in defs.values()}
+    names = {sid: q.sources[sid].name for sid in srcs if sid in q.sources}
+    catalog.sort(key=lambda c: (c["props"].get("section") or "", c["props"].get("order") or 0, c["id"]))
+    pkg = {"by_entity": by_entity, "defs": defs, "flows": flows, "catalog": catalog, "source_names": names, "subtypes": subtypes}
+    if len(_IND_CACHE) > 4:
+        _IND_CACHE.clear()
+    _IND_CACHE[key] = pkg
+    return pkg
+
+
+def indicators_of(q, eid):
+    """The indicators and energy flows of ONE place (World Intelligence): its series with their definitions, and the
+    flows it declares or is declared in. An empty answer is a place without data (a data gap, never an error)."""
+    pkg = _indicators_pkg(q)
+    series = pkg["by_entity"].get(eid, [])
+    used = sorted({s["def"] for s in series})
+    data = {"entity": eid, "series": series, "defs": {d: pkg["defs"][d] for d in used}, "flows": pkg["flows"].get(eid, []),
+            "subtypes": pkg["subtypes"].get(eid, {}),
+            "source_names": {k: v for k, v in pkg["source_names"].items() if any(pkg["defs"][d]["source_id"] == k for d in used)}}
+    n = len(series)
+    return q._envelope(data, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=n, returned=n)
+
+
+def indicators_catalog_of(q):
+    """Every indicator of the world with its coverage (how many places have a value) and its latest period: what a
+    place's view uses to say which data exist elsewhere and are missing there (a gap, said as such)."""
+    pkg = _indicators_pkg(q)
+    n = len(pkg["catalog"])
+    return q._envelope({"catalog": pkg["catalog"], "source_names": pkg["source_names"],
+                        "places": sorted(pkg["by_entity"])}, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=n, returned=n)
+
+
+SECURITY_WINDOW_DAYS = 90
+VIOLENCE_IT = {1: "conflitto armato statale", 2: "conflitto tra gruppi non statali", 3: "violenza unilaterale contro civili"}
+
+
+def security_of(q):
+    """SECURITY ZONES (World Intelligence, 2026-10-03), computed from the digests of lethal events (vocabulary hint
+    "digest") with declared rules over the last SECURITY_WINDOW_DAYS days of the data (never a forecast, never real time):
+      unit: first-level administrative unit as the source names it; events with a clear account (clarity 1), not coded
+      "vague or biased", dated to the day/week (date precision ≤ 2) and placed at least to the province (where ≤ 4);
+      RED    R1: ≥ 3 distinct lethal events · R2: ≥ 25 deaths (best estimate) in ≥ 2 events — documented violent activity;
+      ORANGE O1: ≥ 1 state-based event with a FOREIGN state actor (Gleditsch–Ward code of a state party ≠ the state's own),
+             when not red — documented exposure; proximity alone colours nothing (O2, next to a red zone of another state,
+             is not computed: first-level unit adjacency is not in the published world).
+    The area drawn is the set of 0.5° grid cells (the PRIO-GRID cells) holding the zone's events: never a whole nation,
+    never a buffer suggesting a precision the source does not have."""
+    conn = q.conn
+    hints = _hints(conn)
+    kinds = [t for t, (_l, h) in hints.items() if h.get("digest")]
+    events, files = {}, set()
+    for t in kinds:
+        for o in conn.execute("SELECT props_json, recorded_at_ms, source_id FROM object WHERE type=? ORDER BY recorded_at_ms, object_id", (t,)):
+            pr = json.loads(o["props_json"] or "{}")
+            f = pr.get("fields") or []
+            files.add(pr.get("file"))
+            for e in pr.get("events") or []:
+                events[str(e[0])] = dict(zip(f, e)) | {"_source": o["source_id"]}   # a later file revises an event
+    if not events:
+        return q._envelope({"zones": [], "by_place": {}, "anchor": None}, 0, Budget.of(None), lod="refs", total=0, returned=0)
+    import datetime as _dt
+    anchor = max(e["date_start"] for e in events.values() if e.get("date_start"))
+    since = (_dt.date.fromisoformat(anchor) - _dt.timedelta(days=SECURITY_WINDOW_DAYS - 1)).isoformat()
+    ok = [e for e in events.values() if e.get("date_start") and since <= e["date_start"] <= anchor and (e.get("best") or 0) >= 1
+          and e.get("event_clarity") == 1 and "vague" not in (e.get("code_status") or "").lower()
+          and (e.get("date_prec") or 9) <= 2 and (e.get("where_prec") or 9) <= 4 and e.get("adm_1")
+          and e.get("latitude") is not None and e.get("longitude") is not None]
+    groups = {}
+    for e in ok:
+        groups.setdefault((e["country_id"], e["adm_1"]), []).append(e)
+    ucdp_ids = {}
+    for eid, v in conn.execute("SELECT entity_id, value FROM identifier WHERE scheme='ucdp_ged'"):
+        ucdp_ids[v] = eid
+    # the place each zone is in: the explorable area holding most of its events (the published world's own borders)
+    areas = {}
+    explore = sorted(t for t, (_l, h) in hints.items() if h.get("explore"))
+    marks_e = ",".join("?" * len(explore)) or "''"
+
+    def area_of(lon, lat):
+        for (cid,) in conn.execute("SELECT m.entity_id FROM object_rtree r JOIN rid_map m ON m.rid=r.rid JOIN object o ON o.object_id=m.entity_id "
+                                   f"WHERE r.min_lon<=? AND r.max_lon>=? AND r.min_lat<=? AND r.max_lat>=? AND o.type IN ({marks_e}) ORDER BY m.entity_id",
+                                   (lon, lon, lat, lat, *explore)):
+            if cid not in areas:
+                g = conn.execute("SELECT geometry FROM object WHERE object_id=?", (cid,)).fetchone()[0]
+                gg = json.loads(g) if g else None
+                areas[cid] = geo.PreparedArea(gg) if gg and geo.is_areal(gg) else None
+            if areas[cid] is not None and areas[cid].contains(lon, lat):
+                return cid
+        return None
+    zones = []
+    for (gw, adm1), evs in sorted(groups.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])):
+        n, deaths = len(evs), sum(e.get("best") or 0 for e in evs)
+        foreign = [e for e in evs if e.get("type_of_violence") == 1 and any(x not in (None, gw) for x in (e.get("gwnoa"), e.get("gwnob")))]
+        rule = "R1" if n >= 3 else "R2" if deaths >= 25 and n >= 2 else "O1" if foreign else None
+        if not rule:
+            continue
+        votes = {}
+        for e in evs:
+            c = area_of(e["longitude"], e["latitude"])
+            if c:
+                votes[c] = votes.get(c, 0) + 1
+        place = max(sorted(votes), key=lambda c: votes[c]) if votes else None
+        cells = sorted({(int((e["longitude"] + 180) // 0.5), int((e["latitude"] + 90) // 0.5)) for e in evs})
+        zones.append({"id": f"z:{gw}:{adm1}", "place": place, "adm1": adm1, "gw": gw, "color": "red" if rule in ("R1", "R2") else "orange",
+                      "rule": rule, "events_n": n, "deaths_best": deaths, "foreign_n": len(foreign),
+                      "first": min(e["date_start"] for e in evs), "last": max(e["date_start"] for e in evs),
+                      "cells": [[-180 + x * 0.5, -90 + y * 0.5] for x, y in cells],
+                      "events": [[str(e["id"]), e["date_start"], e.get("best"), e.get("low"), e.get("high"), VIOLENCE_IT.get(e.get("type_of_violence"), ""),
+                                  e.get("side_a"), e.get("side_b"), e.get("where_prec"), e.get("code_status"), ucdp_ids.get(str(e["id"])),
+                                  e in foreign] for e in sorted(evs, key=lambda e: (e["date_start"], str(e["id"])), reverse=True)]})
+    by_place = {}
+    for i, z in enumerate(zones):
+        if z["place"]:
+            by_place.setdefault(z["place"], []).append(i)
+    src = next(iter({e["_source"] for e in events.values()}), None)
+    data = {"zones": zones, "by_place": by_place, "anchor": anchor, "since": since, "window_days": SECURITY_WINDOW_DAYS,
+            "files": sorted(f for f in files if f), "source_id": src,
+            "rules": {"R1": "≥ 3 eventi letali distinti nell'unità amministrativa", "R2": "≥ 25 morti (stima migliore) in almeno 2 eventi",
+                      "O1": "≥ 1 evento di conflitto statale con un attore statale estero documentato"}}
+    return q._envelope(data, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=len(zones), returned=len(zones))
+
+
+EVENT_MEDIA_DAYS, EVENT_MEDIA_KM = 30, 25
+
+
+def event_media_of(q):
+    """CURRENT images near RECENT events (World Intelligence, 2026-10-03; replaces the retired rule
+    event_webcams_nearby): for every event that starts or ends within EVENT_MEDIA_DAYS days of the data's most recent
+    event, the elements of a type with a "media" hint (a current image) within EVENT_MEDIA_KM km. An image of today is
+    never attached to an event that ended long ago; nearness is said as nearness (the camera may not show the event)."""
+    import math as _m
+    conn = q.conn
+    hints = _hints(conn)
+    media = sorted(t for t, (_l, h) in hints.items() if h.get("media"))
+    last = conn.execute("SELECT MAX(t_start_ms) FROM event").fetchone()[0]
+    out = {}
+    if media and last:
+        since = last - EVENT_MEDIA_DAYS * 86_400_000
+        marks = ",".join("?" * len(media))
+        for e in conn.execute("SELECT event_id, lon, lat FROM event WHERE lon IS NOT NULL AND MAX(t_start_ms, COALESCE(t_end_ms, t_start_ms)) >= ? "
+                              "ORDER BY event_id", (since,)).fetchall():
+            dlat = EVENT_MEDIA_KM / 111.0
+            dlon = dlat / max(0.05, _m.cos(_m.radians(e["lat"])))
+            near = []
+            for o in conn.execute(f"SELECT o.object_id, o.label, o.lon, o.lat FROM object_rtree r JOIN rid_map m ON m.rid=r.rid "
+                                  f"JOIN object o ON o.object_id=m.entity_id WHERE r.min_lon<=? AND r.max_lon>=? AND r.min_lat<=? AND r.max_lat>=? "
+                                  f"AND o.type IN ({marks})", (e["lon"] + dlon, e["lon"] - dlon, e["lat"] + dlat, e["lat"] - dlat, *media)):
+                km = geo.haversine_km(e["lon"], e["lat"], o["lon"], o["lat"]) if hasattr(geo, "haversine_km") else None
+                if km is None:
+                    p1, p2 = _m.radians(e["lat"]), _m.radians(o["lat"])
+                    a = _m.sin((p2 - p1) / 2) ** 2 + _m.cos(p1) * _m.cos(p2) * _m.sin(_m.radians(o["lon"] - e["lon"]) / 2) ** 2
+                    km = 6371.0 * 2 * _m.asin(min(1.0, _m.sqrt(a)))
+                if km <= EVENT_MEDIA_KM:
+                    near.append([o["object_id"], o["label"], round(km, 1)])
+            if near:
+                out[e["event_id"]] = sorted(near, key=lambda x: (x[2], x[0]))[:12]
+    # places with a "nearby_media_km" hint (e.g. a city): the cameras within that distance, with their state
+    by_place, place_km, place_n = {}, {}, {}
+    for t, (_l, h) in hints.items():
+        km_lim = h.get("nearby_media_km")
+        if not km_lim or not media:
+            continue
+        place_km[t] = km_lim
+        marks = ",".join("?" * len(media))
+        cams = conn.execute(f"SELECT object_id, label, lon, lat, json_extract(props_json, '$.availability') FROM object "
+                            f"WHERE type IN ({marks}) AND lon IS NOT NULL", tuple(media)).fetchall()
+        grid = {}
+        for c in cams:
+            grid.setdefault((int(c[2] // 0.5), int(c[3] // 0.5)), []).append(c)
+        for o in conn.execute("SELECT object_id, lon, lat FROM object WHERE type=? AND lon IS NOT NULL ORDER BY object_id", (t,)):
+            near = []
+            gx, gy = int(o["lon"] // 0.5), int(o["lat"] // 0.5)
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for c in grid.get((gx + dx, gy + dy), ()):
+                        p1, p2 = _m.radians(o["lat"]), _m.radians(c[3])
+                        a = _m.sin((p2 - p1) / 2) ** 2 + _m.cos(p1) * _m.cos(p2) * _m.sin(_m.radians(c[2] - o["lon"]) / 2) ** 2
+                        km = 6371.0 * 2 * _m.asin(min(1.0, _m.sqrt(a)))
+                        if km <= km_lim:
+                            near.append([c[0], c[1], round(km, 1), c[4]])
+            if near:
+                by_place[o["object_id"]] = sorted(near, key=lambda x: (x[2], x[0]))[:20]
+                place_n[o["object_id"]] = len(near)          # how many in all within the distance (the 20 nearest are listed)
+    data = {"by_event": out, "days": EVENT_MEDIA_DAYS, "km": EVENT_MEDIA_KM, "anchor_ms": last, "by_place": by_place, "place_km": place_km,
+            "place_n": place_n}
+    return q._envelope(data, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=len(out), returned=len(out))
+
+
+def places_index_of(q):
+    """Every explorable place (vocabulary hint "explore") with its label and its source names (aliases): a small index
+    the search reads first, so a place named exactly or by prefix is never buried under thousands of events that share
+    its name in their labels (integrity gate 2026-10-04: "suda", "Sudan", "Niger" did not reach the place)."""
+    conn = q.conn
+    hints = _hints(conn)
+    explore = sorted(t for t, (_l, h) in hints.items() if h.get("explore"))
+    out = []
+    for t in explore:
+        for o in conn.execute("SELECT object_id, label, props_json FROM object WHERE type=? ORDER BY object_id", (t,)):
+            names = sorted({r[0] for r in conn.execute("SELECT alias FROM alias WHERE entity_id=?", (o[0],))} - {o[1]})
+            # a clear name where the source's short label is abbreviated ("S. Sudan" → "South Sudan"): the source's own
+            # sovereign-state name, only for a sovereign state and only when it is one of the place's names
+            pr = json.loads(o[2] or "{}")
+            sov = pr.get("sovereignty")
+            clear = sov if "." in o[1] and sov in names and "sovereign" in str(pr.get("ne_type", "")).lower() else None
+            out.append([o[0], t, o[1], names, clear])
+    # other places a person names (vocabulary hint "place_index", completion 2026-10-04): their rank among namesakes
+    # (e.g. inhabitants: London before London, Ontario) and a context word that tells them apart (e.g. their state)
+    for t in sorted(t for t, (_l, h) in hints.items() if h.get("place_index") and not h.get("explore")):
+        pi = hints[t][1]["place_index"]
+        for o in conn.execute("SELECT object_id, label, props_json FROM object WHERE type=? ORDER BY object_id", (t,)):
+            pr = json.loads(o[2] or "{}")
+            rank = pr.get(pi.get("rank_property"))
+            if pi.get("min_rank") is not None and (rank is None or rank < pi["min_rank"]):
+                continue          # a small place: found by the full-text search (the index read on the first search stays light)
+            names = sorted({r[0] for r in conn.execute("SELECT alias FROM alias WHERE entity_id=?", (o[0],))} - {o[1]})
+            out.append([o[0], t, o[1], names, None, rank, pr.get(pi.get("context_property"))])
+    return q._envelope({"places": out}, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=len(out), returned=len(out))
+
+
+def data_received_of(q):
+    """When the world last received data from its sources: the newest raw payload's fetch time (ms)."""
+    return q.conn.execute("SELECT MAX(fetched_ms) FROM raw_record").fetchone()[0]
+
+
+API_OPS = {"highlights": highlights_of, "insight_types": insight_types_of, "insight_summaries": insight_summaries_of,
+           "observations": observations_of, "tenures": tenures_of, "indicators": indicators_of,
+           "indicators_catalog": indicators_catalog_of, "security": security_of, "event_media": event_media_of,
+           "data_received": data_received_of, "places_index": places_index_of}
+
+
+def api_op(w, name, *args):
+    """Run an API-layer read operation where the Core query lives (this thread, or the worker process)."""
+    if isinstance(w, ProcWorker):
+        return w.call(name, args, {})
+    return API_OPS[name](w.q, *args)

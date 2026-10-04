@@ -1,0 +1,61 @@
+# INDICATORI DEI PAESI (World Intelligence, 2026-10-03): un oggetto per indicatore di una fonte, con i valori di ogni
+# Paese coperto ("misurato in" il Paese). Valori, unità e periodi della fonte; nessun valore stimato o riempito dove la
+# fonte non pubblica nulla: un Paese assente è una lacuna dichiarata dalle viste, mai uno zero.
+# by_country = [[iso2, [[periodo, valore, flag?], …]], …] · nature = observed | estimated | modelled | reported
+[object_type."observation.indicator"]
+label = "Indicatore dei Paesi"
+geometry = "none"
+identity_schemes = ["indicator"]
+display = { family = "observation", density_priority = 9, group = "Indicatori dei Paesi", map = false, indicator = { property = "by_country" }, facts = [{ property = "definition", label = "Definizione" }, { property = "unit", label = "Unità" }, { property = "coverage_n", label = "Paesi con dati (su 193)", digits = 0 }, { property = "latest_period", label = "Periodo più recente" }, { property = "dataset", label = "Dataset" }] }
+[object_type."observation.indicator".properties]
+indicator = { kind = "text" }
+indicator_label = { kind = "text" }
+unit = { kind = "text" }
+section = { kind = "text" }
+topic = { kind = "text" }
+definition = { kind = "text" }
+statistic = { kind = "text" }
+nature = { kind = "text" }
+frequency = { kind = "text" }
+dataset = { kind = "text" }
+keywords = { kind = "text" }
+group = { kind = "text" }
+order = { kind = "int" }
+digits = { kind = "int" }
+note = { kind = "text" }
+coverage_n = { kind = "int" }
+latest_period = { kind = "text" }
+anomalies_n = { kind = "int" }
+by_country = { kind = "list" }
+unit_by_country = { kind = "list" }
+
+# FLUSSI DI ENERGIA FRA PAESI: dichiarati dal Paese che importa (o esporta), con i volumi annuali della fonte
+# ("series" = [[anno, valore], …], unità della fonte). Mai dedotti dalla geografia; il partner può essere un Paese di
+# transito o un hub commerciale, come la fonte lo registra.
+[relation_type."imports_gas_from"]
+label = "importa gas da"
+nature = "infrastructural"
+from = ["place.country"]
+to = ["place.country"]
+display = { flow = true }
+
+[relation_type."imports_electricity_from"]
+label = "importa elettricità da"
+nature = "infrastructural"
+from = ["place.country"]
+to = ["place.country"]
+display = { flow = true }
+
+[relation_type."exports_electricity_to"]
+label = "esporta elettricità verso"
+nature = "infrastructural"
+from = ["place.country"]
+to = ["place.country"]
+display = { flow = true }
+
+[relation_type."imports_crude_from"]
+label = "importa petrolio greggio da"
+nature = "infrastructural"
+from = ["place.country"]
+to = ["place.country"]
+display = { flow = true }

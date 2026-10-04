@@ -1,0 +1,32 @@
+# Contesto di esposizione: cosa c'è nell'area di un evento (volcanic.activity) — centri abitati (Natural Earth).
+# Regola di configurazione del WORLD pubblicato, non codice del Core. Il raggio è un parametro di questa regola.
+[rule]
+id = "volcano_settlements_exposure"
+version = "1"
+label = "Centri abitati vicino a un vulcano attivo"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'attività vulcanica «{A.label}» ({A.time|date}) si trovano {n.O} centri abitati con più di 10.000 abitanti; il più vicino è {first.O.label} a {first.O.dist|num1} km. Contesto di esposizione, non una stima di danni."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["volcanic.activity"]
+
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["place.settlement"]
+where = [["population", ">=", 10000]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 50
+score = true

@@ -1,0 +1,56 @@
+# Trasporti — tipi di dominio (fuori dal Core)
+
+[object_type."transport.airport"]
+label = "Struttura aeronautica"
+geometry = "point"
+identity_schemes = ["ourairports", "icao"]
+display = { family = "transport", density_priority = 3, group = "Strutture aeronautiche", subtypes = { property = "airport_type", note = "Censite da OurAirports: aeroporti, piste, eliporti, idroscali e anche strutture chiuse. Il numero non è un numero di aeroporti in funzione.", values = { large_airport = "grande aeroporto", medium_airport = "aeroporto medio", small_airport = "pista o aeroporto minore", heliport = "eliporto", seaplane_base = "idroscalo", balloonport = "base per mongolfiere", closed = "chiusa (secondo la fonte)" } }, headline = [], facts = [{ property = "airport_type", label = "Tipo", values = { large_airport = "grande aeroporto", medium_airport = "aeroporto medio", small_airport = "pista o aeroporto minore", heliport = "eliporto", seaplane_base = "idroscalo", balloonport = "base per mongolfiere", closed = "chiusa (secondo la fonte)" } }, { property = "scheduled_service", label = "Voli di linea" }, { property = "municipality", label = "Località" }] }
+[object_type."transport.airport".properties]
+airport_type = { kind = "text", required = true }
+scheduled_service = { kind = "bool", required = true }
+elevation = { kind = "float", unit = "m" }
+municipality = { kind = "text" }
+iso_country = { kind = "text" }
+iso_region = { kind = "text" }
+
+[relation_type."located_in"]
+label = "si trova in"
+nature = "spatial"
+from = ["transport.airport", "place.settlement", "transport.port", "energy.power_plant", "geo.volcano", "camera.public_webcam", "toll.scheme", "toll.road_section"]
+to = ["place.country"]
+
+# (2026-10-03, audit di integrità §29) Gli aeroporti NON ricevono più il Paese dalla geometria: OurAirports dichiara il
+# Paese di ogni aeroporto (relazione asserita) e il contorno 1:50m, grossolano ai confini, ne aggiungeva un secondo in
+# 387 casi (eliporti di frontiera, Cipro Nord, Crimea…). Vale ciò che la fonte afferma.
+
+# WORLD pubblicato: porti, centrali, vulcani e insediamenti — paese che li contiene (dalla geometria); per gli elementi
+# sulla costa o in mare a pochi km dal contorno 1:50m del paese, "vicino a" (entro 15 km), mai "si trova in".
+[relation_type."near_place"]
+label = "vicino a"
+nature = "spatial"
+from = ["place.settlement", "transport.port", "energy.power_plant", "geo.volcano", "camera.public_webcam"]
+to = ["place.country"]
+
+[[enrichment]]
+id = "object_containment_live"
+when_kind = "object"
+when_types = ["place.settlement", "transport.port", "energy.power_plant", "geo.volcano", "camera.public_webcam"]
+container_type = "place.country"
+produce = "relation"
+relation_type = "located_in"
+fallback_nearest_km = 15
+fallback_relation_type = "near_place"
+
+[object_type."transport.port"]
+label = "Porto"
+geometry = "point"
+identity_schemes = ["wpi", "unlocode"]
+display = { family = "transport", density_priority = 3, group = "Porti e approdi", subtypes = { property = "harbor_size", note = "World Port Index (NGA): porti e approdi di ogni dimensione, inclusi i molto piccoli.", values = { grande = "grande", medio = "medio", piccolo = "piccolo", "molto piccolo" = "molto piccolo" } }, headline = [{ property = "harbor_size", prefix = "porto " }], facts = [{ property = "harbor_size", label = "Dimensione" }, { property = "channel_depth_m", label = "Profondità del canale", unit = "m", digits = 0 }, { property = "water_body", label = "Acque" }] }
+[object_type."transport.port".properties]
+harbor_size = { kind = "text" }
+harbor_type = { kind = "text" }
+channel_depth_m = { kind = "float", unit = "m" }
+max_vessel_length_m = { kind = "float", unit = "m" }
+country_code = { kind = "text" }
+country_name = { kind = "text" }
+water_body = { kind = "text" }

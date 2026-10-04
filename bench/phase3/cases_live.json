@@ -1,0 +1,240 @@
+[
+ {
+  "id": "evt_43ohtuzaxtzndp4dosvymroolq",
+  "label": "XXX620 · Zawiyah district, Libya",
+  "type": "conflict.violence_event",
+  "kind": "event",
+  "insights": 3
+ },
+ {
+  "id": "evt_22z63woqm24ckwteuqfi6at6pe",
+  "label": "Pakistan: Balochistan · Mastung district, Balochistan province, Pakistan",
+  "type": "conflict.violence_event",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_2gx5wle4blhk5lznxypls4fcwu",
+  "label": "EMSR174 — Flood in Skopje",
+  "type": "emergency.mapping_activation",
+  "kind": "event",
+  "insights": 1
+ },
+ {
+  "id": "evt_227pznfbcrkftqh5rsubxi5qd4",
+  "label": "EMSR269 — Tropical Cyclone GITA in Tonga",
+  "type": "emergency.mapping_activation",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_4h3oegmixqlihaqokjeemto2rm",
+  "label": "Wildfires - Rhodes Island, Greece",
+  "type": "fire.wildfire",
+  "kind": "event",
+  "insights": 3
+ },
+ {
+  "id": "evt_22g324hakgjlsqgfjyeyluajxq",
+  "label": "Wildfire MB-NO125, Manitoba, Canada",
+  "type": "fire.wildfire",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_bcgppq44xd3kwhj2amoz24s4nm",
+  "label": "Sichuan, China Landslides",
+  "type": "geo.landslide",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_252vdxo3wluwfbqql3ardwuute",
+  "label": "Skopje, Macedonia Flooding",
+  "type": "hydro.flood",
+  "kind": "event",
+  "insights": 2
+ },
+ {
+  "id": "evt_2ocqznger4zrkysghoqan5wvwi",
+  "label": "Liberia Floods, July 2016",
+  "type": "hydro.flood",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_7fa4tlgfwpoopd6npysnkmly24",
+  "label": "Tsunami · Central Chile (2017)",
+  "type": "hydro.tsunami",
+  "kind": "event",
+  "insights": 3
+ },
+ {
+  "id": "evt_3kb7472qek2pbn3oolqsxr4eyq",
+  "label": "Tsunami · Izu Islands, Japan (2023)",
+  "type": "hydro.tsunami",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_hellautkbvur5gjnuqxftldl3m",
+  "label": "M 7.8 - Pazarcik earthquake, Kahramanmaras earthquake sequence",
+  "type": "seismic.earthquake",
+  "kind": "event",
+  "insights": 6
+ },
+ {
+  "id": "evt_222w7pqjweih47uehatpnbroki",
+  "label": "M 5.9 - 273 km WSW of Tual, Indonesia",
+  "type": "seismic.earthquake",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_22ig273iebxa7nbx5vcjlieys4",
+  "label": "Terremoto significativo · New Caledonia:  Loyalty Islands (2017)",
+  "type": "seismic.significant_earthquake",
+  "kind": "event",
+  "insights": 1
+ },
+ {
+  "id": "evt_26gzpskc2vc4ceg4x7nnigzkum",
+  "label": "Terremoto significativo · Mexico; Guatemala:  San Marcos (2014)",
+  "type": "seismic.significant_earthquake",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_yqflhfnobijpzydzo623zosw2q",
+  "label": "La Palma Volcano, Canary Islands, Spain",
+  "type": "volcanic.activity",
+  "kind": "event",
+  "insights": 2
+ },
+ {
+  "id": "evt_223ojlv24lva2z3wub5cbidq2e",
+  "label": "Sheveluch Volcano, Russia",
+  "type": "volcanic.activity",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_2gp2vvdgqs5dnpsbxd5vuwjkyy",
+  "label": "Eruzione · Sinabung (2013)",
+  "type": "volcanic.eruption",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "evt_3tisx6zbkqkoeiuvpq25sdtn2u",
+  "label": "Typhoon Talim",
+  "type": "weather.severe_storm",
+  "kind": "event",
+  "insights": 3
+ },
+ {
+  "id": "evt_22k2mpons2r6uw3st7i7y26vmm",
+  "label": "Typhoon Kalmaegi",
+  "type": "weather.severe_storm",
+  "kind": "event",
+  "insights": 0
+ },
+ {
+  "id": "obj_guql5t6s5ijpe3odsb2rxiulka",
+  "label": "Onagawa",
+  "type": "energy.power_plant",
+  "kind": "object",
+  "insights": 17
+ },
+ {
+  "id": "obj_222fzaynxc3o62x5vknxjxat7u",
+  "label": "Chongqing Jinjiaba Hydroelectric",
+  "type": "energy.power_plant",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "obj_226krkbteyzeasvsiz6tyd6why",
+  "label": "Kazbek",
+  "type": "geo.volcano",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "obj_jbppawqhpxqexm5argryw4caqq",
+  "label": "Indonesia",
+  "type": "place.country",
+  "kind": "object",
+  "insights": 4
+ },
+ {
+  "id": "obj_257fy4xe7mqdmhayy2pxfra454",
+  "label": "Mali",
+  "type": "place.country",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "obj_rz6zwkr7ia5dzzm7hr2lypz6va",
+  "label": "Nabatiye et Tahta",
+  "type": "place.settlement",
+  "kind": "object",
+  "insights": 26
+ },
+ {
+  "id": "obj_224bsblwitvn6d766mow74kedy",
+  "label": "São Tomé",
+  "type": "place.settlement",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "obj_b6eboumwxtuaz5qjnqnywxrg3i",
+  "label": "Hualien Chiashan Airport",
+  "type": "transport.airport",
+  "kind": "object",
+  "insights": 18
+ },
+ {
+  "id": "obj_222dvsmsjmmeeigawv2yin454m",
+  "label": "South Farm Airport",
+  "type": "transport.airport",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "obj_ekqk6oeul7tw25czhotmnsrcq4",
+  "label": "Hua-Lien Kang",
+  "type": "transport.port",
+  "kind": "object",
+  "insights": 12
+ },
+ {
+  "id": "obj_22iwpgid3gvn5aphkaxx6zyyr4",
+  "label": "New Harbor",
+  "type": "transport.port",
+  "kind": "object",
+  "insights": 0
+ },
+ {
+  "id": "ins_j24nfxzv2zmqzt3bivr5cmg2te",
+  "label": "Associazione: attivazione Copernicus e inondazione: EMSN038 — Post-disaster situation analyses of flood and landslides in Lima, Peru",
+  "type": "activation_flood_association",
+  "kind": "insight",
+  "insights": 0
+ },
+ {
+  "id": "ins_eidag76qd2j3kntwpt76jrurlu",
+  "label": "Associazione: impatto registrato del terremoto: Terremoto significativo · Greece:  Lefkada, Kefalonia, Ithaca (2015)",
+  "type": "quake_impact_association",
+  "kind": "insight",
+  "insights": 0
+ },
+ {
+  "id": "ins_arzwhyrv2i4blrj4vjavv5wphq",
+  "label": "Associazione: tsunami e terremoto: Tsunami · Solomon Islands (2015)",
+  "type": "tsunami_quake_association",
+  "kind": "insight",
+  "insights": 0
+ }
+]

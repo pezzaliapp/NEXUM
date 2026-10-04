@@ -1,0 +1,34 @@
+id = "fr.lyon_criter"
+name = "Métropole de Lyon — CRITER web cameras"
+owner = "Métropole de Lyon"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "fr_lyon_criter"
+connector = "connectors.open_webcams"
+
+# World Intelligence (2026-10-03): positions and the stable URL of each camera's CURRENT still image; the image itself
+# is loaded by the browser from the publisher only when the person opens the camera (never copied, never archived).
+[license]
+id = "Licence-Ouverte-2.0"
+url = "https://www.data.gouv.fr/datasets/cameras-web-criter-de-la-metropole-de-lyon"
+attribution = "Métropole de Lyon – CRITER, Licence Ouverte v2.0"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "geojson"
+auth = "none"
+allowed_hosts = ["data.grandlyon.com"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

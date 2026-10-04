@@ -1,0 +1,32 @@
+# Contesto di esposizione: cosa c'è nell'area di un evento (hydro.flood) — centri abitati (Natural Earth).
+# Regola di configurazione del WORLD pubblicato, non codice del Core. Il raggio è un parametro di questa regola.
+[rule]
+id = "flood_settlements_exposure"
+version = "1"
+label = "Centri abitati vicino a un'inondazione"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'area dell'inondazione «{A.label}» ({A.time|date}) si trovano {n.O} centri abitati con più di 100.000 abitanti; il più vicino è {first.O.label} a {first.O.dist|num1} km dal bordo dell'area. Contesto di esposizione, non una stima di danni."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["hydro.flood"]
+
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["place.settlement"]
+where = [["population", ">=", 100000]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 25
+score = true

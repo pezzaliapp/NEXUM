@@ -9,6 +9,9 @@ const SECTIONS = ["identity", "type", "properties", "sources", "evidence", "rela
 
 test("W16 + W3 + W8 + W24: the whole investigation, offline, without leaving the workspace", async ({ page }) => {
   const { external, errors } = await open(page, "d1", { blockExternal: true });
+  // declared change (2026-10-01): NEXUM opens on the last 12 months; this investigation spans every year, so the
+  // person chooses the whole period first (an explicit choice, as in the workspace)
+  await page.evaluate(() => (window as any).__nexum.store.setPeriod({ kind: "all" }));
   const navs: string[] = [];
   page.on("framenavigated", (f) => { if (f === page.mainFrame()) navs.push(f.url()); });
   const attributions = async () => {
@@ -48,6 +51,7 @@ test("W16 + W3 + W8 + W24: the whole investigation, offline, without leaving the
   await page.locator(`.focushead [data-why="${M.r2}"]`).click();
   const why = page.getByTestId("why");
   await expect(why).toHaveAttribute("data-why", M.r2);
+  await page.getByTestId("why-technical").locator("summary").click();   // declared change: engine details collapsed by default
   await expect(page.getByTestId("why-rule")).toHaveText("event_event_association");
   await expect(page.locator(`[data-candidate="${M.quake}"]`)).toBeVisible();
   await expect(page.locator(`[data-candidate="${M.m67}"]`)).toBeVisible();
@@ -63,6 +67,8 @@ test("W16 + W3 + W8 + W24: the whole investigation, offline, without leaving the
   await expect(page.getByTestId("raw-record").first()).toContainText("public-domain");
   // back to the element, then INSIGHT → OBJECT: R2 → Myanmar (member P)
   await page.getByRole("button", { name: /Torna all'elemento/ }).click();
+  // declared change (2026-10-03, Phase 3B · A2): members with their roles sit under "Dettagli tecnici", collapsed by default
+  await page.getByTestId("detail-technical").locator(":scope > summary").click();
   await page.locator(`[data-section="properties"] [data-ref="${M.mm}"]`).first().click();
   await expect(page.getByTestId("focus-head")).toHaveAttribute("data-focus", M.mm);
   // change focus from the graph and continue

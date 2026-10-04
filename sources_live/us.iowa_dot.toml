@@ -1,0 +1,34 @@
+id = "us.iowa_dot"
+name = "Iowa DOT — traffic and road-weather cameras"
+owner = "Iowa Department of Transportation"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "us_iowa_dot"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): CURRENT image of the traffic and road-weather cameras.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0"
+url = "https://iowadot.gov/"
+attribution = "Iowa DOT (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["services.arcgis.com"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

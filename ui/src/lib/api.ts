@@ -2,6 +2,7 @@
 // newer requests abort older ones in the browser and supersede them on the server (X-Nexum-Channel/Seq),
 // small in-memory cache per world_version.
 
+import * as web from "@nexum/web";
 import type { Envelope } from "./types";
 
 export class ApiError extends Error {
@@ -12,6 +13,12 @@ export class ApiError extends Error {
 export class Superseded extends Error {}
 
 const BASE = "/api/v1";
+// Online workspace (Phase 3, web build): /api/v1 is answered in the browser from the static snapshot; the local
+// build keeps the Phase 2 service. The constant is fixed at build time, so each build contains one transport only.
+export const SNAPSHOT = __NEXUM_WEB__;
+const transport: (url: string, init?: RequestInit) => Promise<Response> = SNAPSHOT
+  ? (url, init) => web.snapshotFetch(url, init)
+  : (url, init) => fetch(url, init);
 const seq = new Map<string, number>();
 // channels are scoped to this page session: a reloaded page restarts its sequence numbers
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -64,7 +71,7 @@ export async function call<T = any>(path: string, params?: Record<string, any>, 
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   let res: Response;
   try {
-    res = await fetch(url, { method, headers, signal, body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined });
+    res = await transport(url, { method, headers, signal, body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined });
   } catch (e: any) {
     if (e?.name === "AbortError") throw new Superseded("aborted");
     throw e;
@@ -103,7 +110,7 @@ export async function call<T = any>(path: string, params?: Record<string, any>, 
 
 /** Plain JSON endpoints outside the Core envelope (raw records, trails, basemap style). */
 export async function plain<T = any>(path: string, opts: CallOpts = {}, params?: Record<string, any>): Promise<T> {
-  const res = await fetch(BASE + path + qs(params), {
+  const res = await transport(BASE + path + qs(params), {
     method: opts.method ?? "GET",
     headers: opts.body !== undefined ? { "Content-Type": "application/json" } : undefined,
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,

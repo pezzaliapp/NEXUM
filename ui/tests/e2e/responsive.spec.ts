@@ -45,7 +45,7 @@ for (const size of SIZES) {
     await page.waitForTimeout(800);
     await page.screenshot({ path: new URL(`${size.name}-1-world.png`, OUT).pathname });
     await layoutChecks(page, touch, `${size.name} world`);
-    if (phone) await page.locator(".tabs button", { hasText: "Cerca" }).click();
+    if (touch) await page.locator(".tabs button", { hasText: "Cerca" }).click();   // declared change: touch layouts (2026-09-30)
     await page.locator("#nexum-search").fill("Mandalay");
     await page.locator(`#nexum-results [data-ref="${FX.myanmar.quake}"]`).click();
     await expect(page.getByTestId("focus-head")).toHaveAttribute("data-focus", FX.myanmar.quake);
@@ -57,6 +57,7 @@ for (const size of SIZES) {
     await page.waitForTimeout(500);
     await page.screenshot({ path: new URL(`${size.name}-3-why.png`, OUT).pathname });
     await layoutChecks(page, touch, `${size.name} why`);
+    await page.getByTestId("why-technical").locator("summary").click();   // declared change: engine details collapsed by default
     await page.locator(`[data-candidate="${FX.myanmar.m67}"] [data-ref]`).click();   // pivot from WHY
     await expect(page.getByTestId("focus-head")).toHaveAttribute("data-focus", FX.myanmar.m67);
     if (!phone) {
@@ -96,6 +97,8 @@ test("W30 keyboard: / focuses search, arrows + Enter open a result, [ ] walk the
   await page.keyboard.press("]");
   await expect(page.getByTestId("focus-head")).toHaveAttribute("data-focus", FX.myanmar.r2);
   // tab order reaches the inspector's references and they are activatable with Enter
+  // declared change (2026-10-03, Phase 3B · A2): members with their roles sit under "Dettagli tecnici", collapsed by default
+  await page.getByTestId("detail-technical").locator(":scope > summary").click();
   const ref = page.locator('[data-section="properties"] .ref').first();
   await ref.focus();
   await expect(ref).toBeFocused();

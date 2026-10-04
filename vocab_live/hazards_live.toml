@@ -1,0 +1,210 @@
+# Pericoli naturali del WORLD pubblicato (NASA EONET) — tipi di dominio, fuori dal Core.
+# "severity" è il valore generico normalizzato 0–1 dichiarato dal tipo (il Core non ne conosce il significato).
+
+[event_type."volcanic.activity"]
+label = "Attività vulcanica"
+geometry = "point"
+identity_schemes = ["eonet"]
+roles = ["location", "nearest_location", "at_volcano"]
+display = { family = "natural_event", density_priority = 2, group = "Vulcani", headline = [], facts = [{ property = "eonet_sources", label = "Segnalato da" }] }
+[event_type."volcanic.activity".properties]
+open = { kind = "bool" }
+category = { kind = "text" }
+eonet_sources = { kind = "list" }
+closed = { kind = "text" }
+positions = { kind = "int" }
+volcano_number = { kind = "text" }
+
+[event_type."fire.wildfire"]
+label = "Incendio"
+geometry = "point"
+identity_schemes = ["eonet"]
+roles = ["location", "nearest_location"]
+severity = { property = "size_class", min = 2.0, max = 6.0, clamp = true }
+display = { family = "natural_event", density_priority = 2, group = "Incendi", headline = [{ property = "area_km2", suffix = " km² bruciati", digits = 0 }], facts = [{ property = "area_km2", label = "Area", unit = "km²", digits = 1 }, { property = "eonet_sources", label = "Segnalato da" }] }
+[event_type."fire.wildfire".properties]
+open = { kind = "bool" }
+category = { kind = "text" }
+eonet_sources = { kind = "list" }
+closed = { kind = "text" }
+positions = { kind = "int" }
+area_km2 = { kind = "float", unit = "km2" }
+size_class = { kind = "float", unit = "log10 acri" }
+
+[event_type."weather.severe_storm"]
+label = "Tempesta / ciclone"
+geometry = "point"
+identity_schemes = ["eonet"]
+roles = ["location", "nearest_location"]
+severity = { property = "max_wind_kts", min = 34.0, max = 150.0, clamp = true }
+display = { family = "natural_event", density_priority = 2, group = "Meteo / tempeste", headline = [{ property = "max_wind_kts", prefix = "vento ", suffix = " nodi", digits = 0 }], facts = [{ property = "max_wind_kts", label = "Vento massimo", unit = "nodi", digits = 0 }, { property = "positions", label = "Posizioni registrate", digits = 0 }, { property = "eonet_sources", label = "Segnalato da" }] }
+[event_type."weather.severe_storm".properties]
+open = { kind = "bool" }
+track_start = { kind = "text" }
+track_end = { kind = "text" }
+position_shown = { kind = "text" }
+category = { kind = "text" }
+eonet_sources = { kind = "list" }
+closed = { kind = "text" }
+positions = { kind = "int" }
+max_wind_kts = { kind = "float", unit = "nodi" }
+track = { kind = "list" }
+
+[event_type."hydro.flood"]
+label = "Inondazione"
+geometry = "area"
+identity_schemes = ["eonet"]
+roles = ["location", "nearest_location"]
+display = { family = "natural_event", density_priority = 2, group = "Inondazioni", headline = [], facts = [{ property = "eonet_sources", label = "Segnalato da" }] }
+[event_type."hydro.flood".properties]
+open = { kind = "bool" }
+category = { kind = "text" }
+eonet_sources = { kind = "list" }
+closed = { kind = "text" }
+positions = { kind = "int" }
+
+[event_type."geo.landslide"]
+label = "Frana"
+geometry = "point"
+identity_schemes = ["eonet"]
+roles = ["location", "nearest_location"]
+display = { family = "natural_event", density_priority = 2, group = "Frane", headline = [], facts = [{ property = "eonet_sources", label = "Segnalato da" }] }
+[event_type."geo.landslide".properties]
+open = { kind = "bool" }
+category = { kind = "text" }
+eonet_sources = { kind = "list" }
+closed = { kind = "text" }
+positions = { kind = "int" }
+
+# NOAA NCEI — vulcani, eruzioni significative, tsunami, terremoti significativi (impatto registrato)
+[object_type."geo.volcano"]
+label = "Vulcano"
+geometry = "point"
+identity_schemes = ["ncei_volcano", "gvp"]
+display = { family = "natural_feature", density_priority = 2, group = "Vulcani", headline = [{ property = "elevation", suffix = " m", digits = 0 }], facts = [{ property = "morphology", label = "Tipo" }, { property = "elevation", label = "Altitudine", unit = "m", digits = 0 }, { property = "status", label = "Stato" }] }
+[object_type."geo.volcano".properties]
+morphology = { kind = "text" }
+elevation = { kind = "float", unit = "m" }
+status = { kind = "text" }
+country_name = { kind = "text" }
+last_eruption_code = { kind = "text" }
+
+[event_type."volcanic.eruption"]
+label = "Eruzione significativa"
+geometry = "point"
+identity_schemes = ["ncei"]
+roles = ["location", "nearest_location", "at_volcano"]
+severity = { property = "vei", min = 1.0, max = 6.0, clamp = true }
+display = { family = "natural_event", density_priority = 2, group = "Vulcani", headline = [{ property = "vei", prefix = "VEI ", digits = 0 }], facts = [{ property = "volcano_name", label = "Vulcano" }, { property = "vei", label = "Indice di esplosività (VEI)", digits = 0 }, { property = "deathsTotal", label = "Morti", digits = 0 }] }
+[event_type."volcanic.eruption".properties]
+volcano_name = { kind = "text" }
+vei = { kind = "float", unit = "VEI" }
+agent = { kind = "text" }
+country_name = { kind = "text" }
+deaths = { kind = "float", unit = "persone" }
+deathsTotal = { kind = "float", unit = "persone" }
+injuries = { kind = "float", unit = "persone" }
+injuriesTotal = { kind = "float", unit = "persone" }
+damageMillionsDollars = { kind = "float", unit = "milioni USD" }
+damageMillionsDollarsTotal = { kind = "float", unit = "milioni USD" }
+housesDestroyed = { kind = "float" }
+housesDestroyedTotal = { kind = "float" }
+missing = { kind = "float" }
+missingTotal = { kind = "float" }
+deathsAmountOrderTotal = { kind = "int" }
+damageAmountOrderTotal = { kind = "int" }
+
+[event_type."hydro.tsunami"]
+label = "Tsunami"
+geometry = "point"
+identity_schemes = ["ncei"]
+roles = ["location", "nearest_location"]
+severity = { property = "max_water_height_m", min = 0.0, max = 10.0, clamp = true }
+display = { family = "natural_event", density_priority = 2, group = "Tsunami", headline = [{ property = "max_water_height_m", prefix = "acqua fino a ", suffix = " m", digits = 1 }], facts = [{ property = "max_water_height_m", label = "Altezza massima dell'acqua", unit = "m", digits = 1 }, { property = "eq_magnitude", label = "Magnitudo del terremoto (NCEI)", digits = 1 }, { property = "deathsTotal", label = "Morti", digits = 0 }, { property = "runups", label = "Punti di risalita registrati", digits = 0 }] }
+[event_type."hydro.tsunami".properties]
+ts_intensity = { kind = "float" }
+max_water_height_m = { kind = "float", unit = "m" }
+cause_code = { kind = "int" }
+runups = { kind = "int" }
+eq_magnitude = { kind = "float", unit = "magnitudo" }
+country_name = { kind = "text" }
+event_validity = { kind = "int" }
+deaths = { kind = "float", unit = "persone" }
+deathsTotal = { kind = "float", unit = "persone" }
+injuries = { kind = "float", unit = "persone" }
+injuriesTotal = { kind = "float", unit = "persone" }
+damageMillionsDollars = { kind = "float", unit = "milioni USD" }
+damageMillionsDollarsTotal = { kind = "float", unit = "milioni USD" }
+housesDestroyed = { kind = "float" }
+housesDestroyedTotal = { kind = "float" }
+missing = { kind = "float" }
+missingTotal = { kind = "float" }
+deathsAmountOrderTotal = { kind = "int" }
+damageAmountOrderTotal = { kind = "int" }
+
+[event_type."seismic.significant_earthquake"]
+label = "Terremoto significativo (impatto)"
+geometry = "point"
+identity_schemes = ["ncei"]
+roles = ["location", "nearest_location"]
+severity = { property = "magnitude", min = 4.0, max = 9.0, clamp = true }
+display = { family = "natural_event", density_priority = 3, group = "Terremoti", headline = [{ property = "deathsTotal", suffix = " morti registrati", digits = 0 }], facts = [{ property = "magnitude", label = "Magnitudo", digits = 1 }, { property = "deathsTotal", label = "Morti", digits = 0 }, { property = "injuriesTotal", label = "Feriti", digits = 0 }, { property = "damageMillionsDollarsTotal", label = "Danni", unit = "milioni USD", digits = 1 }, { property = "housesDestroyedTotal", label = "Case distrutte", digits = 0 }] }
+[event_type."seismic.significant_earthquake".properties]
+magnitude = { kind = "float", unit = "magnitudo" }
+intensity = { kind = "float" }
+depth_km = { kind = "float", unit = "km" }
+country_name = { kind = "text" }
+tsunami_event = { kind = "int" }
+deaths = { kind = "float", unit = "persone" }
+deathsTotal = { kind = "float", unit = "persone" }
+injuries = { kind = "float", unit = "persone" }
+injuriesTotal = { kind = "float", unit = "persone" }
+damageMillionsDollars = { kind = "float", unit = "milioni USD" }
+damageMillionsDollarsTotal = { kind = "float", unit = "milioni USD" }
+housesDestroyed = { kind = "float" }
+housesDestroyedTotal = { kind = "float" }
+missing = { kind = "float" }
+missingTotal = { kind = "float" }
+deathsAmountOrderTotal = { kind = "int" }
+damageAmountOrderTotal = { kind = "int" }
+
+# UCDP — violenza organizzata (eventi con almeno 5 morti, stima migliore)
+[event_type."conflict.violence_event"]
+label = "Violenza organizzata"
+geometry = "point"
+identity_schemes = ["ucdp_ged"]
+roles = ["location", "nearest_location"]
+severity = { property = "deaths_best", min = 5.0, max = 200.0, clamp = true }
+display = { family = "conflict", density_priority = 2, group = "Violenza organizzata", headline = [{ property = "deaths_best", suffix = " morti registrati", digits = 0 }], facts = [{ property = "deaths_best", label = "Morti (stima migliore)", digits = 0 }, { property = "deaths_civilians", label = "di cui civili", digits = 0 }, { property = "deaths_low", label = "Stima minima", digits = 0 }, { property = "deaths_high", label = "Stima massima", digits = 0 }, { property = "violence_type", label = "Tipo" }, { property = "side_a", label = "Parte A" }, { property = "side_b", label = "Parte B" }] }
+[event_type."conflict.violence_event".properties]
+conflict_code = { kind = "text" }
+violence_type = { kind = "text" }
+conflict = { kind = "text" }
+dyad = { kind = "text" }
+side_a = { kind = "text" }
+side_b = { kind = "text" }
+deaths_best = { kind = "float", unit = "persone" }
+deaths_high = { kind = "float", unit = "persone" }
+deaths_low = { kind = "float", unit = "persone" }
+deaths_civilians = { kind = "float", unit = "persone" }
+country_name = { kind = "text" }
+where_precision = { kind = "int" }
+status = { kind = "text" }
+
+# Registro di base per le zone di sicurezza (World Intelligence, 2026-10-03): per Paese e file UCDP, ogni evento letale
+# (≥ 1 morto stimato) in forma compatta. Non è un elemento della mappa: le zone ROSSE/ARANCIONI si calcolano da qui con
+# regole dichiarate (90 giorni, unità amministrativa di primo livello), mai una previsione.
+[object_type."conflict.event_digest"]
+label = "Registro UCDP degli eventi letali"
+geometry = "none"
+identity_schemes = ["ucdp_digest"]
+display = { family = "event", density_priority = 9, group = "Sicurezza · registro UCDP", map = false, digest = true, facts = [{ property = "country_name", label = "Paese (UCDP)" }, { property = "file", label = "File UCDP" }, { property = "events_n", label = "Eventi letali", digits = 0 }, { property = "first", label = "Dal" }, { property = "last", label = "Al" }] }
+[object_type."conflict.event_digest".properties]
+country_name = { kind = "text" }
+gw = { kind = "int" }
+file = { kind = "text" }
+fields = { kind = "list" }
+events = { kind = "list" }
+events_n = { kind = "int" }
+first = { kind = "text" }
+last = { kind = "text" }

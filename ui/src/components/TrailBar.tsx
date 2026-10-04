@@ -6,15 +6,17 @@ import { ApiError, call, plain } from "../lib/api";
 import { SHAPE } from "../lib/palette";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
+import { requestPersist, TrailWebNote } from "./WebNotes";
 
-export function TrailBar() {
+/** Trail state and actions, shared by the desktop trail bar and the touch "Percorso" sheet. */
+export function useTrail() {
   const trail = useStore((s) => s.trail);
   const wv = useStore((s) => s.worldVersion);
   const [missing, setMissing] = useState<Set<string>>(new Set());
   const [list, setList] = useState<any[] | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [persisted, setPersisted] = useState<boolean | null>(null);   // online only (E6)
   const fileRef = useRef<HTMLInputElement>(null);
-  const stepsRef = useRef<HTMLDivElement>(null);
 
   // detect references that no longer exist (e.g. after a world rebuild)
   useEffect(() => {
@@ -27,13 +29,12 @@ export function TrailBar() {
     return () => { alive = false; };
   }, [trail.id, trail.steps.length, wv]);
 
-  useEffect(() => { stepsRef.current?.querySelector(".current")?.scrollIntoView({ block: "nearest", inline: "nearest" }); },
-    [trail.index]);
 
   const save = async () => {
     const t = store.get().trail;
     await plain(`/trails/${t.id}`, { method: "PUT", body: { name: t.name, steps: t.steps } });
     store.set({ trail: { ...store.get().trail, savedAt: Date.now(), dirty: false } });
+    requestPersist().then(setPersisted, () => {});
     setMsg(S.trailSaved);
     setTimeout(() => setMsg(null), 1500);
   };
@@ -56,6 +57,40 @@ export function TrailBar() {
     } catch (e) { setMsg((e as Error).message); }
   };
 
+  return { trail, missing, list, setList, msg, persisted, fileRef, save, openList, load, exportJson, importJson };
+}
+
+/** Saved trails (dialog) and the hidden file input for imports. */
+function SavedList({ t }: { t: ReturnType<typeof useTrail> }) {
+  return (
+    <>
+      <input ref={t.fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && t.importJson(e.target.files[0])} />
+      {t.list && (
+        <div className="dialog" role="dialog" onClick={() => t.setList(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <div className="row"><strong>{S.trailList}</strong><span className="grow" />
+              <button type="button" onClick={() => { store.newTrail(); t.setList(null); }}>{S.trailNew}</button>
+              <button type="button" onClick={() => t.setList(null)}>{S.closePanel}</button></div>
+            <ul className="list" style={{ marginTop: 8 }}>
+              {!t.list.length && <li className="dim">{S.none}</li>}
+              {t.list.map((x) => (
+                <li key={x.trail_id} className="row"><button type="button" className="ref" onClick={() => t.load(x.trail_id)}>
+                  <span className="lbl">{x.name}</span></button><span className="grow" />
+                  <span className="xs dim mono">{x.steps} · {new Date(x.updated_ms).toISOString().slice(0, 16).replace("T", " ")}</span></li>))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function TrailBar() {
+  const t = useTrail();
+  const { trail, missing, msg, persisted, save, openList, exportJson, fileRef } = t;
+  const stepsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { stepsRef.current?.querySelector(".current")?.scrollIntoView({ block: "nearest", inline: "nearest" }); },
+    [trail.index]);
   return (
     <nav className="trail" aria-label="trail" data-testid="trail">
       <button type="button" onClick={() => store.back()} disabled={trail.index <= 0} title={`${S.trailBack} ([)`} aria-label={S.trailBack}>◂</button>
@@ -75,28 +110,47 @@ export function TrailBar() {
         ))}
       </div>
       {msg && <span className="xs accent">{msg}</span>}
+      <TrailWebNote persisted={persisted} />
       <button type="button" onClick={save} disabled={!trail.steps.length} data-testid="trail-save"
         title={trail.dirty ? S.trailSave : S.trailSaved}>{S.trailSave}{trail.dirty ? " •" : ""}</button>
       <button type="button" onClick={openList} data-testid="trail-list" title={S.trailList} aria-label={S.trailList}>☰<span className="desk"> {S.trailList}</span></button>
       <button type="button" onClick={exportJson} disabled={!trail.steps.length} data-testid="trail-export" className="desk">{S.trailExport}</button>
       <button type="button" onClick={() => fileRef.current?.click()} className="desk">{S.trailImport}</button>
-      <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importJson(e.target.files[0])} />
-      {list && (
-        <div className="dialog" role="dialog" onClick={() => setList(null)}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <div className="row"><strong>{S.trailList}</strong><span className="grow" />
-              <button type="button" onClick={() => { store.newTrail(); setList(null); }}>{S.trailNew}</button>
-              <button type="button" onClick={() => setList(null)}>{S.closePanel}</button></div>
-            <ul className="list" style={{ marginTop: 8 }}>
-              {!list.length && <li className="dim">{S.none}</li>}
-              {list.map((t) => (
-                <li key={t.trail_id} className="row"><button type="button" className="ref" onClick={() => load(t.trail_id)}>
-                  <span className="lbl">{t.name}</span></button><span className="grow" />
-                  <span className="xs dim mono">{t.steps} · {new Date(t.updated_ms).toISOString().slice(0, 16).replace("T", " ")}</span></li>))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <SavedList t={t} />
     </nav>
+  );
+}
+
+/** Touch layouts: the path with full names (one line each, wrapped, never "…"), and the trail actions. */
+export function TrailSheet() {
+  const t = useTrail();
+  const { trail, missing } = t;
+  return (
+    <div className="ov-body" data-testid="trail-sheet">
+      <div className="ov-h"><span className="grow" />{S.trailSteps(trail.steps.length)}</div>
+      {!trail.steps.length && <p className="note">{S.trailEmpty}</p>}
+      <ol className="path-list">
+        {trail.steps.map((s, i) => (
+          <li key={`${i}-${s.ref}`}>
+            <button type="button" className={`path-step${i === trail.index ? " current" : ""}${missing.has(s.ref) ? " missing" : ""}`}
+              data-step={i} data-ref={s.ref} aria-current={i === trail.index ? "step" : undefined}
+              onClick={() => !missing.has(s.ref) && store.go(i)}>
+              <span className="path-n mono">{i + 1}</span>
+              <span className="path-lbl">{store.entity(s.ref)?.label ?? s.label}{missing.has(s.ref) ? ` — ${S.trailMissing}` : ""}</span>
+            </button>
+          </li>))}
+      </ol>
+      <div className="ov-actions">
+        <button type="button" className="primary" onClick={t.save} disabled={!trail.steps.length} data-testid="trail-save">
+          {S.trailSave}{trail.dirty ? " •" : ""}</button>
+        <button type="button" className="primary" onClick={t.openList} data-testid="trail-list">{S.trailList}</button>
+        <button type="button" className="primary" onClick={() => store.newTrail()}>{S.trailNew}</button>
+        <button type="button" className="primary" onClick={t.exportJson} disabled={!trail.steps.length} data-testid="trail-export">{S.trailExport}</button>
+        <button type="button" className="primary" onClick={() => t.fileRef.current?.click()}>{S.trailImport}</button>
+        {t.msg && <span className="xs accent">{t.msg}</span>}
+        <TrailWebNote persisted={t.persisted} />
+      </div>
+      <SavedList t={t} />
+    </div>
   );
 }

@@ -1,0 +1,34 @@
+id = "ch.geneve_sitg"
+name = "SITG État de Genève — traffic surveillance cameras"
+owner = "État de Genève (SITG)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "ch_geneve_sitg"
+connector = "connectors.open_webcams"
+
+# World Intelligence (2026-10-03): positions and the stable URL of each camera's CURRENT still image; the image itself
+# is loaded by the browser from the publisher only when the person opens the camera (never copied, never archived).
+[license]
+id = "opendata.swiss-open-use"
+url = "https://opendata.swiss/en/terms-of-use"
+attribution = "SITG – État de Genève (opendata.swiss, open use)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["vector.sitg.ge.ch"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

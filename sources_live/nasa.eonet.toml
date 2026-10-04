@@ -1,0 +1,33 @@
+id = "nasa.eonet"
+name = "NASA EONET — Earth Observatory Natural Event Tracker"
+owner = "NASA Earth Science Data Systems"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-01"
+independence_group = "nasa_eonet"
+connector = "connectors.nasa_eonet"
+
+[license]
+id = "public-domain-us-gov"
+url = "https://earthdata.nasa.gov/engage/open-data-services-software-policies"
+attribution = "NASA EONET (Earth Observatory Natural Event Tracker); upstream reports as linked by EONET (e.g. JTWC, NOAA NHC, IRWIN, InciWeb, Smithsonian GVP, Copernicus EMS, ReliefWeb)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["eonet.gsfc.nasa.gov"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "poll"
+min_poll_interval_s = 3600
+
+[options]
+backfill_start_year = 2015

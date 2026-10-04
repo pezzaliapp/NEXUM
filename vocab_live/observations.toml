@@ -1,0 +1,104 @@
+# OSSERVAZIONI (Phase 3B · block 2): serie misurate e pubblicate da fonti con metodologia documentata.
+# Due famiglie DISTINTE, mai mescolate né combinate in indici:
+#   · observation.opinion_series  — PERCEZIONE: risposte a sondaggi (quota, saldo); campione, domanda, campo;
+#   · observation.official_series — REALTÀ: statistiche ufficiali (inflazione, disoccupazione…).
+# Nessuna geometria propria: si leggono dal Paese ("misurato in"), non sono livelli della mappa.
+# "series" = [[inizio periodo, fine periodo, valore, n, errore standard], …] in ordine di tempo (n/SE se pubblicati).
+[object_type."observation.opinion_series"]
+label = "Indicatore d'opinione"
+geometry = "none"
+identity_schemes = ["obs_series"]
+display = { family = "observation", density_priority = 9, group = "Opinione pubblica", map = false, series = { property = "series", kind = "survey" }, facts = [{ property = "question", label = "Domanda" }, { property = "answer", label = "Risposta" }, { property = "population", label = "Popolazione" }, { property = "method", label = "Metodo" }, { property = "dataset", label = "Rilevazione" }] }
+[object_type."observation.opinion_series".properties]
+indicator = { kind = "text" }
+indicator_label = { kind = "text" }
+topic = { kind = "text" }
+question = { kind = "text" }
+answer = { kind = "text" }
+statistic = { kind = "text" }
+unit = { kind = "text" }
+population = { kind = "text" }
+method = { kind = "text" }
+probability_sample = { kind = "bool" }
+seasonal = { kind = "text" }
+compare = { kind = "text" }
+dataset = { kind = "text" }
+comparable_series_id = { kind = "text" }
+country_iso2 = { kind = "text" }
+series = { kind = "list" }
+latest_value = { kind = "float" }
+latest_end = { kind = "text" }
+rank = { kind = "int" }
+
+[object_type."observation.official_series"]
+label = "Indicatore statistico ufficiale"
+geometry = "none"
+identity_schemes = ["obs_series"]
+display = { family = "observation", density_priority = 9, group = "Realtà · dati ufficiali", map = false, series = { property = "series", kind = "official" }, facts = [{ property = "definition", label = "Definizione" }, { property = "dataset", label = "Dataset" }] }
+[object_type."observation.official_series".properties]
+indicator = { kind = "text" }
+indicator_label = { kind = "text" }
+topic = { kind = "text" }
+definition = { kind = "text" }
+statistic = { kind = "text" }
+unit = { kind = "text" }
+frequency = { kind = "text" }
+dataset = { kind = "text" }
+comparable_series_id = { kind = "text" }
+country_iso2 = { kind = "text" }
+series = { kind = "list" }
+latest_value = { kind = "float" }
+latest_end = { kind = "text" }
+estimate_flags = { kind = "list" }
+rank = { kind = "int" }
+
+[relation_type."measured_in"]
+label = "misurato in"
+nature = "spatial"
+from = ["observation.opinion_series", "observation.official_series", "observation.survey_wave", "observation.fuel_price", "observation.indicator"]
+to = ["place.country"]
+
+# Un'ondata di un sondaggio in un Paese (Eurobarometro standard): campo, campione e gli indicatori misurati in quell'ondata
+# ("items" = [[codice, etichetta, domanda originale, risposta, valore %, n], …]). Le serie si ricompongono fra ondate
+# con lo stesso codice (stessa domanda, stessa risposta, stessa popolazione) — mai fra strumenti diversi.
+[object_type."observation.survey_wave"]
+label = "Rilevazione d'opinione"
+geometry = "none"
+identity_schemes = ["obs_wave"]
+display = { family = "observation", density_priority = 9, group = "Opinione pubblica", map = false, wave = { property = "items" }, facts = [{ property = "dataset", label = "Rilevazione" }, { property = "fieldwork_start", label = "Campo dal" }, { property = "fieldwork_end", label = "Campo al" }, { property = "sample_size", label = "Intervistati", digits = 0 }, { property = "population", label = "Popolazione" }, { property = "method", label = "Metodo" }] }
+[object_type."observation.survey_wave".properties]
+dataset = { kind = "text" }
+wave = { kind = "text" }
+fieldwork_start = { kind = "text" }
+fieldwork_end = { kind = "text" }
+sample_size = { kind = "float" }
+population = { kind = "text" }
+method = { kind = "text" }
+probability_sample = { kind = "bool" }
+country_iso2 = { kind = "text" }
+items = { kind = "list" }
+
+# Prezzi dei carburanti (Phase 3B · block 4): media nazionale al dettaglio pubblicata dall'autorità, nell'unità e nella
+# valuta della fonte; componenti fiscali solo dove la fonte le pubblica, con la data da cui valgono.
+# Copertura: 34 Stati su 193 (UE-27, Regno Unito, Stati Uniti, Canada, Malesia, Norvegia, Svizzera, Uruguay). Non è una copertura mondiale.
+[object_type."observation.fuel_price"]
+label = "Prezzo dei carburanti"
+geometry = "none"
+identity_schemes = ["obs_series"]
+display = { family = "observation", density_priority = 9, group = "Carburanti", map = false, series = { property = "series", kind = "price", coverage = "Copertura: 37 Stati su 193 (UE-27, Regno Unito, Stati Uniti, Canada, Malesia, Norvegia, Svizzera, Uruguay, Nuova Zelanda, Australia, Ucraina; per l'Uruguay prezzi massimi fissati per decreto; Australia trimestrale, Nuova Zelanda media dei 4 porti principali). Non è una copertura mondiale." }, facts = [{ property = "definition", label = "Definizione" }, { property = "dataset", label = "Dataset" }] }
+[object_type."observation.fuel_price".properties]
+indicator = { kind = "text" }
+indicator_label = { kind = "text" }
+fuel_type = { kind = "text" }
+statistic = { kind = "text" }
+unit = { kind = "text" }
+currency = { kind = "text" }
+frequency = { kind = "text" }
+definition = { kind = "text" }
+dataset = { kind = "text" }
+area = { kind = "text" }
+series = { kind = "list" }
+comparable_series_id = { kind = "text" }
+taxes = { kind = "list" }
+price_without_taxes = { kind = "float" }
+country_iso2 = { kind = "text" }

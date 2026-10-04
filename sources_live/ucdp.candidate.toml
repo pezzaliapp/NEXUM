@@ -1,0 +1,33 @@
+id = "ucdp.candidate"
+name = "UCDP Candidate Events Dataset (organised violence, monthly)"
+owner = "Uppsala Conflict Data Program, Uppsala University"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-01"
+independence_group = "ucdp"
+connector = "connectors.ucdp_candidate"
+
+[license]
+id = "CC-BY-4.0"
+url = "https://ucdp.uu.se/downloads/"
+attribution = "UCDP Candidate Events Dataset (Sundberg & Melander 2013; Davies et al. 2025), CC BY 4.0"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["ucdp.uu.se"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]
+files = ["GEDEvent_v26_01_26_06.csv", "GEDEvent_v26_0_7.csv", "GEDEvent_v26_0_8.csv"]

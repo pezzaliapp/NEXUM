@@ -1,0 +1,33 @@
+id = "nga.world_port_index"
+name = "NGA World Port Index (Pub. 150)"
+owner = "U.S. National Geospatial-Intelligence Agency"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-01"
+independence_group = "nga_wpi"
+connector = "connectors.nga_world_port_index"
+
+[license]
+id = "public-domain-us-gov"
+url = "https://msi.nga.mil/Publications/WPI"
+attribution = "NGA World Port Index (Pub. 150)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["msi.nga.mil"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]
+

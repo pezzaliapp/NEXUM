@@ -1,0 +1,31 @@
+# Contesto di esposizione (WORLD pubblicato): storm → nuclear, entro 150 km. Configurazione, non codice del Core.
+[rule]
+id = "storm_nuclear_exposure"
+version = "1"
+label = "Centrali nucleari vicino a una tempesta"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dalla tempesta «{A.label}» (vento massimo {A.prop.max_wind_kts|num0} nodi, {A.time|date}; punto di massima intensità, non l'intero percorso) si trovano {n.O} centrali nucleari (dati WRI 2021); la più vicina è {first.O.label} ({first.O.prop.capacity_mw|num0} MW) a {first.O.dist|num1} km. Contesto di esposizione: vicinanza registrata, non una stima di danni né un rapporto di causa."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["weather.severe_storm"]
+where = [["max_wind_kts", ">=", 64]]
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["energy.power_plant"]
+where = [["primary_fuel", "==", "Nuclear"]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 150
+score = true

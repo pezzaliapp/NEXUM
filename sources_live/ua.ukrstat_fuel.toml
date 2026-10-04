@@ -1,0 +1,33 @@
+id = "ua.ukrstat_fuel"
+name = "State Statistics Service of Ukraine — average consumer prices of fuel"
+owner = "State Statistics Service of Ukraine"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "ua.ukrstat_fuel"
+connector = "connectors.fuel_more"
+
+# Completion (2026-10-04): monthly national average consumer prices, UAH.
+[license]
+id = "CC-BY-4.0"
+url = "https://data.gov.ua/dataset/12f4fe34-0759-4271-b1f6-780995f0ec4a"
+attribution = "Державна служба статистики України (data.gov.ua, CC BY)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["data.gov.ua"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

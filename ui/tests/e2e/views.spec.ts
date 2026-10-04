@@ -1,7 +1,7 @@
 // W13 linked selection, W15 OBJECT MODE, W17 D3 + mixed world, W18–W20 WHY in the UI, W23 numeric coherence,
 // W27 timeline sync, W28 map LOD.
-import { expect, test } from "@playwright/test";
-import { api, FX, open, select, stage } from "./helpers";
+import { expect, test, type Page } from "@playwright/test";
+import { api, FX, open, select, stage, waitForApi } from "./helpers";
 
 const SECTIONS = ["identity", "type", "properties", "sources", "evidence", "relations", "related-objects",
   "related-events", "timeline", "geography", "insights", "provenance"];
@@ -74,6 +74,16 @@ test("W15 OBJECT MODE: 12 sections for object, event, relation and insight", asy
   await expect(page.locator('[data-section="relations"]')).toContainText("non applicabile");
 });
 
+// declared change (2026-10-02): the engine's blocks (rule, candidates, representative…) sit under "Dettagli tecnici",
+// collapsed by default; the check opens it as a person would, then asserts the same block is visible.
+async function techVisible(page: Page, sel: string) {
+  await expect(async () => {
+    const d = page.getByTestId("why-technical");
+    if (!(await d.evaluate((e) => (e as HTMLDetailsElement).open))) await d.locator("summary").click();
+    await expect(page.locator(sel)).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
+}
+
 test("W18 W19 W20 WHY in the UI: grouped rule, rules without grouping, canonical relations", async ({ page }) => {
   await open(page, "d1");
   const M = FX.myanmar;
@@ -83,14 +93,14 @@ test("W18 W19 W20 WHY in the UI: grouped rule, rules without grouping, canonical
   await expect(page.getByTestId("why-recompute")).toHaveAttribute("data-match", "true");
   // W19 R1: grouping fields explicitly not recorded
   await page.evaluate((id) => (window as any).__nexum.store.why(id), M.r1);
-  await expect(page.locator('[data-why-block="candidates"] [data-na="not_recorded"]')).toBeVisible();
-  await expect(page.locator('[data-why-block="representative"] [data-na="not_recorded"]')).toBeVisible();
+  await techVisible(page, '[data-why-block="candidates"] [data-na="not_recorded"]');
+  await techVisible(page, '[data-why-block="representative"] [data-na="not_recorded"]');
   await expect(page.getByTestId("why-recompute")).toHaveAttribute("data-match", "true");
   // W20: 15 D1 relations
   for (const rel of FX.relations.slice(0, 15)) {
     await page.evaluate((id) => (window as any).__nexum.store.why(id), rel);
     await expect(page.getByTestId("why")).toHaveAttribute("data-why", rel);
-    await expect(page.locator('[data-why-block="rule"] [data-na="not_applicable"]')).toBeVisible();
+    await techVisible(page, '[data-why-block="rule"] [data-na="not_applicable"]');
     await expect(page.locator('[data-why-block="evidence"] [data-evidence]').first()).toBeVisible();
     await expect(page.getByTestId("why-recompute")).toHaveAttribute("data-match", "true");
     await expect(page.locator('[data-why-block="evidence"]')).toContainText("completa fino al dato grezzo");
@@ -100,14 +110,14 @@ test("W18 W19 W20 WHY in the UI: grouped rule, rules without grouping, canonical
 test("W19 W20 WHY in D3: N1 with the mirror not independent; 5 D3 relations", async ({ page }) => {
   await open(page, "d3");
   await page.evaluate((id) => (window as any).__nexum.store.why(id), FX.d3.n1);
-  await expect(page.locator('[data-why-block="candidates"] [data-na="not_recorded"]')).toBeVisible();
+  await techVisible(page, '[data-why-block="candidates"] [data-na="not_recorded"]');
   await expect(page.locator('[data-not-independent="fixture.vuln_catalog_a_mirror"]')).toBeVisible();
   await expect(page.getByTestId("why-recompute")).toHaveAttribute("data-match", "true");
   const groups = await page.locator('[data-why-block="evidence"] [data-evidence]').evaluateAll((els) => els.length);
   expect(groups).toBeGreaterThanOrEqual(3);
   for (const rel of FX.relations.slice(15)) {
     await page.evaluate((id) => (window as any).__nexum.store.why(id), rel);
-    await expect(page.locator('[data-why-block="rule"] [data-na="not_applicable"]')).toBeVisible();
+    await techVisible(page, '[data-why-block="rule"] [data-na="not_applicable"]');
     await expect(page.getByTestId("why-recompute")).toHaveAttribute("data-match", "true");
   }
 });
@@ -142,7 +152,7 @@ test("W27 timeline brush drives every view; selection highlights its bucket; cou
   const tl = page.getByTestId("timeline");
   await expect(tl).toHaveAttribute("data-hl", /\d+/);
   const box = (await tl.locator("canvas").boundingBox())!;
-  const mapReq = page.waitForRequest((r) => r.url().includes("/projections/map") && r.url().includes("time_window"));
+  const mapReq = waitForApi(page, ["/projections/map", "time_window"]);
   await page.mouse.move(box.x + box.width * 0.55, box.y + 30);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.75, box.y + 30, { steps: 8 });
@@ -151,7 +161,8 @@ test("W27 timeline brush drives every view; selection highlights its bucket; cou
   expect(win && win[1] > win[0]).toBeTruthy();
   await expect(tl).toHaveAttribute("data-window", `${win[0]},${win[1]}`);
   await mapReq;   // the map re-queries with the window
-  await expect(page.locator('[data-testid="rail"]')).toContainText("→");
+  // declared change (2026-10-01): the window is shown as the period it stands for, in whole months and in words
+  await expect(page.getByTestId("rail-period")).toContainText(/Periodo · \w{3} \d{4}( – \w{3} \d{4})?/);
   // bucket counts = Core, for the same range and bucket
   const counts = JSON.parse((await tl.getAttribute("data-counts"))!);
   expect(counts.length).toBeGreaterThan(0);
@@ -163,9 +174,9 @@ test("W27 timeline brush drives every view; selection highlights its bucket; cou
 
 test("W28 map LOD: aggregates at low zoom, individual elements from z 10, never more than 5,000 features", async ({ page }) => {
   await open(page, "d1");
-  await expect(page.getByTestId("map-lod")).toContainText("aggregato");
+  await expect(page.getByTestId("map-lod")).toHaveAttribute("data-lod", "aggregates");   // wording changed in the 3A UX review
   await page.evaluate(() => (window as any).__nexum.map.jumpTo({ center: [96.1, 21.97], zoom: 8.2 }));
-  await expect(page.getByTestId("map-lod")).toContainText("elementi", { timeout: 15000 });
+  await expect(page.getByTestId("map-lod")).not.toHaveAttribute("data-lod", "aggregates", { timeout: 15000 });
   const info = await page.evaluate(() => (window as any).__nexum.store.get().mapInfo);
   expect(info.lod).not.toBe("aggregates");
   const n = await page.evaluate(() => (window as any).__nexum.map.querySourceFeatures("nexum-items").length);
@@ -175,6 +186,6 @@ test("W28 map LOD: aggregates at low zoom, individual elements from z 10, never 
   const z = await page.evaluate(() => Math.floor((window as any).__nexum.map.getZoom() + 3));
   expect(z).toBeGreaterThanOrEqual(10);
   await page.evaluate(() => (window as any).__nexum.map.jumpTo({ center: [10, 20], zoom: 0.5 }));
-  await expect(page.getByTestId("map-lod")).toContainText("aggregato", { timeout: 15000 });
+  await expect(page.getByTestId("map-lod")).toHaveAttribute("data-lod", "aggregates", { timeout: 15000 });
   expect(await page.evaluate(() => (window as any).__nexum.store.entityCount())).toBeLessThanOrEqual(20000);
 });

@@ -1,0 +1,34 @@
+id = "ember.yearly"
+name = "Ember — Yearly Electricity Data (generation, capacity, demand, net imports)"
+owner = "Ember"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-03"
+independence_group = "ember"
+connector = "connectors.ember_yearly"
+
+# World Intelligence (2026-10-03): electricity mix per country (184 of 193 UN states). Ember compiles national
+# statistics and EIA data (not independent of EIA: never shown as a confirmation of it).
+[license]
+id = "CC-BY-4.0"
+url = "https://ember-energy.org/data/yearly-electricity-data/"
+attribution = "Ember — Yearly Electricity Data (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["files.ember-energy.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

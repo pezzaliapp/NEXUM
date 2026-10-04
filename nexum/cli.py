@@ -8,7 +8,7 @@
     python3 -m nexum.cli <world> query <operation> '<json kwargs>'
     python3 -m nexum.cli <world> attributions
 
-<world> is one of: d1, d3, mixed, d2, d3s.
+<world> is one of: d1, d3, mixed, d2, d3s, live.
 """
 
 import argparse
@@ -29,7 +29,7 @@ OPERATIONS = ("get_entity", "context", "relations", "related_events", "related_o
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="nexum")
-    ap.add_argument("world", choices=["d1", "d3", "mixed", "d2", "d3s"])
+    ap.add_argument("world", choices=["d1", "d3", "mixed", "d2", "d3s", "live"])
     ap.add_argument("command", choices=["registry-check", "fetch", "process", "correlate", "rebuild", "query",
                                         "attributions"])
     ap.add_argument("args", nargs="*")

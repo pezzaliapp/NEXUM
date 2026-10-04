@@ -1,15 +1,33 @@
 // OBJECT MODE — the context around any element, in the same workspace. One call (/context/{id}), twelve sections;
 // every reference is a pivot that becomes the new focus.
 
-import { Fragment, useEffect, useLayoutEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState, lazy, Suspense } from "react";
 import { call, plain } from "../lib/api";
 import { recompute } from "../lib/confidence";
 import { conf, duration, km, num, utc } from "../lib/format";
 import { S } from "../lib/strings";
 import { store, useEntity, useStore } from "../store";
-import { Conf, ErrorNote, Ref, Section, useFetch, WhyButton } from "../components/common";
+import { Conf, ErrorNote, Ref, Section, Support, useFetch, WhyButton } from "../components/common";
+import { ConnectionsBlock } from "../components/Connections";
+import { ObservationRecord, ObservationsBlock } from "../components/Observations";
+import { TenuresBlock } from "../components/Tenures";
+import { RatesBlock } from "../components/Rates";
+import { clearNameOf } from "../components/SearchBox";
+// loaded only when needed (O6: never part of the opening download): a place's view, the imagery, an indicator's table
+const PlaceView = lazy(() => import("./PlaceView").then((m) => ({ default: m.PlaceView })));
+const ImageryBlock = lazy(() => import("../components/Imagery").then((m) => ({ default: m.ImageryBlock })));
+const PlaceWebcams = lazy(() => import("../components/Imagery").then((m) => ({ default: m.PlaceWebcams })));
+const EventWebcams = lazy(() => import("../components/Imagery").then((m) => ({ default: m.EventWebcams })));
+const IndicatorRecord = lazy(() => import("../components/Indicators").then((m) => ({ default: m.IndicatorRecord })));
+import { buildConnections } from "../lib/connections";
+import { dayLabel, inPeriod, periodName, periodOfWindow } from "../lib/period";
+import { usePeriodName } from "../components/Period";
+import { typeLabelOf, useSummaries } from "../components/Highlights";
+import { fmtValue, sentence, summaryOf } from "../lib/summary";
+import { isSheet, isTouch } from "../lib/layers";
 
 const KIND_TITLE: Record<string, string> = S.kinds;
+const SAT_SKIP = new Set(["observation", "person", "office", "government", "toll"]);
 
 export function ObjectMode({ id }: { id: string }) {
   const wv = useStore((s) => s.worldVersion);
@@ -24,43 +42,258 @@ export function ObjectMode({ id }: { id: string }) {
   const d = e?.details;
   useLayoutEffect(() => { if (ctx.data) performance.mark(`nexum:context:${id}`); }, [ctx.data, id]);
   void scope;
+  const types = useStore((s) => s.types);
+  // the connections of THIS element: only once its own context has arrived (never the previous element's)
+  const ready = ctx.data && store.get().context?.id === id;
+  const conn = useMemo(() => (ready && e ? buildConnections(id, e.kind, e.type, d, ctx.data!.data, {
+    typeLabel: (t) => types.get(t)?.label ?? t.replace(/[._]/g, " "),
+    entityLabel: (x) => store.entity(x)?.label ?? null, entityKind: (x) => store.entity(x)?.kind ?? null,
+    entityType: (x) => store.entity(x)?.type ?? null, day: (ms) => utc(ms, "day"), km: (n) => km(n), duration: (ms) => duration(ms),
+  }) : null), [ready, id, e?.kind, e?.type, d, ctx.data, types]);
+  const tw = useStore((s) => s.scope.time_window);
+  const explorable = !!types.get(e?.type ?? "")?.explore;
+  // the clear name of a place whose source label is abbreviated ("S. Sudan · South Sudan")
+  const [clearName, setClearName] = useState<string | null>(null);
+  useEffect(() => { setClearName(null); if (explorable) clearNameOf(id).then(setClearName, () => {}); }, [id, explorable]);
+  // a rule output: its name already says the rule; the line says what it is (found by NEXUM) and when
+  const what = e?.kind === "insight" ? S.whyFound : conn?.what ?? types.get(e?.type ?? "")?.label ?? KIND_TITLE[e?.kind ?? ""] ?? "";
+  // phone: what NEXUM found → the linked elements → Perché? → details (elsewhere Perché? stays by the result)
+  const whyAfter = e?.kind === "insight" && isSheet();
+  const when = conn?.when ?? (e?.kind === "event" || e?.kind === "insight" ? e?.t ?? null : null);
+  const outside = when != null && !inPeriod(when, tw ?? null);
   return (
     <>
-      <div className="focushead" data-testid="focus-head" data-focus={id}>
-        <div className="kindline row">
-          <span>{KIND_TITLE[e?.kind ?? ""] ?? ""}</span><span>·</span>
-          <span className="ellipsis">{store.get().types.get(e?.type ?? "")?.label ?? e?.type ?? ""}</span>
+      <div className="focushead" data-testid="focus-head" data-focus={id}
+        onClick={(ev) => { if (store.get().sheet === "mini" && !(ev.target as HTMLElement).closest("button")) store.set({ sheet: "peek" }); }}>
+        <PlaceCrumb id={id} />
+        <h1>{e?.label ?? id}{clearName && <span className="xs dim" data-testid="clear-name"> · {clearName}</span>}</h1>
+        <div className="whatline"><span data-testid="focus-what">
+          {[what, conn?.where, when != null ? dayLabel(when) : null].filter(Boolean).join(" · ")}</span>
+          {outside && <span className="outside-mark" data-testid="focus-outside"> · {S.period.outsideShort}</span>}</div>
+        <ObservedWith id={id} />
+        {e?.kind === "insight" && <InsightHead id={id} button={!whyAfter} />}
+        {/* the support band says how well a CONNECTION is supported; for a place, a camera, a plant it is a record's
+            technical confidence, kept in the details and in "Perché?" (2026-10-04: no jargon on the first surface) */}
+        <div className="row small support">
+          {(e?.kind === "insight" || e?.kind === "relation") && <Support value={d?.confidence ?? e?.confidence} />}
           <span className="grow" />
-          <button type="button" className="tab-only" onClick={() => store.set({ inspectorOpen: false })}>{S.closePanel}</button>
+          {e?.kind === "relation" && <WhyButton id={id} />}
         </div>
-        <h1>{e?.label ?? id}</h1>
-        <div className="row small">
-          <Conf value={d?.confidence ?? e?.confidence} text={d?.confidence_text} />
-          <span className="dim">{S.bandLabel[d?.confidence >= 0.8 ? 2 : d?.confidence >= 0.5 ? 1 : 0]}</span>
-          <span className="grow" />
-          {(e?.kind === "insight" || e?.kind === "relation") && <WhyButton id={id} />}
-        </div>
-        <div className="idline"><span className="ellipsis">{id}</span>
-          <button type="button" className="xs" title={S.copy} onClick={() => navigator.clipboard?.writeText(id)}>⧉</button></div>
+        <button type="button" className="tab-only close-card" onClick={() => store.set({ inspectorOpen: false })}>{S.closePanel}</button>
       </div>
       <div className="pbody" data-testid="object-mode" key={id}>
         {ctx.loading && !ctx.data && <p className="note" style={{ padding: 12 }}>{S.loading}</p>}
         <ErrorNote error={ctx.error} />
+        {/* an explorable element (vocabulary hint "explore"): its own overview and sections, never one endless column */}
+        {explorable && ready && <Suspense fallback={<p className="note" style={{ padding: 12 }}>{S.loading}</p>}>
+          <PlaceView id={id} d={d} ctxData={ctx.data!.data} conn={conn} /></Suspense>}
+        {!explorable && <>
+        {/* an observation's record: the measured results first, then its own facts and provenance */}
+        {(types.get(e?.type ?? "")?.series || types.get(e?.type ?? "")?.wave) && <ObservationRecord id={id} />}
+        {ctx.data && e?.kind !== "insight" && <Facts id={id} d={d} data={ctx.data.data} />}
+        {d?.properties && <MediaBlock id={id} props={d.properties} />}
+        {/* OSSERVA: the public webcams near a place (a city), surfaced in its own view */}
+        {ready && types.get(e?.type ?? "")?.nearby_media_km && <Suspense fallback={null}><PlaceWebcams id={id} /></Suspense>}
+        {ready && d?.properties && <RatesBlock id={id} props={d.properties} ctxData={ctx.data!.data} />}
+        {ready && e?.kind !== "event" && <TenuresBlock id={id} ctxData={ctx.data!.data} />}
+        {ready && <ObservationsBlock id={id} ctxData={ctx.data!.data} />}
+        {conn && <ConnectionsBlock c={conn} />}
+        {/* an indicator: compare the places it covers (after its connections: the first screen keeps them in view) */}
+        {types.get(e?.type ?? "")?.indicator && d?.properties && <Suspense fallback={null}><IndicatorRecord props={d.properties} label={e?.label ?? ""} /></Suspense>}
+        {/* an event: its connections first; "during the term of" is temporal context, after them */}
+        {ready && e?.kind === "event" && <TenuresBlock id={id} ctxData={ctx.data!.data} />}
+        {whyAfter && <div className="ins-why conn-pad"><WhyBig id={id} /></div>}
+        {ready && e?.kind === "event" && <Suspense fallback={null}><EventWebcams id={id} /></Suspense>}
+        {/* OSSERVA → IMMAGINI: places and events with a position (on request; never preloaded) */}
+        {ready && (e?.kind === "event" || (e?.kind === "object" && !SAT_SKIP.has(types.get(e?.type ?? "")?.family ?? ""))) && (d?.geometry || e?.point) &&
+          <Suspense fallback={null}><ImageryBlock id={id} geometry={d?.geometry} label={e?.label ?? ""} when={e?.kind === "event" ? e?.t ?? null : null} /></Suspense>}
+        {outside && when != null && <OutsideNote when={when} />}
         {ctx.data && <Sections id={id} data={ctx.data.data} />}
+        </>}
       </div>
     </>
   );
 }
 
-function Sections({ id, data }: { id: string; data: any }) {
+/** The way back to the explorable element this view was opened from (e.g. "← Italy · Opinione"): same world, same
+ *  view, one tap — never a second object view. */
+function PlaceCrumb({ id }: { id: string }) {
+  const ctx = useStore((s) => s.placeCtx);
+  const place = useEntity(ctx?.id ?? null);
+  if (!ctx || ctx.id === id || !place) return null;
+  const sec = S.place.nav[ctx.section] ?? (ctx.section.startsWith("obs:") ? store.get().types.get(ctx.section.slice(4))?.group : null);
+  return (
+    <button type="button" className="linklike place-crumb" data-testid="place-crumb" onClick={(ev) => { ev.stopPropagation(); store.select(ctx.id, "place-back", ctx.section); }}>
+      ← {place.label}{sec && ctx.section !== "overview" ? ` · ${sec}` : ""}</button>);
+}
+
+/** What a rule output found, said first (the facts of its members); the engine stays in "Perché?". */
+function InsightHead({ id, button }: { id: string; button: boolean }) {
+  useSummaries([id]);
+  const text = sentence(summaryOf(id), typeLabelOf);
+  return (
+    <div className="ins-head" data-testid="insight-head">
+      {text && <p className="ins-sentence" data-testid="insight-sentence">{text}</p>}
+      {button && <WhyBig id={id} />}
+    </div>);
+}
+
+const WhyBig = ({ id }: { id: string }) =>
+  <button type="button" className="whybtn big" data-testid="insight-why" data-why={id} onClick={() => store.why(id)}>{S.whyTitle}</button>;
+
+/** The source's own data about the element, in words (the vocabulary's display hints choose and name them). An
+ * element without connections is never an element without information. */
+/** An image its source keeps current (vocabulary hint "media"): described first (what it is, how fresh the source
+ * declares it), loaded ONLY when the person asks, straight from the source (no copy, no archive, no analysis). */
+function MediaBlock({ id, props }: { id: string; props: Record<string, any> }) {
+  const e = store.entity(id);
+  const m = store.get().types.get(e?.type ?? "")?.media;
+  const [shown, setShown] = useState<{ t: number } | null>(null);
+  const [imageBroken, setImageBroken] = useState<boolean>(false);
+  useEffect(() => { setShown(null); setImageBroken(false); }, [id]);
+  const url: string | undefined = m ? props[m.property] : undefined;
+  const avail: string | undefined = props.availability;
+  // a camera whose publisher does not allow its images elsewhere: only the way to the publisher's own page
+  if (m && avail === "link_only" && typeof props.page_url === "string" && /^https?:\/\//.test(props.page_url)) return (
+    <section className="media" data-testid="media" data-media-kind="link_only">
+      <div className="conn-h">{S.media.linkTitle} <span className="tag" data-testid="media-status">{S.media.status.link_only}</span></div>
+      <p className="xs dim">{props.subject ? `${props.subject} · ` : ""}{props.operator ?? ""}</p>
+      <a className="primary media-open" data-testid="webcam-link" href={props.page_url} target="_blank" rel="noopener noreferrer"
+        referrerPolicy="no-referrer">{S.media.linkOpen} ↗</a>
+      <p className="xs faint" data-testid="webcam-link-note">{props.terms_note ?? S.media.linkNote}</p>
+    </section>);
+  if (!m || !url || !/^https:\/\//.test(url)) return null;
+  const refresh = m.refresh_property ? props[m.refresh_property] : null;
+  const observed = m.observed_property ? props[m.observed_property] : null;
+  const credit = m.credit_property ? props[m.credit_property] : null;
+  const off = m.state_property ? props[m.state_property] === false : false;
+  // the publisher's own page (when given): a click on the image opens it, and the credit links to it — some publishers
+  // allow their current image elsewhere only this way (whole image, no crop, clickable source)
+  const page: string | null = typeof props.page_url === "string" && /^https:\/\//.test(props.page_url) ? props.page_url : null;
+  const creditUrl: string | null = typeof props.credit_url === "string" && /^https:\/\//.test(props.credit_url) ? props.credit_url : page;
+  const src = shown ? `${url}${url.includes("?") ? "&" : "?"}nexum_t=${shown.t}` : null;
+  const hhmm = (t: number) => new Date(t).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  return (
+    <section className="media" data-testid="media" data-media-kind={m.kind}>
+      <div className="conn-h">{S.media.kinds[m.kind] ?? m.kind}
+        {avail && <span className={`tag ${avail}`} data-testid="media-status"> {S.media.status[avail] ?? avail}</span>}</div>
+      {avail === "stale" && <p className="xs warn" data-testid="media-stale">{S.media.stale}</p>}
+      <p className="xs dim media-what" data-testid="media-what">
+        {m.kind === "current_image" ? S.media.notLive : ""}{refresh ? ` · ${S.media.refresh(num(refresh))}` : ""}
+        {observed ? ` · ${S.media.observed(String(observed).replace("T", " ").slice(0, 16))}` : ""}</p>
+      {off && <p className="xs warn" data-testid="media-off">{S.media.off}</p>}
+      {!src ? (
+        <button type="button" className="primary media-open" data-testid="media-open" onClick={() => { setImageBroken(false); setShown({ t: Date.now() }); }}>{S.media.open}</button>
+      ) : (
+        <figure className="media-fig">
+          {imageBroken ? <p className="note" data-testid="media-error">{S.media.error}</p> : page
+            ? <a href={page} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" data-testid="media-img-link">
+                <img src={src} alt={e?.label ?? ""} referrerPolicy="no-referrer" decoding="async" data-testid="media-img" onError={() => setImageBroken(true)} /></a>
+            : <img src={src} alt={e?.label ?? ""} referrerPolicy="no-referrer" decoding="async" data-testid="media-img" onError={() => setImageBroken(true)} />}
+          <figcaption className="xs dim">{S.media.loaded(hhmm(shown!.t))}
+            {credit ? <> · {S.media.credit}: {creditUrl ? <a href={creditUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
+              data-testid="media-credit-link">{credit}</a> : credit}</> : null}
+            {" "}<button type="button" className="linklike xs" data-testid="media-reload" onClick={() => { setImageBroken(false); setShown({ t: Date.now() }); }}>{S.media.reload}</button></figcaption>
+        </figure>)}
+      <p className="xs faint">{S.media.privacy}</p>
+    </section>);
+}
+
+export function Facts({ id, d, data }: { id: string; d: any; data: any }) {
+  const e = store.entity(id);
+  const t = store.get().types.get(e?.type ?? "");
+  const facts = (t?.facts ?? []).map((f) => [f, d?.properties?.[f.property]] as const)
+    .filter(([, v]) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && !v.length));
+  const src = data?.sources?.map((x: any) => x.name).join(" · ");
+  const ident = (d?.identifiers ?? []).find((x: any) => x.strong) ?? (d?.identifiers ?? [])[0];
+  // a card on a phone's first screen (sheet not opened in full, or a landscape phone) keeps the first facts on one
+  // line so the connections stay in view; the source and its identifier come with the card opened in full
+  const sheet = useStore((s) => s.sheet);
+  const compact = window.innerWidth < 700 ? sheet !== "full" : isTouch() && window.innerHeight < 500;
+  // compact: the facts that do not repeat the name, short ones first
+  const lbl = (e?.label ?? "").toLowerCase();
+  const brief = facts.filter(([, v]) => !(typeof v === "string" && (v.length > 40 || lbl.includes(v.toLowerCase())))).slice(0, 2);
+  if (!facts.length && !src) return null;
+  if (compact && !brief.length) return null;
+  return (
+    <section className={`facts${compact ? " compact" : ""}`} data-testid="facts">
+      {!compact && <div className="conn-h">{S.facts.title}</div>}
+      {facts.length > 0 && <p className="facts-line">
+        {(compact ? brief : facts).map(([f, v]) => (
+          <span key={f.property} className="fact"><span className="fk">{f.label}</span>{" "}
+            <span data-fact={f.property}>{typeof v === "string" && f.values?.[v] ? f.values[v] : fmtValue(v as any, f.digits ?? null)}{f.unit ? ` ${f.unit}` : ""}</span></span>))}
+      </p>}
+      {!compact && (src || ident) && <p className="facts-src xs dim">{src && <>{S.facts.source}: {src}</>}{src && ident ? " · " : ""}
+        {ident && <span className="mono">{ident.scheme} {ident.value}</span>}</p>}
+    </section>);
+}
+
+/** SELECTING ≠ CHANGING THE PERIOD: the focus outside the observed period stays visible; going to its year is an
+ * explicit choice (a period the person chose, cancellable with Ripristina). */
+function OutsideNote({ when }: { when: number }) {
+  const pname = usePeriodName();
+  const year = new Date(when).getUTCFullYear();
+  return (
+    <div className="period-notes conn-pad" data-testid="outside-note">
+      <div className="pn-row">{S.period.outside(pname)}
+        <button type="button" className="primary" data-testid="go-year" onClick={() => store.setPeriod({ kind: "year", year })}>{S.period.goYear(year)}</button></div>
+    </div>);
+}
+
+/** After walking the path: the conditions this step was observed with, when they differ. Only "Applica" applies them. */
+function ObservedWith({ id }: { id: string }) {
+  const scope = useStore((s) => s.scope);
+  const clock = useStore((s) => s.clock);
+  const trail = useStore((s) => s.trail);
+  const origin = useStore((s) => s.origin);
+  if (!clock) return null;
+  const step = trail.steps[trail.index];
+  const keys = ["time_window", "types", "sources", "min_confidence"] as const;
+  const norm = (sc: any) => JSON.stringify(keys.map((k) => sc?.[k] ?? null));
+  if (!(origin === "trail" && step?.ref === id && norm(step.scope) !== norm(scope))) return null;
+  const stepPeriod = periodName(periodOfWindow(step.scope?.time_window, clock.anchor, clock.first), clock.anchor, clock.first);
+  const others = keys.slice(1).some((k) => JSON.stringify((step.scope as any)?.[k] ?? null) !== JSON.stringify((scope as any)[k] ?? null));
+  return (
+    <div className="period-notes" data-testid="observed-with">
+      <button type="button" className="pn-apply" data-testid="apply-step" onClick={() => store.applyStep(trail.index)}>
+        {S.period.observedWith(`${S.period.label} ${stepPeriod}${others ? " e altri filtri" : ""}`)} · <b>{S.period.applyStep}</b></button>
+    </div>);
+}
+
+export function Sections({ id, data }: { id: string; data: any }) {
   const e = store.entity(id);
   const d = e?.details ?? {};
   const kind = e?.kind;
   return (
     <>
+      {/* the reading order (Phase 3B · A2): result and linked elements above → sources and evidence → context →
+          the internal structure (identity, type and rule, raw properties, members with their roles, provenance),
+          kept whole but collapsed under one "Dettagli tecnici" */}
+      <Section title={S.sections.sources} count={data.sources?.length ?? 0} name="sources">
+        <ul className="list">{(data.sources ?? []).map((s: any) => (
+          <li key={s.source_id}><div>{s.name}</div><div className="xs dim">{s.attribution} · {s.license_id}</div></li>))}</ul>
+      </Section>
+      <Evidence data={data.evidence} />
+      <Relations id={id} data={data.relations} kind={kind} />
+      <Related id={id} title={S.sections.relatedObjects} name="related-objects" sec={data.related_objects} path="objects" />
+      <Related id={id} title={S.sections.relatedEvents} name="related-events" sec={data.related_events} path="events" />
+      <TimelineSec id={id} data={data.timeline} kind={kind} />
+      <Geography data={data.geography} />
+      <Section title={S.sections.insights} count={data.insights?.total ?? 0} name="insights" open={(data.insights?.total ?? 0) > 0}>
+        {!data.insights?.items?.length && <p className="note">{S.none}</p>}
+        <ul className="list">{(data.insights?.items ?? []).map((it: any) => (
+          <li key={it.ref.$ref}>
+            <div className="row"><Conf value={it.confidence} text={it.confidence_text} />
+              <span className="grow"><Ref id={it.ref.$ref} /></span><WhyButton id={it.ref.$ref} /></div>
+            {it.explanation && <div className="xs dim" style={{ marginTop: 2 }}>{it.explanation}</div>}
+          </li>))}</ul>
+      </Section>
+      <details className="tech-group" data-testid="detail-technical">
+        <summary>{S.sections.technical}</summary>
       <Section title={S.sections.identity} name="identity" open={false}>
         <dl className="kv">
-          <dt>ID</dt><dd className="mono small">{id}</dd>
+          <dt>ID</dt><dd className="mono small">{id} <button type="button" className="xs" title={S.copy}
+            onClick={() => navigator.clipboard?.writeText(id)}>⧉</button></dd>
           {(d.identifiers ?? []).map((x: any) => (
             <Fragment key={`${x.scheme}-${x.value}`}><dt>{x.scheme}</dt><dd className="mono small">{x.value}{x.strong ? "" : " ·"}</dd></Fragment>
           ))}
@@ -78,26 +311,8 @@ function Sections({ id, data }: { id: string; data: any }) {
         </dl>
       </Section>
       <Properties id={id} d={d} kind={kind} />
-      <Section title={S.sections.sources} count={data.sources?.length ?? 0} name="sources">
-        <ul className="list">{(data.sources ?? []).map((s: any) => (
-          <li key={s.source_id}><div>{s.name}</div><div className="xs dim">{s.attribution} · {s.license_id}</div></li>))}</ul>
-      </Section>
-      <Evidence data={data.evidence} />
-      <Relations id={id} data={data.relations} kind={kind} />
-      <Related id={id} title={S.sections.relatedObjects} name="related-objects" sec={data.related_objects} path="objects" />
-      <Related id={id} title={S.sections.relatedEvents} name="related-events" sec={data.related_events} path="events" />
-      <TimelineSec id={id} data={data.timeline} kind={kind} />
-      <Geography data={data.geography} />
-      <Section title={S.sections.insights} count={data.insights?.total ?? 0} name="insights">
-        {!data.insights?.items?.length && <p className="note">{S.none}</p>}
-        <ul className="list">{(data.insights?.items ?? []).map((it: any) => (
-          <li key={it.ref.$ref}>
-            <div className="row"><Conf value={it.confidence} text={it.confidence_text} />
-              <span className="grow"><Ref id={it.ref.$ref} /></span><WhyButton id={it.ref.$ref} /></div>
-            {it.explanation && <div className="xs dim" style={{ marginTop: 2 }}>{it.explanation}</div>}
-          </li>))}</ul>
-      </Section>
       <Provenance id={id} />
+      </details>
     </>
   );
 }
@@ -207,7 +422,7 @@ function Relations({ id, data, kind }: { id: string; data: any; kind?: string })
     setExtra((x) => ({ ...x, [key]: { items: [...(cur?.items ?? []), ...add], cursor: r.cursor_next } }));
   };
   return (
-    <Section title={S.sections.relations} count={num(data?.total ?? 0)} name="relations">
+    <Section title={S.sections.relations} count={num(data?.total ?? 0)} name="relations" open={(data?.total ?? 0) > 0}>
       {!groups.length && <p className="note">{S.none}</p>}
       {groups.map((g: any) => {
         const key = `${g.type}-${g.direction}`;
@@ -232,7 +447,7 @@ function Relations({ id, data, kind }: { id: string; data: any; kind?: string })
   );
 }
 
-function Related({ id, title, name, sec, path }: { id: string; title: string; name: string; sec: any; path: string }) {
+export function Related({ id, title, name, sec, path }: { id: string; title: string; name: string; sec: any; path: string }) {
   const [extra, setExtra] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
   useEffect(() => { setExtra([]); setCursor(undefined); }, [id]);
@@ -246,7 +461,7 @@ function Related({ id, title, name, sec, path }: { id: string; title: string; na
     setCursor(r.cursor_next);
   };
   return (
-    <Section title={title} count={num(total)} name={name}>
+    <Section title={title} count={num(total)} name={name} open={total > 0}>
       {sec?.counts_by_type && <div className="xs dim">{Object.entries(sec.counts_by_type).map(([t, n]) =>
         `${store.get().types.get(t)?.label ?? t} ${num(n as number)}`).join(" · ")}</div>}
       {!items.length && <p className="note">{S.none}</p>}
@@ -258,7 +473,7 @@ function Related({ id, title, name, sec, path }: { id: string; title: string; na
   );
 }
 
-function TimelineSec({ id, data, kind }: { id: string; data: any; kind?: string }) {
+export function TimelineSec({ id, data, kind }: { id: string; data: any; kind?: string }) {
   const entries = data?.entries ?? [];
   const step = (dir: "next" | "prev") => call<any>(`/entities/${id}/timeline/step`, { dir }).then((r) => {
     const d = store.normalize(r.data);

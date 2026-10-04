@@ -1,0 +1,33 @@
+id = "ilostat.earnings"
+name = "ILOSTAT — earnings and statutory minimum wages (International Labour Organization)"
+owner = "International Labour Organization"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "ilo"
+connector = "connectors.ilostat_earnings"
+
+# World Intelligence (2026-10-03): mean and median monthly earnings and minimum wages, one national source per country.
+[license]
+id = "CC-BY-4.0"
+url = "https://www.ilo.org/rights-and-permissions"
+attribution = "International Labour Organization, ILOSTAT (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["rplumber.ilo.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

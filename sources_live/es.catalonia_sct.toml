@@ -1,0 +1,34 @@
+id = "es.catalonia_sct"
+name = "Servei Català de Trànsit — traffic cameras, link only"
+owner = "Generalitat de Catalunya"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "es_catalonia_sct"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: images served over http only.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "Generalitat-open-data"
+url = "https://governobert.gencat.cat/ca/dades_obertes/llicencia/"
+attribution = "Servei Català de Trànsit (Generalitat de Catalunya)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.gencat.cat"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

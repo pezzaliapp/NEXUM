@@ -1,0 +1,33 @@
+id = "wri.power_plants"
+name = "WRI Global Power Plant Database v1.3 (2021)"
+owner = "World Resources Institute"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-01"
+independence_group = "wri_gppd"
+connector = "connectors.wri_power_plants"
+
+[license]
+id = "CC-BY-4.0"
+url = "https://datasets.wri.org/dataset/globalpowerplantdatabase"
+attribution = "Global Energy Observatory, Google, KTH Royal Institute of Technology in Stockholm, Enipedia, World Resources Institute. 2018. Global Power Plant Database (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["raw.githubusercontent.com"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]
+

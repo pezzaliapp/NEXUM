@@ -1,0 +1,56 @@
+# Governi e vertici dello Stato (Phase 3B · block 3). Solo fatti di RUOLO PUBBLICO, ciascuno con il suo enunciato come
+# evidenza: chi ricopre (o ha ricoperto) l'ufficio di capo di Stato o di capo di governo, da quando e fino a quando.
+# Gate privacy: NEXUM-PHASE3B-PRIVACY-GATE.md. Della persona si conservano solo il nome pubblico e l'identificativo;
+# nessuna foto, data di nascita, famiglia, partito, religione, salute, contatti o valutazione.
+# "Durante il mandato di" è contesto temporale, mai causa.
+
+[object_type."gov.government"]
+label = "Governo"
+geometry = "none"
+identity_schemes = ["wikidata"]
+display = { family = "government", density_priority = 9, group = "Governi", map = false, facts = [{ property = "wikidata", label = "Wikidata" }] }
+[object_type."gov.government".properties]
+wikidata = { kind = "text" }
+country_iso2 = { kind = "text" }
+
+# Un ufficio apicale (capo di Stato, capo di governo). "tenure": quali relazioni dicono chi lo ricopre e dove ha competenza
+# (dati del vocabolario, letti dal livello API in modo generico).
+[object_type."gov.office"]
+label = "Ufficio pubblico"
+geometry = "none"
+identity_schemes = ["wikidata"]
+display = { family = "government", density_priority = 9, group = "Governi", map = false, tenure = { held_by = "held_by", scope = "office_in", role_property = "role", collegial_property = "collegial", check_property = "jurisdiction_check" }, facts = [{ property = "role", label = "Ruolo" }, { property = "jurisdiction_check", label = "Verifica della giurisdizione" }, { property = "wikidata", label = "Wikidata" }] }
+[object_type."gov.office".properties]
+role = { kind = "text" }
+collegial = { kind = "bool" }
+jurisdiction_check = { kind = "text" }
+wikidata = { kind = "text" }
+country_iso2 = { kind = "text" }
+
+# Una persona che ricopre o ha ricoperto un ufficio apicale: SOLO nome pubblico e identificativo (minimizzazione).
+[object_type."person.public_official"]
+label = "Titolare di un ufficio apicale"
+geometry = "none"
+identity_schemes = ["wikidata"]
+display = { family = "person", density_priority = 9, group = "Persone (vertici dello Stato)", map = false, facts = [{ property = "wikidata", label = "Wikidata" }] }
+[object_type."person.public_official".properties]
+wikidata = { kind = "text" }
+
+[relation_type."governed_through"]
+label = "governato attraverso"
+nature = "organizational"
+from = ["place.country"]
+to = ["gov.government"]
+
+[relation_type."office_in"]
+label = "ufficio di"
+nature = "organizational"
+from = ["gov.office"]
+to = ["place.country", "gov.government"]
+
+# Validità: inizio = valid_from della relazione; fine, precisione delle date, rango, stato ed enunciato negli attributi.
+[relation_type."held_by"]
+label = "ricoperto da"
+nature = "organizational"
+from = ["gov.office"]
+to = ["person.public_official"]

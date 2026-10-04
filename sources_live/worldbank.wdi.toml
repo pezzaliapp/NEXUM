@@ -1,0 +1,34 @@
+id = "worldbank.wdi"
+name = "World Bank — World Development Indicators (inflation, unemployment)"
+owner = "The World Bank"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "worldbank_wdi"
+connector = "connectors.worldbank_wdi"
+
+# Phase 3B · block 2: observations with documented methodology (dates, sample, question, source). Perception (surveys)
+# and reality (official statistics) are separate types and are never combined into an index.
+[license]
+id = "CC-BY-4.0"
+url = "https://datacatalog.worldbank.org/public-licenses"
+attribution = "The World Bank: World Development Indicators (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["api.worldbank.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

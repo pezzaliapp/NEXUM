@@ -1,0 +1,34 @@
+id = "it.arpa_fvg"
+name = "ARPA FVG – OSMER — webcam list, link only"
+owner = "ARPA Friuli Venezia Giulia"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "it_arpa_fvg"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: list CC BY-SA; images of third-party publishers.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-SA-3.0-IT"
+url = "https://www.meteo.fvg.it/note-legali.php"
+attribution = "ARPA FVG – OSMER e GRN (CC BY-SA 3.0 IT)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.meteo.fvg.it"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

@@ -1,0 +1,18 @@
+{
+  "_comment": "How a relation reads from its other end (the person sees words, never '(inverso)'). Keyed by relation type id of the vocabularies.",
+  "inverse": {
+    "located_in": "contiene",
+    "measured_in": "dati misurati qui",
+    "held_by": "ricopre",
+    "near_place": "vicino a",
+    "priced_by": "tariffa applicata a",
+    "subject_to": "si applica a",
+    "imports_crude_from": "esporta petrolio greggio verso",
+    "office_in": "ha l'ufficio",
+    "imports_gas_from": "esporta gas verso",
+    "exports_electricity_to": "riceve elettricità da",
+    "imports_electricity_from": "fornisce elettricità a",
+    "governed_through": "organo di governo di",
+    "tariff_of": "ha la tariffa"
+  }
+}

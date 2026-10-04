@@ -1,0 +1,33 @@
+id = "no.ssb_fuel"
+name = "Statistics Norway — engine fuel prices (table 09654)"
+owner = "Statistics Norway (SSB)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "no_ssb_fuel"
+connector = "connectors.national_fuel"
+
+# World Intelligence (2026-10-03): national fuel prices in the publisher's own unit and currency (fuel gate passed).
+[license]
+id = "CC-BY-4.0"
+url = "https://www.ssb.no/en/api"
+attribution = "Statistics Norway (SSB), table 09654 (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["data.ssb.no"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

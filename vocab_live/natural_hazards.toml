@@ -1,0 +1,29 @@
+# Eventi naturali — tipi di dominio (fuori dal Core)
+
+[event_type."seismic.earthquake"]
+label = "Terremoto"
+geometry = "point"
+identity_schemes = ["usgs"]
+roles = ["location", "nearest_location"]
+severity = { property = "magnitude", min = 4.0, max = 9.0, clamp = true }
+display = { family = "natural_event", density_priority = 2, group = "Terremoti", headline = [{ property = "magnitude", prefix = "M", digits = 1 }], facts = [{ property = "magnitude", label = "Magnitudo", digits = 1 }, { property = "depth", label = "Profondità", unit = "m", digits = 0 }, { property = "place", label = "Luogo (fonte)" }, { property = "tsunami_flag", label = "Allerta tsunami" }] }
+[event_type."seismic.earthquake".properties]
+magnitude = { kind = "float", unit = "magnitude", required = true }
+magnitude_type = { kind = "text" }
+depth = { kind = "float", unit = "m" }
+place = { kind = "text" }
+significance = { kind = "int" }
+tsunami_flag = { kind = "bool" }
+network = { kind = "text" }
+url = { kind = "text" }
+
+[[enrichment]]
+id = "event_location"
+when_kind = "event"
+when_types = ["seismic.earthquake", "volcanic.activity", "fire.wildfire", "weather.severe_storm", "geo.landslide",
+              "volcanic.eruption", "hydro.tsunami", "seismic.significant_earthquake", "conflict.violence_event"]
+container_type = "place.country"
+produce = "participation"
+role = "location"
+fallback_nearest_km = 200
+fallback_role = "nearest_location"

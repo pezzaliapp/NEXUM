@@ -1,0 +1,43 @@
+{
+  "_comment": "Explicit allowlist of the origins whose CURRENT images the browser may load on request (Phase 3B · block 1; satellite imagery, World Intelligence 2026-10-03). One entry per approved source (ACCEPT, no key); never a wildcard. \"connect\": origins the browser may ask (on a person's request only) for the time and availability of an image (NASA GIBS/Worldview Snapshots headers, EUMETView frames, NASA CMR acquisition dates). Read by scripts/assemble-web.mjs (web CSP) and by nexum/api/server.py (local CSP).",
+  "img": [
+    "https://cwwp2.dot.ca.gov",
+    "https://weathercam.digitraffic.fi",
+    "https://www.drivebc.ca",
+    "https://usgs-nims-images.s3.amazonaws.com",
+    "https://avo.alaska.edu",
+    "https://gibs.earthdata.nasa.gov",
+    "https://wvs.earthdata.nasa.gov",
+    "https://view.eumetsat.int",
+    "https://tdcctv.data.one.gov.hk",
+    "https://www.vegagerdin.is",
+    "https://informo.madrid.es",
+    "https://download.data.grandlyon.com",
+    "https://app2.ge.ch",
+    "https://511on.ca",
+    "https://atmsqf.iowadot.gov",
+    "https://cctv-ss01.thb.gov.tw",
+    "https://cctv-ss02.thb.gov.tw",
+    "https://cctv-ss03.thb.gov.tw",
+    "https://cctv-ss04.thb.gov.tw",
+    "https://cctv-ss05.thb.gov.tw",
+    "https://cctv-ss06.thb.gov.tw",
+    "https://cctv-ss07.thb.gov.tw",
+    "https://cctv-ss08.thb.gov.tw",
+    "https://contenuti.meteotrentino.it",
+    "https://fmg.wra.gov.tw",
+    "https://images.wsdot.wa.gov",
+    "https://opendata.toronto.ca",
+    "https://s3-eu-west-1.amazonaws.com",
+    "https://www.cita.lu",
+    "https://www.comune.venezia.it",
+    "https://www.foto-webcam.eu",
+    "https://www.meteogalicia.gal"
+  ],
+  "connect": [
+    "https://gibs.earthdata.nasa.gov",
+    "https://wvs.earthdata.nasa.gov",
+    "https://view.eumetsat.int",
+    "https://cmr.earthdata.nasa.gov"
+  ]
+}

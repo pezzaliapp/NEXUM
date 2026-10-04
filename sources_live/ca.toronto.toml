@@ -1,0 +1,34 @@
+id = "ca.toronto"
+name = "City of Toronto — traffic cameras"
+owner = "City of Toronto"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "ca_toronto"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): CURRENT image of the city's traffic cameras.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "OGL-Toronto"
+url = "https://www.toronto.ca/city-government/data-research-maps/open-data/open-data-licence/"
+attribution = "Contains information licensed under the Open Government Licence – Toronto"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["ckan0.cf.opendata.inter.prod-toronto.ca"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

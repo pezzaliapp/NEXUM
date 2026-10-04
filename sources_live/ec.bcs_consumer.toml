@@ -1,0 +1,34 @@
+id = "ec.bcs_consumer"
+name = "Business and Consumer Surveys — consumer survey (monthly answer shares)"
+owner = "European Commission (DG ECFIN)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "ec_bcs"
+connector = "connectors.ec_bcs_consumer"
+
+# Phase 3B · block 2: observations with documented methodology (dates, sample, question, source). Perception (surveys)
+# and reality (official statistics) are separate types and are never combined into an index.
+[license]
+id = "CC-BY-4.0"
+url = "https://commission.europa.eu/legal-notice_en"
+attribution = "Source: European Commission, DG ECFIN, Business and Consumer Surveys (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["economy-finance.ec.europa.eu", "ec.europa.eu"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

@@ -1,0 +1,1766 @@
+{
+ "_comment": "FAO GIEWS FPMA: the national-average RETAIL series of six staple foods selected from the FPMA catalogue (FpmaSerieDomestic) on 2026-10-03 by connectors/fao_fpma.select(): per country and staple, the series with the most recent data; capital-city and single-market series excluded. Regenerate with: python3 -m connectors.fao_fpma <catalogue.json>.",
+ "selected_on": "2026-10-03",
+ "series": {
+  "004f06bf-c7fb-4af6-b62d-72123e1cfaca": {
+   "c": "SY",
+   "commodity": "Eggs",
+   "currency": "SYP",
+   "end": "2026-04-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "2.5 Dozen"
+  },
+  "01a6734d-c49b-487f-af3b-78237bb1e942": {
+   "c": "MU",
+   "commodity": "Rice (traders)",
+   "currency": "MUR",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Statistics Mauritius",
+   "unit": "Kg"
+  },
+  "01ac5bac-cb0e-42c6-8577-81880759987c": {
+   "c": "CR",
+   "commodity": "Rice (second quality)",
+   "currency": "CRC",
+   "end": "2026-08-28",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Consejo Nacional de Producción",
+   "unit": "Kg"
+  },
+  "040fd894-1eea-49a4-ae42-f7b923d5376b": {
+   "c": "JO",
+   "commodity": "Bread (Pita)",
+   "currency": "JOD",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Department of Statistics VIA WFP VAM",
+   "unit": "Kg"
+  },
+  "042bf367-07c4-47fc-9591-90b3cf25a2be": {
+   "c": "UY",
+   "commodity": "Rice (white)",
+   "currency": "UYU",
+   "end": "2018-12-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Sistema de Información de Precios al Consumidor (SIPC)- Dirección General de Comercio/MEF",
+   "unit": "Kg"
+  },
+  "043cf2ea-e6a6-4ede-be0b-086bc2aa4e32": {
+   "c": "SA",
+   "commodity": "Bread (white)",
+   "currency": "SAR",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Central Department Of Statistics & Information",
+   "unit": "4 loaves"
+  },
+  "0491156d-1cce-4ca5-9f9c-cab0f5bbf189": {
+   "c": "ZA",
+   "commodity": "Milk (Full cream, Long life)",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "Liter"
+  },
+  "051a4020-b88b-4aa9-9134-15c3f7d894d2": {
+   "c": "SA",
+   "commodity": "Wheat (flour, white)",
+   "currency": "SAR",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Central Department Of Statistics & Information",
+   "unit": "2 kg"
+  },
+  "07bf1745-2a06-48a7-8ea6-830cd53f9aaf": {
+   "c": "NI",
+   "commodity": "Eggs",
+   "currency": "NIO",
+   "end": "2026-07-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Instituto Nacional de Información de Desarrollo",
+   "unit": "Dozen"
+  },
+  "07ef216c-bd60-4430-b862-511b9f04f48e": {
+   "c": "SN",
+   "commodity": "Rice",
+   "currency": "XOF",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Système d’Information des Marchés (SIM) / Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)",
+   "unit": "Kg"
+  },
+  "08eec304-c864-43c2-98a4-541af37456c8": {
+   "c": "SA",
+   "commodity": "Rice (Basmati, White Indian)",
+   "currency": "SAR",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Central Department Of Statistics & Information",
+   "unit": "10 kg"
+  },
+  "097bba02-ac06-48be-833d-7a23d7cba88f": {
+   "c": "LA",
+   "commodity": "Palm oil",
+   "currency": "LAK",
+   "end": "2026-06-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Ministry of Industry and Commerce via WFP VAM",
+   "unit": "Liter"
+  },
+  "0adf7154-80f6-4178-a769-4ce6d02818f2": {
+   "c": "UZ",
+   "commodity": "Rice",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "Kg"
+  },
+  "0ce13bf8-2d11-468b-aafe-0eafaff2924e": {
+   "c": "UA",
+   "commodity": "Wheat (flour)",
+   "currency": "UAH",
+   "end": "2026-07-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "State Statistics Service of Ukraine",
+   "unit": "Kg"
+  },
+  "0dca9142-6127-471a-a74b-8f3eb4a27ec5": {
+   "c": "GN",
+   "commodity": "Palm Oil",
+   "currency": "GNF",
+   "end": "2026-07-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "0fce4328-8568-46cf-8c15-82eabc7a71f2": {
+   "c": "GN",
+   "commodity": "Rice (imported)",
+   "currency": "GNF",
+   "end": "2026-07-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "10bedd75-9b5d-4681-a81b-09c03df8f4fd": {
+   "c": "LB",
+   "commodity": "Rice (Egyptian, imported)",
+   "currency": "LBP",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "900 gms"
+  },
+  "12dd4f0b-a402-4490-bd81-3693a3b24ea3": {
+   "c": "UZ",
+   "commodity": "Wheat (flour, first grade)",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "Kg"
+  },
+  "1572831a-ba2e-4a02-8128-15ea57c55f4e": {
+   "c": "UA",
+   "commodity": "Milk (pasteurised, fat 2.6%)",
+   "currency": "UAH",
+   "end": "2026-07-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "State Statistics Service of Ukraine",
+   "unit": "1000 gms"
+  },
+  "16683256-741d-460d-9975-8c4de6de9fce": {
+   "c": "KZ",
+   "commodity": "Milk (pasteurised)",
+   "currency": "KZT",
+   "end": "2025-12-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Agency for Strategic Planning and Reforms of the Republic of Kazakhstan Bureau of National Statistics",
+   "unit": "Liter"
+  },
+  "16cbc4f6-c682-4079-afc1-8e8066e363d8": {
+   "c": "GB",
+   "commodity": "Wheat (flour, self-raising)",
+   "currency": "GBP",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Office of National Statistics",
+   "unit": "1500 gms"
+  },
+  "16fb1c90-b6fc-4fdd-8520-9879caebfef9": {
+   "c": "NI",
+   "commodity": "Bread",
+   "currency": "NIO",
+   "end": "2026-07-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Instituto Nacional de Información de Desarrollo",
+   "unit": "Libra"
+  },
+  "17fa015d-334a-4caa-925e-abbab6a192db": {
+   "c": "BW",
+   "commodity": "Wheat (flour)",
+   "currency": "BWP",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Statistics Botswana",
+   "unit": "5 kg"
+  },
+  "18f16c5d-054c-49c9-a2b7-706211299821": {
+   "c": "UY",
+   "commodity": "Bread",
+   "currency": "UYU",
+   "end": "2018-12-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Sistema de Información de Precios al Consumidor (SIPC)- Dirección General de Comercio/MEF",
+   "unit": "1 unit"
+  },
+  "196a97d4-7619-4086-8d1a-70ac88068f6d": {
+   "c": "SZ",
+   "commodity": "Wheat (flour)",
+   "currency": "SZL",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Central Statistical Office (CSO)",
+   "unit": "2.5 kg"
+  },
+  "1b48b4db-4c2c-4208-b758-cadfb77cbe22": {
+   "c": "MD",
+   "commodity": "Milk (pasteurised, 1.5% fat)",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "Liter"
+  },
+  "1bca672f-fa4a-4b2c-b2ac-3d6191868faf": {
+   "c": "TO",
+   "commodity": "Eggs",
+   "currency": "TOP",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Tonga Statistics Department",
+   "unit": "Kg"
+  },
+  "1e193601-a205-44ca-9ede-b3a7821f4c59": {
+   "c": "ZA",
+   "commodity": "Rice",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "Kg"
+  },
+  "1e26fe89-2cbe-4bd6-96af-5fd1b5ceb2f0": {
+   "c": "SZ",
+   "commodity": "Rice",
+   "currency": "SZL",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Central Statistical Office (CSO)",
+   "unit": "2 kg"
+  },
+  "1f20351c-a146-496f-8b0f-04795720607e": {
+   "c": "IL",
+   "commodity": "Rice",
+   "currency": "ILS",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Central Bureau of Statistics",
+   "unit": "Kg"
+  },
+  "218c971e-6b65-4acf-a43f-a18e485d7ac6": {
+   "c": "ZM",
+   "commodity": "Eggs",
+   "currency": "ZMW",
+   "end": "2026-01-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Zambia Statistics Agency",
+   "unit": "1 Tray"
+  },
+  "23d66d2e-8ad5-443a-9f8e-18ce5b139518": {
+   "c": "TM",
+   "commodity": "Bread",
+   "currency": "TMT",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "State Committee of Turkmenistan in Statistics",
+   "unit": "1 unit"
+  },
+  "24709f5e-7083-4ce5-98c1-8435bdf9ebc1": {
+   "c": "UY",
+   "commodity": "Soybean oil",
+   "currency": "UYU",
+   "end": "2018-12-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Sistema de Información de Precios al Consumidor (SIPC)- Dirección General de Comercio/MEF",
+   "unit": "900 cc"
+  },
+  "24eabdbe-cdba-49c0-b60c-0b911071a5c7": {
+   "c": "UZ",
+   "commodity": "Milk (fresh)",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "Liter"
+  },
+  "2831e3f1-771b-423a-8053-e2e071e3d00b": {
+   "c": "TM",
+   "commodity": "Rice (medium-grain)",
+   "currency": "TMT",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "State Committee of Turkmenistan in Statistics",
+   "unit": "Kg"
+  },
+  "298e47b6-ee02-43b1-a815-bf229be838c6": {
+   "c": "NE",
+   "commodity": "Rice (25% broken, imported)",
+   "currency": "XOF",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Institut National de la Statistique du Niger",
+   "unit": "25 kg"
+  },
+  "2c02ccf4-e1f9-4840-b0e5-9824191ded54": {
+   "c": "SA",
+   "commodity": "Vegetable oil",
+   "currency": "SAR",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Central Department Of Statistics & Information",
+   "unit": "1.5 Liter"
+  },
+  "2daade04-cf07-4d68-8333-7ea6804774bb": {
+   "c": "RU",
+   "commodity": "Milk (pasteurised)",
+   "currency": "RUB",
+   "end": "2026-08-31",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Federal State Statistics Service",
+   "unit": "Liter"
+  },
+  "2f03cd49-e8be-452d-bb63-8b0a9be488a6": {
+   "c": "SY",
+   "commodity": "Rice",
+   "currency": "SYP",
+   "end": "2026-04-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "2f3af678-6803-4655-b36c-a82ab3f58f6f": {
+   "c": "BD",
+   "commodity": "Rice (Boro, hybrid, medium)",
+   "currency": "BDT",
+   "end": "2026-09-25",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Department of Agriculture Marketing (DAM), Bangladesh",
+   "unit": "Kg"
+  },
+  "2ff19185-2b1d-4640-97e9-d99164621010": {
+   "c": "EG",
+   "commodity": "Rice (packaged)",
+   "currency": "EGP",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Central Agency for Public Mobilization and Statistics (CAPMAS)",
+   "unit": "Kg"
+  },
+  "3020bdd7-de77-473c-8d7d-74284f75368a": {
+   "c": "KG",
+   "commodity": "Wheat (flour, first grade)",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "325f1b32-cea7-401f-a19a-0ccd86b81b7a": {
+   "c": "IL",
+   "commodity": "Wheat (flour)",
+   "currency": "ILS",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Central Bureau of Statistics",
+   "unit": "Kg"
+  },
+  "32cea3ce-e8f9-4839-b137-2845f445bcfb": {
+   "c": "NG",
+   "commodity": "Rice (milled)",
+   "currency": "NGN",
+   "end": "2026-05-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "National Bureau of Statistics",
+   "unit": "Kg"
+  },
+  "3350b418-ccb0-4e6d-b78a-6879b6cfaf33": {
+   "c": "BY",
+   "commodity": "Bread (high grade flour)",
+   "currency": "BYR",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Republic of Belarus",
+   "unit": "Kg"
+  },
+  "346eddc4-1fc5-4267-a99c-47f9a9023a24": {
+   "c": "KZ",
+   "commodity": "Rice (polished)",
+   "currency": "KZT",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Agency for Strategic Planning and Reforms of the Republic of Kazakhstan Bureau of National Statistics",
+   "unit": "Kg"
+  },
+  "34952180-c0b9-4cbe-81e6-5ba7e1f285d9": {
+   "c": "NE",
+   "commodity": "Milk (powder)",
+   "currency": "XOF",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Institut National de la Statistique du Niger",
+   "unit": "400 gms"
+  },
+  "36f3c4ea-bb53-4b78-b07f-c5b8c7aa1b47": {
+   "c": "SY",
+   "commodity": "Vegetable oil",
+   "currency": "SYP",
+   "end": "2026-04-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "37080be8-6f3f-4a6a-aabf-17c2fff95126": {
+   "c": "CO",
+   "commodity": "Rice (first quality)",
+   "currency": "COP",
+   "end": "2026-09-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Fedearroz",
+   "unit": "Kg"
+  },
+  "37b811ea-9f5e-43d5-86ed-67077bb4e854": {
+   "c": "DZ",
+   "commodity": "Eggs",
+   "currency": "DZD",
+   "end": "2026-07-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Office National des Statistiques",
+   "unit": "1 unit"
+  },
+  "380ffd12-7a37-4d40-a323-19781f2eceda": {
+   "c": "DJ",
+   "commodity": "Rice (imported)",
+   "currency": "DJF",
+   "end": "2026-07-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "3924c01d-0513-4072-bd5b-4dee001d3bc0": {
+   "c": "MZ",
+   "commodity": "Wheat (flour)",
+   "currency": "MZN",
+   "end": "2024-03-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Sistema De Informação De Mercados Agrícolas De Moçambique (SIMA) via WFP VAM",
+   "unit": "Kg"
+  },
+  "3beeeab4-2bad-4c56-a50f-16eeadab281b": {
+   "c": "AM",
+   "commodity": "Wheat (flour, first grade)",
+   "currency": "AMD",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Statistical Service of the Republic of Armenia",
+   "unit": "Kg"
+  },
+  "410784f8-bc02-4374-815c-1ac696a960df": {
+   "c": "AM",
+   "commodity": "Bread (first grade flour)",
+   "currency": "AMD",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "National Statistical Service of the Republic of Armenia",
+   "unit": "Kg"
+  },
+  "4120cdf5-7919-4019-b281-46e10df7fd9a": {
+   "c": "TL",
+   "commodity": "Vegetable oil (imported)",
+   "currency": "USD",
+   "end": "2026-07-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "435967a7-7024-49f4-a290-73db967ca38c": {
+   "c": "TJ",
+   "commodity": "Wheat (flour, first grade)",
+   "currency": "TJS",
+   "end": "2026-07-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Statistical Agency under President of the Republic of Tajikistan",
+   "unit": "Kg"
+  },
+  "43ac28e5-2717-4173-8d19-13b90ff5dbe6": {
+   "c": "IN",
+   "commodity": "Milk",
+   "currency": "INR",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Ministry of Consumer Affairs",
+   "unit": "Liter"
+  },
+  "44f265bc-e1e9-4514-9d8d-840463456931": {
+   "c": "LY",
+   "commodity": "Wheat (flour)",
+   "currency": "LYD",
+   "end": "2026-05-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "470296eb-086f-4f48-9e21-2e5dd8179c48": {
+   "c": "NG",
+   "commodity": "Palm Oil",
+   "currency": "NGN",
+   "end": "2026-05-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "National Bureau of Statistics",
+   "unit": "750 ml"
+  },
+  "47e40af8-9be0-4aea-a909-71fd378a0aac": {
+   "c": "IL",
+   "commodity": "Eggs (medium size)",
+   "currency": "ILS",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Central Bureau of Statistics",
+   "unit": "Dozen"
+  },
+  "48194bca-ced0-4b4a-8804-aa626ba73512": {
+   "c": "AZ",
+   "commodity": "Wheat (flour, imported)",
+   "currency": "AZN",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "State Statistical Committee of the Republic of Azerbaijan",
+   "unit": "Kg"
+  },
+  "4a2f6db5-8309-44fd-b4a5-0581fe64593a": {
+   "c": "GT",
+   "commodity": "Bread (French type)",
+   "currency": "GTQ",
+   "end": "2015-11-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Instituto Nacional de Estadística, Guatemala",
+   "unit": "460 gms"
+  },
+  "4d6258cf-f5a2-4a8a-b389-3629a26be2f1": {
+   "c": "LB",
+   "commodity": "Sunflower oil",
+   "currency": "LBP",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "5 Liter"
+  },
+  "51259a9c-906c-42c6-9a84-7557725a50fe": {
+   "c": "UA",
+   "commodity": "Sunflower oil",
+   "currency": "UAH",
+   "end": "2026-07-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "State Statistics Service of Ukraine",
+   "unit": "Liter"
+  },
+  "51e217ea-0635-4028-8e27-5c11c36508c2": {
+   "c": "RU",
+   "commodity": "Wheat (flour)",
+   "currency": "RUB",
+   "end": "2026-08-31",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Federal State Statistics Service",
+   "unit": "Kg"
+  },
+  "5205beed-de30-4c48-af6b-3300e030f9ff": {
+   "c": "NG",
+   "commodity": "Eggs (medium size)",
+   "currency": "NGN",
+   "end": "2026-05-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "National Bureau of Statistics",
+   "unit": "1 unit"
+  },
+  "53072106-12d6-42eb-8122-7669992ded95": {
+   "c": "BW",
+   "commodity": "Milk (fresh)",
+   "currency": "BWP",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Statistics Botswana",
+   "unit": "500 ml"
+  },
+  "562605d8-b8c9-4978-9ea7-b164f3dd806f": {
+   "c": "JO",
+   "commodity": "Rice (Imported)",
+   "currency": "JOD",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Department of Statistics VIA WFP VAM",
+   "unit": "Kg"
+  },
+  "5755cbb3-e650-4be5-a949-95692e40c42c": {
+   "c": "NI",
+   "commodity": "Vegetable oil",
+   "currency": "NIO",
+   "end": "2026-07-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Instituto Nacional de Información de Desarrollo",
+   "unit": "Libra"
+  },
+  "5e24417e-c2cf-4c95-aba1-44611578d92d": {
+   "c": "UA",
+   "commodity": "Eggs",
+   "currency": "UAH",
+   "end": "2026-07-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "State Statistics Service of Ukraine",
+   "unit": "10 units"
+  },
+  "5e915f73-8c18-4bd9-8f82-39bcb6f271ab": {
+   "c": "MD",
+   "commodity": "Wheat (flour, high grade)",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "Kg"
+  },
+  "5ed4761d-863e-4d1d-a389-2bf2f04f66a3": {
+   "c": "MM",
+   "commodity": "Rice (Emata, Medium)",
+   "currency": "MMK",
+   "end": "2019-03-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Central Statistical Organization",
+   "unit": "pyi (2.13 kg)"
+  },
+  "607cf8e8-72b7-4b20-a7a3-6eb2a5055879": {
+   "c": "NI",
+   "commodity": "Milk",
+   "currency": "NIO",
+   "end": "2026-07-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Instituto Nacional de Información de Desarrollo",
+   "unit": "Libra"
+  },
+  "6236b5da-828b-4f0e-8d6d-7110b0af9842": {
+   "c": "TJ",
+   "commodity": "Bread (first grade flour)",
+   "currency": "TJS",
+   "end": "2026-07-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Statistical Agency under President of the Republic of Tajikistan",
+   "unit": "Kg"
+  },
+  "634ef307-de6b-49d1-aa85-2562632ae276": {
+   "c": "MU",
+   "commodity": "Vegetable oil",
+   "currency": "MUR",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Statistics Mauritius",
+   "unit": "Liter"
+  },
+  "65a54433-8b8f-439a-90be-ad87021220dd": {
+   "c": "RU",
+   "commodity": "Bread",
+   "currency": "RUB",
+   "end": "2026-08-31",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Federal State Statistics Service",
+   "unit": "Kg"
+  },
+  "67d0c897-d599-45f4-85f8-c7d0033ec331": {
+   "c": "KG",
+   "commodity": "Sunflower oil",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "oil",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "680c83b1-0025-4f76-8033-9e63a50f6dff": {
+   "c": "MD",
+   "commodity": "Eggs",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "Kg"
+  },
+  "69431468-a626-42a6-8e7c-33a78668f17f": {
+   "c": "KG",
+   "commodity": "Rice (medium grain)",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "rice",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "6a218ade-5a72-4f38-b32d-1886f5804053": {
+   "c": "LA",
+   "commodity": "Rice (Ordinary, second quality)",
+   "currency": "LAK",
+   "end": "2026-06-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Ministry of Industry and Commerce via WFP VAM",
+   "unit": "Kg"
+  },
+  "6a2f66d3-ae85-4ede-a774-dc3bee14ffea": {
+   "c": "JO",
+   "commodity": "Eggs",
+   "currency": "JOD",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Department of Statistics VIA WFP VAM",
+   "unit": "2 Kg"
+  },
+  "6ab37985-1ecd-41f7-84c1-33cd1f05b91f": {
+   "c": "AZ",
+   "commodity": "Bread (high grade flour)",
+   "currency": "AZN",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "State Statistical Committee of the Republic of Azerbaijan",
+   "unit": "Kg"
+  },
+  "6b8e500a-e2a6-4d5f-8774-d100d78f68c8": {
+   "c": "EG",
+   "commodity": "Milk",
+   "currency": "EGP",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Central Agency for Public Mobilization and Statistics (CAPMAS)",
+   "unit": "Liter"
+  },
+  "6c6cd999-ae01-41f7-aedf-3de4e5642164": {
+   "c": "ZA",
+   "commodity": "Bread (white)",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "700 gms"
+  },
+  "6d871907-4208-4d9a-895f-585e77ed5d2a": {
+   "c": "KG",
+   "commodity": "Milk",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "milk",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "6eb75400-abef-420a-b062-975696cc35f4": {
+   "c": "KZ",
+   "commodity": "Wheat (flour, first grade)",
+   "currency": "KZT",
+   "end": "2025-12-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Agency for Strategic Planning and Reforms of the Republic of Kazakhstan Bureau of National Statistics",
+   "unit": "Kg"
+  },
+  "7046ba08-bc7a-4f29-9634-4f08376c5e2d": {
+   "c": "MD",
+   "commodity": "Bread (first grade flour)",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "0.5 kg"
+  },
+  "718b5fc3-ecd1-4dc7-831a-91be6a51ebb4": {
+   "c": "RU",
+   "commodity": "Rice",
+   "currency": "RUB",
+   "end": "2026-08-31",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Federal State Statistics Service",
+   "unit": "Kg"
+  },
+  "73e03304-918e-407e-a309-16b365ffe670": {
+   "c": "RW",
+   "commodity": "Rice",
+   "currency": "RWF",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "7819292a-caeb-4e2b-8d8a-2fbf4eeadd02": {
+   "c": "ID",
+   "commodity": "Wheat (flour)",
+   "currency": "IDR",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Badan Pusat Statistik (BPS)",
+   "unit": "Kg"
+  },
+  "7b7c41e4-338a-44a7-90b2-6d1ee64f7555": {
+   "c": "LB",
+   "commodity": "Bread (Pita)",
+   "currency": "LBP",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "800 gms"
+  },
+  "7da11507-7f83-473a-8ec3-4809117f8a94": {
+   "c": "BI",
+   "commodity": "Vegetable oil",
+   "currency": "BIF",
+   "end": "2026-09-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "811574d3-f49c-4c96-baec-a62ab8099196": {
+   "c": "MZ",
+   "commodity": "Rice (Imported)",
+   "currency": "MZN",
+   "end": "2024-03-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Sistema De Informação De Mercados Agrícolas De Moçambique (SIMA) via WFP VAM",
+   "unit": "Kg"
+  },
+  "844b84de-3204-4f79-97e5-e8c4eeab9db4": {
+   "c": "UZ",
+   "commodity": "Eggs",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "10 units"
+  },
+  "84693b03-bfcb-43b1-a9a5-3956aaf55c66": {
+   "c": "UA",
+   "commodity": "Bread (first grade flour)",
+   "currency": "UAH",
+   "end": "2026-07-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "State Statistics Service of Ukraine",
+   "unit": "Kg"
+  },
+  "84ecea26-73c2-4826-a0ee-dae4baed83dd": {
+   "c": "SZ",
+   "commodity": "Bread (white)",
+   "currency": "SZL",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Central Statistical Office (CSO)",
+   "unit": "800 gms"
+  },
+  "88e1f94b-d96c-46f3-9f19-17848aa031ad": {
+   "c": "MU",
+   "commodity": "Bread (maison)",
+   "currency": "MUR",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Statistics Mauritius",
+   "unit": "100 gms"
+  },
+  "8a6f10ea-042b-4fc8-b797-f8b85d005b80": {
+   "c": "TR",
+   "commodity": "Rice",
+   "currency": "TRY",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Turkish Statistical Institute via WFP VAM",
+   "unit": "Kg"
+  },
+  "8d36be07-9740-4eb0-b367-9ae4a7e2c083": {
+   "c": "TR",
+   "commodity": "Wheat (flour)",
+   "currency": "TRY",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Turkish Statistical Institute via WFP VAM",
+   "unit": "Kg"
+  },
+  "8e3cd25b-726b-446f-bcac-61868146d3eb": {
+   "c": "GT",
+   "commodity": "Rice (second quality)",
+   "currency": "GTQ",
+   "end": "2015-11-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Instituto Nacional de Estadística, Guatemala",
+   "unit": "460 gms"
+  },
+  "8e42bb60-76f1-4e46-844e-beaa92ae247b": {
+   "c": "MU",
+   "commodity": "Milk (powdered, whole)",
+   "currency": "MUR",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Statistics Mauritius",
+   "unit": "Kg"
+  },
+  "8fc1185c-0a5e-42bb-9cf7-879fdedd9fb3": {
+   "c": "TL",
+   "commodity": "Rice (white)",
+   "currency": "USD",
+   "end": "2026-07-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "90ab3b48-2d0c-4c8b-996c-d986f79ac097": {
+   "c": "GE",
+   "commodity": "Wheat (flour)",
+   "currency": "GEL",
+   "end": "2026-09-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Statistics Office of Georgia",
+   "unit": "Kg"
+  },
+  "90add23f-fd17-475c-be54-11efeee7e58a": {
+   "c": "MG",
+   "commodity": "Rice",
+   "currency": "MGA",
+   "end": "2019-11-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Observatoire du Riz",
+   "unit": "Kg"
+  },
+  "91df5b4d-dcb7-4bda-9311-d47c07db9baa": {
+   "c": "GE",
+   "commodity": "Milk (manufactured)",
+   "currency": "GEL",
+   "end": "2026-09-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "National Statistics Office of Georgia",
+   "unit": "Liter"
+  },
+  "977ade59-caaa-428f-8ef8-22e7b895b38f": {
+   "c": "IN",
+   "commodity": "Rice",
+   "currency": "INR",
+   "end": "2026-09-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Ministry of Consumer Affairs",
+   "unit": "Kg"
+  },
+  "985844d4-c301-473c-a2d8-d92e53cf282b": {
+   "c": "KZ",
+   "commodity": "Sunflower oil",
+   "currency": "KZT",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Agency for Strategic Planning and Reforms of the Republic of Kazakhstan Bureau of National Statistics",
+   "unit": "Liter"
+  },
+  "99f1fdd6-4980-43a9-94f8-0ce4e303d521": {
+   "c": "NE",
+   "commodity": "Wheat (flour)",
+   "currency": "XOF",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Institut National de la Statistique du Niger",
+   "unit": "Kg"
+  },
+  "9a08f0d7-2faf-4936-b113-da5b3f5e04c1": {
+   "c": "IL",
+   "commodity": "Bread (sliced)",
+   "currency": "ILS",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Central Bureau of Statistics",
+   "unit": "750 gms"
+  },
+  "9a52c86e-0437-4ad8-a34a-f1a722961bea": {
+   "c": "SY",
+   "commodity": "Wheat (flour, imported)",
+   "currency": "SYP",
+   "end": "2026-04-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "9b5697fb-4ad4-4a15-a6e8-23ad23157ab3": {
+   "c": "BY",
+   "commodity": "Wheat (flour)",
+   "currency": "BYR",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Republic of Belarus",
+   "unit": "Kg"
+  },
+  "9bdaf60b-d289-4467-8094-3c35b2528a4a": {
+   "c": "BD",
+   "commodity": "Wheat (flour, white, loose)",
+   "currency": "BDT",
+   "end": "2026-09-25",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Department of Agriculture Marketing (DAM), Bangladesh",
+   "unit": "Kg"
+  },
+  "9e95815d-eafd-4087-984c-c6774f1f24c5": {
+   "c": "GB",
+   "commodity": "Milk (semi-skimmed)",
+   "currency": "GBP",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Office of National Statistics",
+   "unit": "1136 ml"
+  },
+  "9eea3d84-d1d2-42a1-a13c-2706feff1dbc": {
+   "c": "EG",
+   "commodity": "Wheat (flour)",
+   "currency": "EGP",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Central Agency for Public Mobilization and Statistics (CAPMAS)",
+   "unit": "Kg"
+  },
+  "a19bd019-76d6-4f3a-8087-43fa1752be45": {
+   "c": "IQ",
+   "commodity": "Eggs",
+   "currency": "IQD",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "2.5 Dozen"
+  },
+  "a2b95c9c-ab85-4621-8507-21b3eb81978a": {
+   "c": "JO",
+   "commodity": "Wheat (flour)",
+   "currency": "JOD",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Department of Statistics VIA WFP VAM",
+   "unit": "1.5 Kg"
+  },
+  "a33ae8cf-a37d-4e8a-8391-ca8c2dfe1456": {
+   "c": "ZA",
+   "commodity": "Wheat (flour)",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "2.5 kg"
+  },
+  "a4eb87b7-e3af-4ce0-80ba-2a508100e908": {
+   "c": "ZA",
+   "commodity": "Sunflower oil",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "750 ml"
+  },
+  "a6db3823-3375-4151-b849-06db15ad9573": {
+   "c": "BI",
+   "commodity": "Rice (low quality)",
+   "currency": "BIF",
+   "end": "2025-12-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "a743fd96-01d1-4009-b60d-5f3eb336b4a5": {
+   "c": "BW",
+   "commodity": "Rice",
+   "currency": "BWP",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Statistics Botswana",
+   "unit": "5 kg"
+  },
+  "a8c7afd2-b0b6-494b-8b44-548bcd38a5b2": {
+   "c": "DJ",
+   "commodity": "Bread",
+   "currency": "DJF",
+   "end": "2026-07-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "1 unit"
+  },
+  "a904ce0d-da4d-45fe-a0ce-f7381120e076": {
+   "c": "PH",
+   "commodity": "Rice (regular milled)",
+   "currency": "PHP",
+   "end": "2026-09-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Bureau of Agricultural Statistics",
+   "unit": "Kg"
+  },
+  "aa3549b5-3307-41e1-905c-cedbd40a320d": {
+   "c": "GW",
+   "commodity": "Vegetable oil (imported)",
+   "currency": "XOF",
+   "end": "2026-06-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "ace0c9f8-a9b2-4428-b848-a46a39a2c31e": {
+   "c": "TL",
+   "commodity": "Wheat (flour, imported)",
+   "currency": "USD",
+   "end": "2026-07-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "ade49ec8-bc35-4f78-ab70-ee91c724705b": {
+   "c": "CF",
+   "commodity": "Rice",
+   "currency": "XAF",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "aee81bc4-ce11-4f31-807c-98a1a1d4d182": {
+   "c": "TM",
+   "commodity": "Wheat (flour, high grade)",
+   "currency": "TMT",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "State Committee of Turkmenistan in Statistics",
+   "unit": "Kg"
+  },
+  "af93c6ea-bd30-41f1-8725-503110151a09": {
+   "c": "JO",
+   "commodity": "Vegetable oil",
+   "currency": "JOD",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Department of Statistics VIA WFP VAM",
+   "unit": "1.8 Liter"
+  },
+  "af99c696-7b4b-4228-a643-da94b7a2efc2": {
+   "c": "LY",
+   "commodity": "Rice",
+   "currency": "LYD",
+   "end": "2026-05-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "b05a33ca-99fb-40b7-89d3-ad37513c2ce9": {
+   "c": "GN",
+   "commodity": "Bread",
+   "currency": "GNF",
+   "end": "2026-07-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "b48f6abc-d652-4c9a-92c0-cff27a17abf1": {
+   "c": "IQ",
+   "commodity": "Rice",
+   "currency": "IQD",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "b6fc380d-8fc3-413e-ade0-613cd7715fc5": {
+   "c": "GW",
+   "commodity": "Wheat (flour)",
+   "currency": "XOF",
+   "end": "2026-06-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "b903c442-b33b-4fae-8a88-2b1008756fdd": {
+   "c": "GW",
+   "commodity": "Rice (imported)",
+   "currency": "XOF",
+   "end": "2026-06-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "ba2bfa50-3842-456e-99d4-6bc6f669988c": {
+   "c": "BW",
+   "commodity": "Sunflower oil",
+   "currency": "BWP",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Statistics Botswana",
+   "unit": "750 ml"
+  },
+  "bb62ac74-20e6-4431-96f7-ee0b688e22fb": {
+   "c": "GB",
+   "commodity": "Bread (wholemeal, sliced)",
+   "currency": "GBP",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Office of National Statistics",
+   "unit": "800 gms"
+  },
+  "bbb7af18-5087-464f-b635-657bc271e318": {
+   "c": "UG",
+   "commodity": "Vegetable oil",
+   "currency": "UGX",
+   "end": "2026-04-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "bef3c368-16bb-48fc-9010-162626698792": {
+   "c": "KZ",
+   "commodity": "Bread (first grade flour)",
+   "currency": "KZT",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Agency for Strategic Planning and Reforms of the Republic of Kazakhstan Bureau of National Statistics",
+   "unit": "Kg"
+  },
+  "bff45e77-0f44-4e24-9d54-6a99dbf84df0": {
+   "c": "MU",
+   "commodity": "Wheat (flour, traders)",
+   "currency": "MUR",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Statistics Mauritius",
+   "unit": "Kg"
+  },
+  "c0b2e88d-8010-4f45-b989-fdf1eb126c10": {
+   "c": "ID",
+   "commodity": "Vegetable oil",
+   "currency": "IDR",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Badan Pusat Statistik (BPS)",
+   "unit": "Liter"
+  },
+  "c40fcf83-4dcd-4ef2-823b-a7dbd34caa21": {
+   "c": "IN",
+   "commodity": "Wheat (flour)",
+   "currency": "INR",
+   "end": "2026-09-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Ministry of Consumer Affairs",
+   "unit": "Kg"
+  },
+  "c487b238-d20f-4c59-96db-be859dc03ac9": {
+   "c": "CI",
+   "commodity": "Rice",
+   "currency": "XOF",
+   "end": "2024-12-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Agence Nationale de la Statistique",
+   "unit": "Kg"
+  },
+  "c5158ab2-4b64-4eae-a639-2a1bfad06b18": {
+   "c": "ID",
+   "commodity": "Eggs",
+   "currency": "IDR",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Badan Pusat Statistik (BPS)",
+   "unit": "Kg"
+  },
+  "cd59d5eb-61ad-43dc-8113-34b79149f518": {
+   "c": "TR",
+   "commodity": "Sunflower oil",
+   "currency": "TRY",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Turkish Statistical Institute via WFP VAM",
+   "unit": "Liter"
+  },
+  "ce521c05-fb8c-460d-8093-8252fed2f55f": {
+   "c": "KG",
+   "commodity": "Eggs",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "ceaf8d19-5a64-4536-8701-53104a57cd95": {
+   "c": "UZ",
+   "commodity": "Bread (first grade flour)",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "Kg"
+  },
+  "cebc19da-9059-4c8b-aa63-452c99bf4f06": {
+   "c": "CF",
+   "commodity": "Palm Oil",
+   "currency": "XAF",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "d05e2e7a-4651-46c8-a460-1febe046deae": {
+   "c": "KG",
+   "commodity": "Bread (first grade flour)",
+   "currency": "KGS",
+   "end": "2026-09-30",
+   "k": "bread",
+   "market": "National Average",
+   "source": "National Statistical Committee of the Kyrgyz Republic",
+   "unit": "Kg"
+  },
+  "d117ae35-0e28-4c37-8bb3-1d4c327b8c11": {
+   "c": "GE",
+   "commodity": "Bread",
+   "currency": "GEL",
+   "end": "2026-09-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "National Statistics Office of Georgia",
+   "unit": "Kg"
+  },
+  "d1199b1a-2a1f-4ab5-9e26-d28de3e22390": {
+   "c": "MD",
+   "commodity": "Sunflower oil (unrefined)",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "Liter"
+  },
+  "d1b97541-05ba-419e-8e01-3a4f519815ea": {
+   "c": "IQ",
+   "commodity": "Wheat (flour)",
+   "currency": "IQD",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "d32da11c-851a-45d5-90d4-61bddfe77398": {
+   "c": "DJ",
+   "commodity": "Wheat (flour)",
+   "currency": "DJF",
+   "end": "2026-07-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "d41b5f14-78c6-4827-98c7-b8408e296e5a": {
+   "c": "IQ",
+   "commodity": "Bread (Khoboz)",
+   "currency": "IQD",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "8 units"
+  },
+  "d5639994-81f5-4947-be45-b9a37501def1": {
+   "c": "NG",
+   "commodity": "Wheat (flour)",
+   "currency": "NGN",
+   "end": "2026-05-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "National Bureau of Statistics",
+   "unit": "2 kg"
+  },
+  "dd3e7e9d-b944-4a08-a6a7-0cc8e0f1a4e3": {
+   "c": "ZA",
+   "commodity": "Eggs",
+   "currency": "ZAR",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Statistics South Africa",
+   "unit": "1/2 Dozen"
+  },
+  "dee4bb30-e422-41c6-88b8-01bf7ec3239c": {
+   "c": "WS",
+   "commodity": "Rice",
+   "currency": "WST",
+   "end": "2026-07-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Samoa Bureau of Statistics",
+   "unit": "lb"
+  },
+  "e160d0a2-b3a3-498d-8170-03ac821a3969": {
+   "c": "BW",
+   "commodity": "Bread (loaf)",
+   "currency": "BWP",
+   "end": "2026-08-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Statistics Botswana",
+   "unit": "1 unit"
+  },
+  "e36b5527-257a-43fd-a63d-39f0ce738dcd": {
+   "c": "KR",
+   "commodity": "Rice (good quality)",
+   "currency": "KRW",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Korea Agricultural Market Information Service",
+   "unit": "20 kg"
+  },
+  "e4323035-57cd-4904-91df-7cda6bb26a29": {
+   "c": "UY",
+   "commodity": "Wheat (flour)",
+   "currency": "UYU",
+   "end": "2018-12-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Sistema de Información de Precios al Consumidor (SIPC)- Dirección General de Comercio/MEF",
+   "unit": "Kg"
+  },
+  "e5023d13-7f25-4dd4-9ef4-a5d908ec540a": {
+   "c": "LY",
+   "commodity": "Vegetable oil",
+   "currency": "LYD",
+   "end": "2026-05-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "e66d77f7-189a-4716-a9ba-a8a40e17bbb7": {
+   "c": "MD",
+   "commodity": "Rice (round grain)",
+   "currency": "MDL",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "National Bureau of Statistics of the Republic of Moldova",
+   "unit": "Kg"
+  },
+  "e66ddbb8-8375-42a6-9f6c-fe4ffa3a5025": {
+   "c": "DJ",
+   "commodity": "Vegetable oil",
+   "currency": "DJF",
+   "end": "2026-07-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "e67281b8-6543-4055-82a3-b17ce276367f": {
+   "c": "NI",
+   "commodity": "Rice",
+   "currency": "NIO",
+   "end": "2026-07-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Instituto Nacional de Información de Desarrollo",
+   "unit": "Libra"
+  },
+  "e7ba91ee-69cc-46df-8348-b6b62e6df85b": {
+   "c": "AZ",
+   "commodity": "Milk (not pasteurized)",
+   "currency": "AZN",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "State Statistical Committee of the Republic of Azerbaijan",
+   "unit": "Liter"
+  },
+  "e8830e09-cde2-46ae-8fd7-916a1982b0e1": {
+   "c": "ID",
+   "commodity": "Rice",
+   "currency": "IDR",
+   "end": "2026-08-01",
+   "k": "rice",
+   "market": "National Average",
+   "source": "Badan Pusat Statistik (BPS)",
+   "unit": "Kg"
+  },
+  "e9f0d297-c979-45fc-99b0-ce63ba9841e2": {
+   "c": "SY",
+   "commodity": "Bread (bakery)",
+   "currency": "SYP",
+   "end": "2026-04-01",
+   "k": "bread",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "1.1 Kg"
+  },
+  "eaa552d7-e47d-48f4-88ba-b45710d0204a": {
+   "c": "TO",
+   "commodity": "Wheat (flour, imported)",
+   "currency": "TOP",
+   "end": "2026-08-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Tonga Statistics Department",
+   "unit": "Kg"
+  },
+  "ec7666d0-75f7-4199-a9d4-5fa9cdd4f7ef": {
+   "c": "EG",
+   "commodity": "Eggs",
+   "currency": "EGP",
+   "end": "2026-08-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Central Agency for Public Mobilization and Statistics (CAPMAS)",
+   "unit": "1 unit"
+  },
+  "ee4bfa52-60de-4af2-9ead-f7e836eddaa0": {
+   "c": "IQ",
+   "commodity": "Vegetable oil",
+   "currency": "IQD",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Liter"
+  },
+  "ee58084a-9cb3-4445-a82a-c987ba3bcd4b": {
+   "c": "IL",
+   "commodity": "Milk (pasteurised)",
+   "currency": "ILS",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Central Bureau of Statistics",
+   "unit": "Liter"
+  },
+  "eef0da69-780f-4dcc-a7cc-04b8aa38dfd3": {
+   "c": "UZ",
+   "commodity": "Sunflower oil",
+   "currency": "UZS",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "The State Committee of the Republic of Uzbekistan on Statistics",
+   "unit": "Liter"
+  },
+  "f180c904-00e5-44a2-a185-a0736ddc2e0d": {
+   "c": "LB",
+   "commodity": "Wheat (flour)",
+   "currency": "LBP",
+   "end": "2022-12-01",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "Kg"
+  },
+  "f50dd06f-0e54-47ea-a750-26f264bdcedc": {
+   "c": "MZ",
+   "commodity": "Vegetable oil",
+   "currency": "MZN",
+   "end": "2024-03-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Sistema De Informação De Mercados Agrícolas De Moçambique (SIMA) via WFP VAM",
+   "unit": "Liter"
+  },
+  "f58fb4e3-7b13-44ac-86c2-4f73b91c6394": {
+   "c": "CR",
+   "commodity": "Wheat (flour)",
+   "currency": "CRC",
+   "end": "2022-03-25",
+   "k": "flour",
+   "market": "National Average",
+   "source": "Consejo Nacional de Producción",
+   "unit": "900 gms"
+  },
+  "f6e6eb6d-5a7e-4f46-9a3f-4c0b88415c64": {
+   "c": "DJ",
+   "commodity": "Eggs",
+   "currency": "DJF",
+   "end": "2026-07-01",
+   "k": "eggs",
+   "market": "National Average",
+   "source": "Various via WFP VAM",
+   "unit": "1 unit"
+  },
+  "f811a28a-2412-47b4-9d71-7fa679612e43": {
+   "c": "NE",
+   "commodity": "Palm oil (refined)",
+   "currency": "XOF",
+   "end": "2026-08-01",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Institut National de la Statistique du Niger",
+   "unit": "Liter"
+  },
+  "fbdf3077-604b-4a52-9842-bf085873348d": {
+   "c": "BD",
+   "commodity": "Palm oil",
+   "currency": "BDT",
+   "end": "2026-09-25",
+   "k": "oil",
+   "market": "National Average",
+   "source": "Department of Agriculture Marketing (DAM), Bangladesh",
+   "unit": "Liter"
+  },
+  "fca67b13-e498-4c19-a959-6c386c7b23a2": {
+   "c": "SA",
+   "commodity": "Milk (powder, Nido)",
+   "currency": "SAR",
+   "end": "2026-08-01",
+   "k": "milk",
+   "market": "National Average",
+   "source": "Central Department Of Statistics & Information",
+   "unit": "1.8 kg"
+  }
+ }
+}

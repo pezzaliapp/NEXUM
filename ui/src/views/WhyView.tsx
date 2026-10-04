@@ -7,7 +7,9 @@ import { recompute } from "../lib/confidence";
 import { conf, duration, km, num } from "../lib/format";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
-import { Conf, ErrorNote, Ref, useFetch, WhyButton } from "../components/common";
+import { Conf, ErrorNote, Ref, Support, useFetch, WhyButton } from "../components/common";
+import { typeLabelOf, useSummaries } from "../components/Highlights";
+import { sentence, summaryOf } from "../lib/summary";
 import { EvidenceItem } from "./ObjectMode";
 
 const isNA = (x: any) => x && typeof x === "object" && (x.status === "not_recorded" || x.status === "not_applicable");
@@ -42,6 +44,8 @@ export function WhyView({ id }: { id: string }) {
   try { if (factors) recomputed = recompute(factors); } catch { recomputed = null; }
   const stored = det?.confidence ?? e?.confidence ?? null;
   const match = recomputed != null && stored != null && Math.abs(recomputed - stored) <= 1e-9;
+  useSummaries(id.startsWith("ins_") ? [id] : []);
+  const sent = id.startsWith("ins_") ? sentence(summaryOf(id), typeLabelOf) : null;
   return (
     <div className="why" data-testid="why" data-why={id} style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
       <div className="phead">
@@ -55,15 +59,69 @@ export function WhyView({ id }: { id: string }) {
           <>
             <div className="stmt">
               <div className="xs dim" style={{ textTransform: "uppercase", letterSpacing: ".06em" }}>
-                {d.kind === "insight" ? `${S.kinds.insight} · ${det?.insight_kind ?? ""}` : `${S.kinds.relation} · ${det?.nature ?? ""}`}
+                {d.kind === "insight" ? S.whyFound : `${S.kinds.relation} · ${det?.nature ?? ""}`}
               </div>
               <div style={{ margin: "4px 0" }}><Ref id={id} origin="why" /></div>
+              {sent && <p className="ins-sentence" data-testid="why-sentence">{sent}</p>}
               <blockquote data-testid="why-explanation">{d.explanation?.text}</blockquote>
               {d.explanation?.origin === "generated_from_refs" && <div className="xs faint">{S.explanationGenerated}</div>}
-              <div className="row small"><Conf value={stored} text={d.confidence?.text} /><span className="dim">{d.confidence?.band}</span></div>
+              <div className="row small"><Support value={stored} /></div>
               <div className="caution" data-testid="why-caution">⚠ {S.causal}</div>
             </div>
 
+            {d.kind === "insight" && (
+              <Block title={S.whyLinked} name="linked">
+                <ul className="list" data-testid="why-linked">{(d.evidence?.members ?? []).filter((m: any) => m.ref).map((m: any) => (
+                  <li key={`l-${m.role}-${m.ref.$ref}`} className="row"><span className="grow"><Ref id={m.ref.$ref} origin="why" /></span>
+                    <span className="xs dim">{[m.distance_km != null ? `a ${km(m.distance_km)}` : null, m.delta_t_ms != null ? duration(m.delta_t_ms) : null].filter(Boolean).join(" · ")}</span></li>))}</ul>
+              </Block>
+            )}
+            <Block title={S.whyIndependent} name="independent">
+              <p className="small" data-testid="why-independent-count">{d.independent_sources?.count} gruppi indipendenti</p>
+              <table><thead><tr><th style={{ width: 110 }}>gruppo</th><th>fonti</th><th className="n">migliore</th><th className="n">evid.</th></tr></thead>
+                <tbody>{(d.independent_sources?.groups ?? []).map((g: any) => (
+                  <Fragment key={g.independence_group}>
+                    <tr><td className="mono xs">{g.independence_group}</td><td className="xs">{g.sources.join(", ")}</td>
+                      <td className="n">{conf(g.best_value)}</td><td className="n">{g.evidence_count}</td></tr>
+                    {g.not_independent.map((n: any) => (
+                      <tr key={n.source_id} data-not-independent={n.source_id}><td /><td colSpan={3} className="xs faint">
+                        <s>{n.source_id}</s> — {S.notIndependent}: {n.reason}</td></tr>))}
+                  </Fragment>))}</tbody></table>
+            </Block>
+
+            <Block title={S.whyEvidence} name="evidence">
+              {d.kind === "relation" ? (
+                <ul className="list">{(d.evidence ?? []).map((ev: any) => <EvidenceItem key={ev.evidence_id} ev={ev} />)}</ul>
+              ) : (
+                <>
+                  {(d.evidence?.members ?? []).filter((m: any) => m.ref && !m.role.includes("~group") && !m.role.includes("#"))
+                    .map((m: any) => <MemberEvidence key={`${m.role}-${m.ref.$ref}`} role={m.role} id={m.ref.$ref} />)}
+                  {(d.evidence?.relation_evidence ?? []).map((re: any) => (
+                    <div key={re.relation.$ref}><div className="row"><Ref id={re.relation.$ref} origin="why" /><WhyButton id={re.relation.$ref} /></div>
+                      <ul className="list">{re.items.map((ev: any) => <EvidenceItem key={ev.evidence_id} ev={ev} />)}</ul></div>))}
+                </>
+              )}
+              <p className="xs dim">provenienza {d.provenance_complete ? "completa fino al dato grezzo e alla licenza" : "incompleta"}</p>
+            </Block>
+
+            <Block title={d.kind === "relation" ? S.whyUsedBy : S.whyComponents} name="components">
+              {d.kind === "relation" ? (
+                <ul className="list">{(d.used_by?.items ?? []).map((u: any) => u.ref?.$ref && (
+                  <li key={u.ref.$ref} className="row"><span className="grow"><Ref id={u.ref.$ref} origin="why" /></span>{u.ref.$ref.startsWith("ins_") && <WhyButton id={u.ref.$ref} />}</li>))}
+                  {!d.used_by?.items?.length && <li className="dim">{S.none}</li>}</ul>
+              ) : isNA(d.components) ? <NA x={d.components} /> : (
+                <ul className="list">{d.components.map((c: any) => (
+                  <li key={c.ref.$ref}><div className="row"><Conf value={c.confidence} /><span className="grow"><Ref id={c.ref.$ref} origin="why" /></span><WhyButton id={c.ref.$ref} /></div>
+                    <div className="xs dim">{c.explanation}</div></li>))}
+                  {!d.components.length && <li className="dim">{S.none}</li>}</ul>
+              )}
+            </Block>
+
+            <Block title={S.whyLimitations} name="limitations">
+              <ul className="list" data-testid="why-limitations">{(d.limitations ?? []).map((l: string) => <li key={l} className="small">{l}</li>)}</ul>
+            </Block>
+            <details className="why-tech" data-testid="why-technical">
+              <summary>{S.whyTechnical}</summary>
             <Block title={S.whyRule} name="rule">
               {isNA(d.rule) ? <><NA x={d.rule} />{d.derivation && <p className="small">{S.derivation}: <span className="mono">{d.derivation}</span></p>}</> : (
                 <>
@@ -155,50 +213,7 @@ export function WhyView({ id }: { id: string }) {
               {d.confidence?.text && <p className="xs dim">{d.confidence.text}</p>}
             </Block>
 
-            <Block title={S.whyIndependent} name="independent">
-              <p className="small" data-testid="why-independent-count">{d.independent_sources?.count} gruppi indipendenti</p>
-              <table><thead><tr><th style={{ width: 110 }}>gruppo</th><th>fonti</th><th className="n">migliore</th><th className="n">evid.</th></tr></thead>
-                <tbody>{(d.independent_sources?.groups ?? []).map((g: any) => (
-                  <Fragment key={g.independence_group}>
-                    <tr><td className="mono xs">{g.independence_group}</td><td className="xs">{g.sources.join(", ")}</td>
-                      <td className="n">{conf(g.best_value)}</td><td className="n">{g.evidence_count}</td></tr>
-                    {g.not_independent.map((n: any) => (
-                      <tr key={n.source_id} data-not-independent={n.source_id}><td /><td colSpan={3} className="xs faint">
-                        <s>{n.source_id}</s> — {S.notIndependent}: {n.reason}</td></tr>))}
-                  </Fragment>))}</tbody></table>
-            </Block>
-
-            <Block title={S.whyEvidence} name="evidence">
-              {d.kind === "relation" ? (
-                <ul className="list">{(d.evidence ?? []).map((ev: any) => <EvidenceItem key={ev.evidence_id} ev={ev} />)}</ul>
-              ) : (
-                <>
-                  {(d.evidence?.members ?? []).filter((m: any) => m.ref && !m.role.includes("~group") && !m.role.includes("#"))
-                    .map((m: any) => <MemberEvidence key={`${m.role}-${m.ref.$ref}`} role={m.role} id={m.ref.$ref} />)}
-                  {(d.evidence?.relation_evidence ?? []).map((re: any) => (
-                    <div key={re.relation.$ref}><div className="row"><Ref id={re.relation.$ref} origin="why" /><WhyButton id={re.relation.$ref} /></div>
-                      <ul className="list">{re.items.map((ev: any) => <EvidenceItem key={ev.evidence_id} ev={ev} />)}</ul></div>))}
-                </>
-              )}
-              <p className="xs dim">provenienza {d.provenance_complete ? "completa fino al dato grezzo e alla licenza" : "incompleta"}</p>
-            </Block>
-
-            <Block title={d.kind === "relation" ? S.whyUsedBy : S.whyComponents} name="components">
-              {d.kind === "relation" ? (
-                <ul className="list">{(d.used_by?.items ?? []).map((u: any) => u.ref?.$ref && (
-                  <li key={u.ref.$ref} className="row"><span className="grow"><Ref id={u.ref.$ref} origin="why" /></span>{u.ref.$ref.startsWith("ins_") && <WhyButton id={u.ref.$ref} />}</li>))}
-                  {!d.used_by?.items?.length && <li className="dim">{S.none}</li>}</ul>
-              ) : isNA(d.components) ? <NA x={d.components} /> : (
-                <ul className="list">{d.components.map((c: any) => (
-                  <li key={c.ref.$ref}><div className="row"><Conf value={c.confidence} /><span className="grow"><Ref id={c.ref.$ref} origin="why" /></span><WhyButton id={c.ref.$ref} /></div>
-                    <div className="xs dim">{c.explanation}</div></li>))}
-                  {!d.components.length && <li className="dim">{S.none}</li>}</ul>
-              )}
-            </Block>
-
-            <Block title={S.whyLimitations} name="limitations">
-              <ul className="list" data-testid="why-limitations">{(d.limitations ?? []).map((l: string) => <li key={l} className="small">{l}</li>)}</ul>
-            </Block>
+            </details>
             <div style={{ height: 24 }} />
           </>
         )}
@@ -213,7 +228,7 @@ function MemberEvidence({ role, id }: { role: string; id: string }) {
   if (id.startsWith("ins_")) return null;
   return (
     <div data-member-evidence={id}>
-      <div className="row small"><span className="mono xs dim">{role}</span><Ref id={id} origin="why" /></div>
+      <div className="row small" title={role}><Ref id={id} origin="why" /></div>
       <ul className="list">{(r.data?.data.items ?? []).map((ev: any) => <EvidenceItem key={ev.evidence_id} ev={ev} />)}</ul>
     </div>
   );

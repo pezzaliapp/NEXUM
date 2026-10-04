@@ -1,0 +1,34 @@
+id = "us.wsdot"
+name = "WSDOT — highway cameras"
+owner = "Washington State Department of Transportation"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "us_wsdot"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): CURRENT image; KML offered openly on WSDOT's traveler information API page for third-party use.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "WSDOT-traveler-API"
+url = "https://wsdot.wa.gov/traffic/api/"
+attribution = "WSDOT"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.wsdot.wa.gov"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

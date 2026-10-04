@@ -1,0 +1,33 @@
+id = "noaa.ncei_hazards"
+name = "NOAA NCEI — Natural Hazards (volcanoes, eruptions, tsunamis, significant earthquakes)"
+owner = "NOAA National Centers for Environmental Information"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-01"
+independence_group = "noaa_ncei"
+connector = "connectors.noaa_ncei_hazards"
+
+[license]
+id = "public-domain-us-gov"
+url = "https://www.ncei.noaa.gov/products/natural-hazards"
+attribution = "NOAA National Centers for Environmental Information (NCEI/WDS Global Historical Tsunami, Significant Earthquake and Volcanic Eruption Databases)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.ngdc.noaa.gov"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]
+min_year = 2012

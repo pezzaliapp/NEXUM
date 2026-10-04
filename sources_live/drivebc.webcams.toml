@@ -1,0 +1,34 @@
+id = "drivebc.webcams"
+name = "DriveBC — highway webcams"
+owner = "BC Ministry of Transportation and Transit"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "drivebc"
+connector = "connectors.drivebc_webcams"
+
+# Phase 3B · block 1: camera positions and the stable URL of the CURRENT image only. Image bytes are never fetched,
+# copied or archived by NEXUM; the browser loads the image from this source only when the person opens the camera.
+[license]
+id = "OGL-BC"
+url = "https://www2.gov.bc.ca/gov/content/data/policy-standards/open-data/open-government-licence-bc"
+attribution = "Contains information licensed under the Open Government Licence – British Columbia (DriveBC); per-camera credits as stated by the source"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.drivebc.ca"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

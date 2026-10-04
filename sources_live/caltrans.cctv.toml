@@ -1,0 +1,34 @@
+id = "caltrans.cctv"
+name = "Caltrans CWWP2 — CCTV (current still images)"
+owner = "California Department of Transportation"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "caltrans_cctv"
+connector = "connectors.caltrans_cctv"
+
+# Phase 3B · block 1: camera positions and the stable URL of the CURRENT image only. Image bytes are never fetched,
+# copied or archived by NEXUM; the browser loads the image from this source only when the person opens the camera.
+[license]
+id = "public-domain-us-ca"
+url = "https://dot.ca.gov/conditions-of-use"
+attribution = "Caltrans CWWP2 — information considered in the public domain (dot.ca.gov/conditions-of-use)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["cwwp2.dot.ca.gov"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

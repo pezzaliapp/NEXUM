@@ -1,0 +1,34 @@
+id = "eurostat.energy_flows"
+name = "Eurostat — energy imports and exports by partner country (gas, electricity, crude oil)"
+owner = "Eurostat (European Commission)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "eurostat"
+connector = "connectors.eurostat_energy_flows"
+
+# World Intelligence (2026-10-03): bilateral arcs declared by European reporters only (32–38 reporting states).
+# Elsewhere in the world no open partner data passed the gate: a data gap, never an inferred arc.
+[license]
+id = "Eurostat-reuse"
+url = "https://ec.europa.eu/eurostat/about-us/policies/copyright"
+attribution = "Source: Eurostat (nrg_ti_gas, nrg_ti_eh, nrg_te_eh, nrg_ti_oil) — reuse authorised provided the source is acknowledged"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["ec.europa.eu"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

@@ -1,0 +1,34 @@
+id = "it.ingv_oe"
+name = "INGV Osservatorio Etneo — volcano webcams, link only"
+owner = "Istituto Nazionale di Geofisica e Vulcanologia"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "it_ingv_oe"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: images without a stable address; one link per volcano.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0"
+url = "https://www.ct.ingv.it/"
+attribution = "INGV – Osservatorio Etneo"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.ct.ingv.it"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

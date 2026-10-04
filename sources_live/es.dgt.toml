@@ -1,0 +1,34 @@
+id = "es.dgt"
+name = "DGT (Spain) — traffic cameras, link only"
+owner = "Dirección General de Tráfico"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "es_dgt"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: positions from the National Access Point; the DGT legal notice reserves the images, so NEXUM opens them on the DGT site.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0-NAP-metadata"
+url = "https://nap.dgt.es/"
+attribution = "DGT – Punto de Acceso Nacional (posiciones)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.dgt.es"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

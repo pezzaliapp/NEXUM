@@ -1,0 +1,30 @@
+id = "naturalearth.places"
+name = "Natural Earth — Populated places 1:10m"
+owner = "Natural Earth (NACIS)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-01"
+independence_group = "naturalearth"
+connector = "connectors.naturalearth_places"
+
+[license]
+id = "public-domain"
+url = "https://www.naturalearthdata.com/about/terms-of-use/"
+attribution = "Made with Natural Earth"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["naciscdn.org"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800

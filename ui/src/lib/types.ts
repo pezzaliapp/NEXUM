@@ -43,6 +43,32 @@ export interface TypeInfo {
   count: number;
   geometry?: string;
   nature?: string;
+  /** presentation hints of the vocabulary: filter category, headline facts, facts shown in the card */
+  group?: string;
+  headline?: { property: string; prefix?: string; suffix?: string; digits?: number }[];
+  facts?: { property: string; label: string; unit?: string; digits?: number; values?: Record<string, string> }[];
+  /** the categories a type's elements are counted by (e.g. kinds of facility), with readable value names */
+  subtypes?: { property: string; note?: string; values?: Record<string, string> };
+  /** an image the source keeps current (vocabulary hint): which property holds its URL and how it is described */
+  media?: { property: string; kind: "current_image" | "live_video" | "static_reference"; refresh_property?: string;
+    credit_property?: string; observed_property?: string; state_property?: string };
+  /** false: information about other elements, never a map layer nor a filter (vocabulary hint "map") */
+  map?: boolean;
+  /** measured values carried by the type (vocabulary hints "series" / "wave") */
+  series?: { property: string; kind: string };
+  wave?: { property: string };
+  /** one indicator for every place (World Intelligence) / a digest of source events (not a map layer) */
+  indicator?: { property: string };
+  digest?: boolean;
+  /** cameras near this kind of place are listed in its view (km) */
+  nearby_media_km?: number;
+  /** an office type: the relations naming its holders and where it has competence (vocabulary hint "tenure") */
+  tenure?: { held_by: string; scope: string; role_property?: string };
+  /** a rate table (vocabulary hint "rates") and the elements priced by one (hint "rated") */
+  rates?: { property: string; dims: string; dim_labels: string; components: string; unit: string; validity?: string; rounding?: string; legal?: string };
+  rated?: { via: string; segments: string; length: string };
+  /** an explorable element type (vocabulary hint "explore"): its own view, first in search, opened from the map's names */
+  explore?: { label: string; one: string; many?: string; hint: string; placeholder?: string };
 }
 
 export interface WorldStatus {

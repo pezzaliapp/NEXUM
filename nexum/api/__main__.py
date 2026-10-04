@@ -3,13 +3,14 @@
 import argparse
 import os
 import pathlib
+import signal
 
 from nexum import worlds
 
 from .server import Service, serve
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-WORLDS = ("d1", "d2", "d3", "mixed", "d3s", "ubench")
+WORLDS = ("d1", "d2", "d3", "mixed", "d3s", "ubench", "live")
 
 
 def main(argv=None):
@@ -30,6 +31,10 @@ def main(argv=None):
                   mmap_bytes=a.mmap_mb * 1024 * 1024)
     httpd = serve(svc, a.host, a.port, a.verbose)
     print(f"NEXUM {a.world} → http://{a.host}:{a.port}/", flush=True)
+    # SIGTERM/SIGHUP end the service as CTRL-C does: through the finally below, which closes the worker processes
+    # (without it the default action ends this process at once and its workers are never told)
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _stop)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -37,6 +42,12 @@ def main(argv=None):
     finally:
         httpd.server_close()
         svc.close()
+
+
+def _stop(signum, frame):
+    for sig in (signal.SIGTERM, signal.SIGHUP):   # a repeated signal must not cut the closing short
+        signal.signal(sig, signal.SIG_IGN)
+    raise KeyboardInterrupt
 
 
 if __name__ == "__main__":

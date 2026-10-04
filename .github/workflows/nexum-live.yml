@@ -1,0 +1,71 @@
+# NEXUM — published world, rebuilt and deployed without the author's Mac (E5 cadence, €0).
+# Runs on GitHub-hosted runners (free for public repositories). Every source is free, key-less and redistributable
+# (see sources/ and sources_live/: licence, terms, allowed hosts); the Polite Scheduler enforces each source's
+# minimum interval and an honest User-Agent. Nothing is metered: Cloudflare Pages Free hosts the static snapshot.
+#
+# Required repository secrets (set by the author; never committed):
+#   CLOUDFLARE_API_TOKEN  — a token restricted to "Cloudflare Pages: Edit" on the account
+#   CLOUDFLARE_ACCOUNT_ID — the account id
+# Without the secrets the workflow still builds and checks the snapshot; the deploy step is skipped.
+name: nexum-live
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"        # every 6 h (E5: USGS, CEMS, EONET); weekly/daily sources respect their own interval
+  workflow_dispatch: {}
+
+concurrency:
+  group: nexum-live
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: ui/package-lock.json }
+      # the raw store and the world database are kept between runs (incremental fetches, conditional GETs)
+      - uses: actions/cache@v4
+        with:
+          path: data/live
+          key: nexum-live-${{ github.run_id }}
+          restore-keys: nexum-live-
+      - name: Registry check (licences, hosts, auth = none)
+        run: python3 -m nexum.cli live registry-check
+      - name: Fetch (polite; full history on the first run, then incremental)
+        run: |
+          if [ -f data/live/nexum.db ]; then mode=incremental; else mode=backfill; fi
+          python3 -m nexum.cli live fetch --mode "$mode"
+      - name: Process and correlate
+        run: python3 -m nexum.cli live process
+      - name: Core tests
+        run: python3 -m pytest -q tests/test_snapshot.py
+      - name: Snapshot + parity
+        run: |
+          python3 -m nexum.snapshot build live --out data/snapshot
+          python3 -m nexum.snapshot parity live --out data/snapshot
+      - name: Web build, parity of the browser read model, assembly (Cloudflare Free limits checked)
+        working-directory: ui
+        run: |
+          npm ci
+          npm run licenses
+          npm run build:web
+          node tests/parity/run.ts ../data/snapshot/live
+          node scripts/assemble-web.mjs --snapshot ../data/snapshot/live --out ../data/deploy/web
+      # the automatic deploy goes to the PREVIEW branch only (live-review); promoting a build to production and to the
+      # custom domain is a separate, explicit decision of the author (never automatic)
+      - name: Deploy to Cloudflare Pages (project "nexum", preview branch live-review)
+        if: ${{ env.CF_TOKEN != '' }}
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+        run: npx --yes wrangler@4.144.0 pages deploy data/deploy/web --project-name nexum --branch live-review

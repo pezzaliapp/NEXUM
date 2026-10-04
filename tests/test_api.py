@@ -22,7 +22,6 @@ from nexum.core.correlate import FORBIDDEN_WORDS
 from nexum.core.db import connect, logical_hash
 from tests.conftest import D1_DB, ROOT, eid
 from tests.test_domain_agnostic import FORBIDDEN
-from tests.test_governance import OSIRIS
 
 ENVELOPE = {"data", "lod", "total", "returned", "truncated", "cursor_next", "excluded", "facets", "highlight",
             "sources", "world_version", "as_of", "timing_ms", "bytes", "api"}
@@ -466,9 +465,12 @@ def test_w22_ui_strings_are_non_causal_and_non_probabilistic():
 
 def test_w10_no_osiris_material_in_phase2_files():
     """W10 uses the same content classification as P25 (code, assets, data, dependency metadata)."""
-    from tests.test_governance import osiris_findings, osiris_index
-    if not OSIRIS.exists():
-        pytest.fail("OSIRIS-REFERENCE not found: cannot verify W10")
+    from tests.test_governance import _P25, osiris_findings, osiris_index
+    action, detail = _P25                      # same policy as P25 (decision E8): skip is never a pass
+    if action == "skip":
+        pytest.skip(detail)
+    if action == "fail":
+        pytest.fail(detail)
     files = list((ROOT / "nexum" / "api").glob("*.py")) + [p for p in (ROOT / "ui").rglob("*") if p.is_file() and
                                                             "node_modules" not in p.parts and "dist" not in p.parts
                                                             and "test-results" not in p.parts] + \

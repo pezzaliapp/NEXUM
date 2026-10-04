@@ -1,0 +1,34 @@
+id = "wikidata.heads"
+name = "Wikidata — heads of state and government of the 193 UN member states (offices and terms since 1990)"
+owner = "Wikimedia Foundation / Wikidata community"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-03"
+independence_group = "wikidata"
+connector = "connectors.wikidata_heads"
+
+# Phase 3B · block 3: ROLE FACTS ONLY (privacy gate: NEXUM-PHASE3B-PRIVACY-GATE.md). Of a person: public name and
+# Wikidata identifier. No photos, birth dates, family, party, religion, health, contacts or assessments.
+[license]
+id = "CC0-1.0"
+url = "https://www.wikidata.org/wiki/Wikidata:Licensing"
+attribution = "Wikidata (CC0)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["query.wikidata.org"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = false
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

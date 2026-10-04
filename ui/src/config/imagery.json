@@ -1,0 +1,134 @@
+{
+  "_comment": "Earth-observation products shown on request (World Intelligence, 2026-10-03). Data, not UI code: layer names, sensors, attributions. Services: NASA GIBS via Worldview Snapshots (no key) and EUMETSAT EUMETView (no key, CC BY 4.0).",
+  "wvs": "https://wvs.earthdata.nasa.gov/api/v1/snapshot",
+  "eumet": "https://view.eumetsat.int/geoserver/ows",
+  "cmr": "https://cmr.earthdata.nasa.gov/search/granules.json",
+  "gibs_attr": "Imagery: NASA GIBS / ESDIS (Worldview Snapshots)",
+  "coastlines": "Coastlines_15m",
+  "geo": {
+    "mtg": {
+      "lon": [
+        -30,
+        70
+      ],
+      "day": {
+        "label": "Meteosat · colori reali (ogni 10 min)",
+        "res": "1 km",
+        "eumet": "mtg_fd:rgb_truecolour"
+      },
+      "night": {
+        "label": "Meteosat · infrarosso (ogni 10 min, di notte)",
+        "res": "2 km",
+        "eumet": "mtg_fd:ir105_hrfi"
+      },
+      "sensor": "Meteosat MTG-I1 · FCI",
+      "source": "EUMETSAT EUMETView",
+      "attribution": "Contains modified EUMETSAT Meteosat data (CC BY 4.0)"
+    },
+    "himawari": {
+      "lon": [
+        70,
+        165
+      ],
+      "day": {
+        "label": "Himawari · visibile (ogni 10 min)",
+        "res": "1 km",
+        "layer": "Himawari_AHI_Band3_Red_Visible_1km"
+      },
+      "night": {
+        "label": "Himawari · infrarosso (ogni 10 min, di notte)",
+        "res": "2 km",
+        "layer": "Himawari_AHI_Band13_Clean_Infrared"
+      },
+      "sensor": "Himawari · AHI",
+      "source": "NASA GIBS",
+      "attribution": "Imagery: NASA GIBS / ESDIS · dati JMA"
+    },
+    "goes-e": {
+      "lon": [
+        -140,
+        -30
+      ],
+      "day": {
+        "label": "GOES Est · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-East_ABI_GeoColor"
+      },
+      "night": {
+        "label": "GOES Est · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-East_ABI_GeoColor"
+      },
+      "sensor": "GOES-19 · ABI",
+      "source": "NASA GIBS",
+      "attribution": "Imagery: NASA GIBS / ESDIS · dati NOAA"
+    },
+    "goes-w": {
+      "lon": [
+        -180,
+        -140
+      ],
+      "day": {
+        "label": "GOES Ovest · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-West_ABI_GeoColor"
+      },
+      "night": {
+        "label": "GOES Ovest · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-West_ABI_GeoColor"
+      },
+      "sensor": "GOES-18 · ABI",
+      "source": "NASA GIBS",
+      "attribution": "Imagery: NASA GIBS / ESDIS · dati NOAA"
+    },
+    "goes-w2": {
+      "lon": [
+        165,
+        180
+      ],
+      "day": {
+        "label": "GOES Ovest · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-West_ABI_GeoColor"
+      },
+      "night": {
+        "label": "GOES Ovest · GeoColor (ogni 10 min)",
+        "res": "1–2 km",
+        "layer": "GOES-West_ABI_GeoColor"
+      },
+      "sensor": "GOES-18 · ABI",
+      "source": "NASA GIBS",
+      "attribution": "Imagery: NASA GIBS / ESDIS · dati NOAA"
+    }
+  },
+  "daily": {
+    "label": "Foto del giorno · colori reali (VIIRS)",
+    "sensor": "NOAA-20 · VIIRS",
+    "res": "≈ 375 m",
+    "source": "NASA GIBS",
+    "layer": "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
+    "overlays": {
+      "fire.wildfire": "VIIRS_NOAA20_Thermal_Anomalies_375m_All"
+    }
+  },
+  "fine": {
+    "label": "Dettaglio 30 m (Landsat/Sentinel-2)",
+    "res": "30 m",
+    "source": "NASA GIBS + NASA CMR",
+    "collections": [
+      [
+        "HLSS30",
+        "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+        "Sentinel-2 MSI (HLS S30)",
+        "Imagery: NASA GIBS / ESDIS · Contains modified Copernicus Sentinel data"
+      ],
+      [
+        "HLSL30",
+        "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+        "Landsat 8/9 OLI (HLS L30)",
+        "Imagery: NASA GIBS / ESDIS · Landsat (USGS/NASA)"
+      ]
+    ]
+  }
+}

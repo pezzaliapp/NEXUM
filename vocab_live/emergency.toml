@@ -1,0 +1,16 @@
+# Gestione delle emergenze — tipi di dominio (fuori dal Core)
+
+[event_type."emergency.mapping_activation"]
+label = "Attivazione di mappatura d'emergenza"
+geometry = "point"
+identity_schemes = ["cems"]
+roles = ["affected_area"]
+display = { family = "response", density_priority = 2, group = "Emergenze Copernicus", headline = [{ property = "category_name" }], facts = [{ property = "category_name", label = "Categoria" }, { property = "countries", label = "Paesi" }, { property = "n_products", label = "Mappe prodotte", digits = 0 }, { property = "closed", label = "Chiusa" }] }
+[event_type."emergency.mapping_activation".properties]
+category = { kind = "text", required = true }
+category_name = { kind = "text" }
+drm_phase = { kind = "text" }
+closed = { kind = "bool" }
+n_aois = { kind = "int" }
+n_products = { kind = "int" }
+countries = { kind = "list" }

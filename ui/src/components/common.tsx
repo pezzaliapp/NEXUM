@@ -29,15 +29,23 @@ export function Conf({ value, text }: { value: number | null | undefined; text?:
   return <span className={`badge b${b}`} title={text ?? S.bandLabel[b]}>{conf(value)}</span>;
 }
 
+/** Support in words for the primary interface ("supporto forte"); the number stays in Perché? and in the details. */
+export function Support({ value }: { value: number | null | undefined }) {
+  if (value == null) return null;
+  const b = band(value);
+  return <span className={`support s${b}`} data-support={b} title={`${S.bandLabel[b]} (${conf(value)})`}>{S.bandLabel[b]}</span>;
+}
+
 export function WhyButton({ id }: { id: string }) {
   return <button type="button" className="whybtn" data-why={id} onClick={() => store.why(id)} title={S.whyTitle}>
     {S.why}</button>;
 }
 
-export function Section({ title, count, open = true, children, name }: { title: string; count?: ReactNode;
-  open?: boolean; children: ReactNode; name?: string }) {
+export function Section({ title, count, open = true, children, name, onToggle }: { title: string; count?: ReactNode;
+  open?: boolean; children: ReactNode; name?: string; onToggle?: (open: boolean) => void }) {
   return (
-    <details className="sec" open={open} data-section={name}>
+    <details className="sec" open={open} data-section={name}
+      onToggle={onToggle ? (e) => onToggle((e.currentTarget as HTMLDetailsElement).open) : undefined}>
       <summary>{title}{count !== undefined && <span className="count">{count}</span>}</summary>
       <div className="body">{children}</div>
     </details>

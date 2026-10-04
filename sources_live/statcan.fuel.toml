@@ -1,0 +1,34 @@
+id = "statcan.fuel"
+name = "Statistics Canada — Monthly average retail prices for gasoline and fuel oil (18-10-0001-01)"
+owner = "Statistics Canada"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "statcan"
+connector = "connectors.statcan_fuel"
+
+# Phase 3B · block 4: national average retail fuel prices as the authority publishes them (unit and currency of the
+# source, no conversion between currencies). Coverage of all fuel sources: 31 of 193 states — never "worldwide".
+[license]
+id = "StatCan-Open"
+url = "https://www.statcan.gc.ca/en/terms-conditions/open-licence"
+attribution = "Source: Statistics Canada, Table 18-10-0001-01 (Statistics Canada Open Licence)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["www150.statcan.gc.ca"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

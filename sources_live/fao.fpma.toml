@@ -1,0 +1,34 @@
+id = "fao.fpma"
+name = "FAO GIEWS FPMA — national average retail prices of staple foods"
+owner = "Food and Agriculture Organization of the United Nations (FAO)"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-03"
+independence_group = "fao_fpma"
+connector = "connectors.fao_fpma"
+
+# World Intelligence (2026-10-03): bread, rice, wheat flour, milk, eggs, cooking oil — NATIONAL AVERAGE retail series
+# only (about 50 countries). Third-party series keep their original source on every value (dual attribution).
+[license]
+id = "CC-BY-4.0"
+url = "https://www.fao.org/contact-us/terms/db-terms-of-use/en/"
+attribution = "FAO. GIEWS FPMA Tool: domestic prices. Licence: CC-BY-4.0 (original sources named on each value)"
+redistribution = "allowed_with_attribution"
+commercial_use = "not_for_promotion"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["fpma.fao.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

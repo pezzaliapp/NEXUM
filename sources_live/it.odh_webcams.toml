@@ -1,0 +1,34 @@
+id = "it.odh_webcams"
+name = "Open Data Hub Südtirol — webcam list, link only"
+owner = "NOI Techpark / Open Data Hub"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "it_odh_webcams"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: the list is CC0, the images are their publishers' ('links … may be covered by a different licence').
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC0-1.0"
+url = "https://opendatahub.readthedocs.io/"
+attribution = "Open Data Hub Südtirol (elenco CC0); immagini dei rispettivi gestori"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["tourism.api.opendatahub.com"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

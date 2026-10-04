@@ -1,0 +1,34 @@
+id = "ec.eurobarometer"
+name = "Standard Eurobarometer — Volume A (public opinion in the EU and candidate countries)"
+owner = "European Commission (DG COMM)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "eurobarometer"
+connector = "connectors.eurobarometer_std"
+
+# Phase 3B · block 2: observations with documented methodology (dates, sample, question, source). Perception (surveys)
+# and reality (official statistics) are separate types and are never combined into an index.
+[license]
+id = "CC-BY-4.0"
+url = "https://commission.europa.eu/legal-notice_en"
+attribution = "© European Union, Standard Eurobarometer (reuse under Commission Decision 2011/833/EU, CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["webgate.ec.europa.eu"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

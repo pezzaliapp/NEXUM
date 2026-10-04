@@ -12,9 +12,14 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "node --test tests/unit/*.test.ts",
     "test:e2e": "playwright test",
-    "licenses": "node scripts/check-licenses.mjs"
+    "licenses": "node scripts/check-licenses.mjs",
+    "build:web": "tsc --noEmit && vite build --mode web",
+    "assemble:web": "node scripts/assemble-web.mjs",
+    "serve:web": "node scripts/serve-web.mjs",
+    "test:parity": "node tests/parity/run.ts"
   },
   "dependencies": {
+    "@sqlite.org/sqlite-wasm": "3.53.4-build1",
     "graphology": "0.26.0",
     "maplibre-gl": "6.11.2",
     "react": "19.3.0",

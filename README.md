@@ -61,3 +61,43 @@ python3 bench/phase2/run_phase2.py --phase1 --ui-clean --tests --bench --report
 ```
 
 Specifica: `NEXUM-PHASE2-SPEC.md` (criteri W1–W32, benchmark A1–A10 e U1–U10, note di implementazione §S).
+
+## Fase 3A — workspace online (snapshot statico)
+
+Lo stesso workspace, senza servizio: il mondo D1 è pubblicato come snapshot statico precalcolato dal Core
+(`nexum/snapshot`) e letto dal browser (`ui/src/snapshot`: read model verificato per parità con il Core, FTS5 in
+sqlite-wasm, trail in IndexedDB). Costo €0: solo file statici.
+
+```bash
+python3 -m nexum.snapshot build d1                 # → data/snapshot/d1 (current.json + s/<versione>/)
+python3 -m nexum.snapshot parity d1                # casi di parità dal Core (O4) …
+cd ui && node tests/parity/run.ts                  # … confrontati con il read model del browser
+python3 -m nexum.snapshot parity d1 --bundles      # ogni risposta precalcolata = Core (O5)
+npm run build:web && npm run assemble:web          # → data/deploy/web (sito da pubblicare)
+npm run serve:web                                  # host locale simile a Cloudflare Pages: http://127.0.0.1:8790/
+npx playwright test -c playwright.web.config.ts    # criteri O1–O16 e benchmark
+```
+
+P25 (zero codice OSIRIS) richiede la copia di riferimento fuori dal repository:
+`NEXUM_OSIRIS_REFERENCE=/percorso/OSIRIS-REFERENCE` (senza, il test è saltato con motivo esplicito;
+`NEXUM_REQUIRE_P25=1` lo rende obbligatorio).
+
+Specifica: `NEXUM-PHASE3-SPEC.md`; fattibilità e misure: `NEXUM-PHASE3-FEASIBILITY.md`.
+
+## Fase 3B — il mondo pubblicato (`live`) e la sua copertura
+
+Il mondo pubblicato è D1 più le fonti di `sources_live/` (ognuna gratuita, senza chiave, con licenza che consente la
+ridistribuzione; elenco, licenze e fonti scartate con il motivo: [NEXUM-SOURCES-LIVE.md](NEXUM-SOURCES-LIVE.md)).
+
+```bash
+python3 -m nexum.cli live fetch --mode backfill    # scheduler cortese: intervalli minimi, User-Agent neutro del progetto
+python3 -m nexum.cli live process                  # oggetti, relazioni, eventi, correlazioni
+python3 -m nexum.snapshot build live --out data/snapshot && python3 -m nexum.snapshot parity live
+```
+
+Cosa si osserva (dettagli e numeri: [NEXUM-WORLD-INTELLIGENCE-REPORT.md](NEXUM-WORLD-INTELLIGENCE-REPORT.md)):
+Paesi (popolazione, economia, vivere e redditi con definizione esplicita, costo della vita, prezzi, energia e flussi,
+acqua, infrastrutture tipizzate, governo, opinione misurata, sicurezza UCDP), webcam pubbliche (immagine attuale
+caricata dal browser dalla fonte solo su richiesta, oppure solo collegamento quando il gestore non ne consente la
+riproduzione) e immagini satellitari su richiesta. Ogni valore porta fonte, periodo, unità e natura (osservato, stimato,
+modellato, calcolato da NEXUM, con limiti metodologici); nessuna lacuna è riempita.

@@ -1,0 +1,33 @@
+id = "eurostat.living"
+name = "Eurostat — earnings, household income, housing costs, household energy prices"
+owner = "Eurostat (European Commission)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "eurostat"
+connector = "connectors.eurostat_living"
+
+# Completion (2026-10-04): net and gross earnings, median net income, housing cost burden, household electricity and gas prices.
+[license]
+id = "Eurostat-reuse"
+url = "https://ec.europa.eu/eurostat/about-us/policies/copyright"
+attribution = "Source: Eurostat"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["ec.europa.eu"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

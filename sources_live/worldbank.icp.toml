@@ -1,0 +1,33 @@
+id = "worldbank.icp"
+name = "World Bank — International Comparison Program 2021 (price level indices by category)"
+owner = "The World Bank"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "worldbank_icp"
+connector = "connectors.worldbank_sources"
+
+# Completion (2026-10-04): price level indices (world = 100) by consumption category.
+[license]
+id = "CC-BY-4.0"
+url = "https://datacatalog.worldbank.org/public-licenses"
+attribution = "The World Bank: International Comparison Program 2021 (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["api.worldbank.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

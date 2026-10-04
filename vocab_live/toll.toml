@@ -1,0 +1,67 @@
+# Pedaggi (Phase 3B · block 5, PoC automatico): il pedaggio autocarri tedesco, dalle fonti ufficiali e senza trascrizioni
+# manuali. Tratte BALM (Mauttabelle) raggruppate per strada e Land; tariffe lette dall'XML della legge (BFStrMG,
+# Anlage 1). L'importo di una tratta = lunghezza × tariffa della classe del veicolo, arrotondato al centesimo.
+# NEXUM NON calcola percorsi.
+[object_type."toll.scheme"]
+label = "Sistema di pedaggio"
+geometry = "none"
+identity_schemes = ["toll_scheme"]
+display = { family = "toll", density_priority = 9, group = "Pedaggi", map = false, facts = [{ property = "operator", label = "Gestore" }, { property = "legal_basis", label = "Base giuridica" }, { property = "vehicles", label = "Veicoli" }, { property = "infrastructure", label = "Infrastruttura" }, { property = "currency", label = "Valuta" }] }
+[object_type."toll.scheme".properties]
+operator = { kind = "text" }
+legal_basis = { kind = "text" }
+vehicles = { kind = "text" }
+infrastructure = { kind = "text" }
+currency = { kind = "text" }
+
+# Tabella tariffaria: righe [classe, categoria Euro, classe CO₂, totale, infrastruttura, aria, rumore, CO₂] in EUR/km.
+[object_type."toll.tariff"]
+label = "Tariffa di pedaggio"
+geometry = "none"
+identity_schemes = ["toll_tariff"]
+display = { family = "toll", density_priority = 9, group = "Pedaggi", map = false, rates = { property = "rates", dims = "dims", dim_labels = "dim_labels", components = "components", unit = "unit", validity = "validity", rounding = "rounding", legal = "legal_ref" }, facts = [{ property = "unit", label = "Unità" }, { property = "validity", label = "Validità (testo consolidato)" }, { property = "legal_ref", label = "Riferimento" }] }
+[object_type."toll.tariff".properties]
+rates = { kind = "list" }
+dims = { kind = "list" }
+dim_labels = { kind = "list" }
+components = { kind = "list" }
+unit = { kind = "text" }
+currency = { kind = "text" }
+rounding = { kind = "text" }
+validity = { kind = "text" }
+legal_ref = { kind = "text" }
+
+[object_type."toll.road_section"]
+label = "Tratte a pedaggio (camion)"
+geometry = "any"
+identity_schemes = ["balm_road_section"]
+display = { family = "toll", density_priority = 7, group = "Pedaggi camion (DE)", headline = [{ property = "road" }], rated = { via = "priced_by", segments = "segments", length = "length_km" }, facts = [{ property = "road", label = "Strada" }, { property = "land", label = "Land" }, { property = "infrastructure", label = "Infrastruttura" }, { property = "segment_count", label = "Tratte", digits = 0 }, { property = "length_km", label = "Lunghezza totale", unit = "km", digits = 1 }, { property = "operator", label = "Gestore" }, { property = "vehicles", label = "Veicoli" }, { property = "table_version", label = "Versione Mauttabelle" }, { property = "valid_from", label = "Valida dal" }] }
+[object_type."toll.road_section".properties]
+road = { kind = "text" }
+land = { kind = "text" }
+infrastructure = { kind = "text" }
+segment_count = { kind = "int" }
+length_km = { kind = "float", unit = "km" }
+table_version = { kind = "text" }
+valid_from = { kind = "text" }
+operator = { kind = "text" }
+vehicles = { kind = "text" }
+segments = { kind = "list" }
+
+[relation_type."subject_to"]
+label = "soggetta a"
+nature = "infrastructural"
+from = ["toll.road_section"]
+to = ["toll.scheme"]
+
+[relation_type."priced_by"]
+label = "tariffata secondo"
+nature = "infrastructural"
+from = ["toll.road_section"]
+to = ["toll.tariff"]
+
+[relation_type."tariff_of"]
+label = "tariffa di"
+nature = "infrastructural"
+from = ["toll.tariff"]
+to = ["toll.scheme"]

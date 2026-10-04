@@ -1,0 +1,31 @@
+# Contesto di esposizione (WORLD pubblicato): tsunami → ports, entro 300 km. Configurazione, non codice del Core.
+[rule]
+id = "tsunami_ports_exposure"
+version = "1"
+label = "Porti vicino a un tsunami"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'origine dello tsunami «{A.label}» ({A.time|date}) si trovano {n.O} porti; il più vicino è {first.O.label} a {first.O.dist|num1} km. Contesto di esposizione: vicinanza registrata, non una stima di danni né un rapporto di causa."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["hydro.tsunami"]
+
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["transport.port"]
+
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 300
+score = true

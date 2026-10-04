@@ -1,0 +1,33 @@
+id = "nz.mbie_fuel"
+name = "MBIE (New Zealand) — weekly fuel price monitoring"
+owner = "Ministry of Business, Innovation and Employment"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "nz.mbie_fuel"
+connector = "connectors.fuel_more"
+
+# Completion (2026-10-04): weekly main-port average pump prices (Board price), NZD.
+[license]
+id = "CC-BY-3.0-NZ"
+url = "https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-statistics/weekly-fuel-price-monitoring"
+attribution = "Ministry of Business, Innovation and Employment (CC BY 3.0 NZ)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["www.mbie.govt.nz"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

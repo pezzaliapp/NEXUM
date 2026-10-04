@@ -1,0 +1,39 @@
+# Associazione: lo stesso terremoto registrato da USGS (misura) e da NOAA NCEI (impatto: morti, danni). Due fonti
+# indipendenti; la regola associa i record vicini nel tempo (±10 min) e nello spazio (≤ 100 km). Non un'identità
+# dichiarata dalle fonti: un'associazione con la sua spiegazione. Configurazione, non codice del Core.
+[rule]
+id = "quake_impact_association"
+version = "2"
+label = "Associazione: impatto registrato del terremoto"
+output = "association"
+anchor = "B"
+unique = true
+strength = 0.9
+emit_threshold = 0.3
+max_candidates = 500
+explain = "Impatto registrato da NOAA NCEI per questo terremoto: morti {B.prop.deathsTotal|num0}, feriti {B.prop.injuriesTotal|num0}, danni {B.prop.damageMillionsDollarsTotal|num1} milioni di USD, case distrutte {B.prop.housesDestroyedTotal|num0} (n.d. = non registrato). Il terremoto M{A.prop.magnitude|num1} USGS del {A.time|date} e il «terremoto significativo» NCEI ({B.label}) distano {dist.A.B|num1} km e {dt.A.B|delta}: due registrazioni indipendenti compatibili con lo stesso evento. Associazione tra registrazioni, non un rapporto di causa."
+
+[[rule.var]]
+name = "B"
+kind = "event"
+types = ["seismic.significant_earthquake"]
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["seismic.earthquake"]
+
+[[rule.constraint]]
+op = "within_time"
+a = "A"
+b = "B"
+min = "-10m"
+max = "10m"
+score = true
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "B"
+km = 100
+score = true

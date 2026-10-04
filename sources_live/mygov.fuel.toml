@@ -1,0 +1,34 @@
+id = "mygov.fuel"
+name = "data.gov.my — Weekly fuel prices (Malaysia)"
+owner = "Ministry of Finance Malaysia / data.gov.my"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "mygov"
+connector = "connectors.mygov_fuel"
+
+# Phase 3B · block 4: national average retail fuel prices as the authority publishes them (unit and currency of the
+# source, no conversion between currencies). Coverage of all fuel sources: 31 of 193 states — never "worldwide".
+[license]
+id = "CC-BY-4.0"
+url = "https://data.gov.my/"
+attribution = "Source: data.gov.my (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["storage.data.gov.my"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

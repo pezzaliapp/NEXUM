@@ -1,0 +1,34 @@
+id = "fintraffic.weathercam"
+name = "Fintraffic Digitraffic — weather cameras"
+owner = "Fintraffic Oy"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "fintraffic"
+connector = "connectors.digitraffic_weathercam"
+
+# Phase 3B · block 1: camera positions and the stable URL of the CURRENT image only. Image bytes are never fetched,
+# copied or archived by NEXUM; the browser loads the image from this source only when the person opens the camera.
+[license]
+id = "CC-BY-4.0"
+url = "https://www.digitraffic.fi/en/terms-of-service/"
+attribution = "Source: Fintraffic / digitraffic.fi, license CC 4.0 BY"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["tie.digitraffic.fi"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

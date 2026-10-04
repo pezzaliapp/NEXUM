@@ -1,0 +1,12 @@
+# Energia — centrali elettriche (WRI Global Power Plant Database, 2021). WORLD pubblicato, fuori dal Core.
+[object_type."energy.power_plant"]
+label = "Centrale elettrica"
+geometry = "point"
+identity_schemes = ["gppd"]
+display = { family = "energy", density_priority = 3, group = "Centrali elettriche", subtypes = { property = "primary_fuel", note = "Global Power Plant Database (WRI): centrali da 20 MW in su, dati del 2021; lo stato operativo attuale non è indicato dalla fonte.", values = { Hydro = "idroelettrica", Gas = "gas", Wind = "eolica", Solar = "solare", Coal = "carbone", Oil = "petrolio", Biomass = "biomassa", Waste = "rifiuti", Nuclear = "nucleare", Geothermal = "geotermica", Other = "altro", Storage = "accumulo", Cogeneration = "cogenerazione", Petcoke = "coke di petrolio", "Wave and Tidal" = "moto ondoso e maree" } }, headline = [{ property = "primary_fuel" }, { property = "capacity_mw", suffix = " MW", digits = 0 }], facts = [{ property = "primary_fuel", label = "Fonte" }, { property = "capacity_mw", label = "Potenza", unit = "MW", digits = 0 }, { property = "commissioning_year", label = "Anno di avvio", digits = 0 }, { property = "data_year", label = "Dati aggiornati al", digits = 0 }] }
+[object_type."energy.power_plant".properties]
+capacity_mw = { kind = "float", unit = "MW" }
+primary_fuel = { kind = "text" }
+commissioning_year = { kind = "float" }
+country_code3 = { kind = "text" }
+data_year = { kind = "int" }

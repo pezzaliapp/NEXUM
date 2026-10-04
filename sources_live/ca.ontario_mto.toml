@@ -1,0 +1,34 @@
+id = "ca.ontario_mto"
+name = "Ontario MTO — highway cameras (511 Ontario)"
+owner = "Ontario Ministry of Transportation"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "ca_ontario_mto"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): CURRENT image (511on.ca) of the provincial highway cameras.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "OGL-Ontario"
+url = "https://www.ontario.ca/page/open-government-licence-ontario"
+attribution = "Contains information licensed under the Open Government Licence – Ontario"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["services.arcgis.com"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

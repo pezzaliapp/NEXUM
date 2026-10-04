@@ -1,0 +1,31 @@
+# Contesto di esposizione (WORLD pubblicato): quake → nuclear, entro 200 km. Configurazione, non codice del Core.
+[rule]
+id = "quake_nuclear_exposure"
+version = "1"
+label = "Centrali nucleari vicino a un terremoto"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall'epicentro del terremoto M{A.prop.magnitude|num1} ({A.time|date}) si trovano {n.O} centrali nucleari (dati WRI 2021); la più vicina è {first.O.label} ({first.O.prop.capacity_mw|num0} MW) a {first.O.dist|num1} km. Contesto di esposizione: vicinanza registrata, non una stima di danni né un rapporto di causa."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["seismic.earthquake"]
+where = [["magnitude", ">=", 6.0]]
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["energy.power_plant"]
+where = [["primary_fuel", "==", "Nuclear"]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 200
+score = true

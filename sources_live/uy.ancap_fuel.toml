@@ -1,0 +1,33 @@
+id = "uy.ancap_fuel"
+name = "Uruguay — maximum fuel prices set by the Executive Power (ANCAP)"
+owner = "Poder Ejecutivo / ANCAP, Uruguay"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "uy_ancap_fuel"
+connector = "connectors.national_fuel"
+
+# World Intelligence (2026-10-03): national fuel prices in the publisher's own unit and currency (fuel gate passed).
+[license]
+id = "Licencia-Datos-Abiertos-Uruguay"
+url = "https://www.gub.uy/agencia-gobierno-electronico-sociedad-informacion-conocimiento/sites/agencia-gobierno-electronico-sociedad-informacion-conocimiento/files/documentos/publicaciones/licencia_de_datos_abiertos_0.pdf"
+attribution = "Catálogo Nacional de Datos Abiertos (Uruguay) — Precios de Combustibles, Licencia de Datos Abiertos"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["catalogodatos.gub.uy"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

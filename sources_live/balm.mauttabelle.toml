@@ -1,0 +1,33 @@
+id = "balm.mauttabelle"
+name = "BALM — Mauttabelle (truck toll sections on German federal trunk roads)"
+owner = "Bundesamt für Logistik und Mobilität (BALM)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "balm"
+connector = "connectors.balm_maut"
+
+# Phase 3B · block 5: grouped per road and federal state (O7); every section kept in the object's segments.
+[license]
+id = "DL-DE-BY-2.0"
+url = "https://www.govdata.de/dl-de/by-2-0"
+attribution = "Bundesamt für Logistik und Mobilität (BALM), Mauttabelle, Datenlizenz Deutschland – Namensnennung 2.0"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["www.balm.bund.de"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

@@ -1,0 +1,17 @@
+{
+  "_comment": "The words (Italian and English) a search may use to ask for a section of a place's view (\"salary Italy\", \"nuclear France\"). Data, not UI code.",
+  "words": {
+    "vivere": "vivere living life salary salari stipendio stipendi wage wages salario minimo minimum income reddito acqua water",
+    "prezzi": "prezzi prices price cost costo costi living vita fuel carburante carburanti benzina petrol gasoline diesel gasolio inflation inflazione",
+    "abitazione": "abitazione casa housing house rent affitto affitti",
+    "energia": "energia energy electricity elettricità elettrica nuclear nucleare solar solare wind eolico hydro idroelettrico gas coal carbone oil petrolio power",
+    "infrastrutture": "infrastrutture infrastructure toll tolls pedaggi pedaggio ports porti airports aeroporti plants centrali dams dighe water acqua",
+    "economia": "economia economy gdp pil growth crescita unemployment disoccupazione jobs lavoro trade export import",
+    "popolazione": "popolazione population people abitanti cities città demography",
+    "gov": "governo government president presidente prime minister ministro leader head",
+    "opinione": "opinione opinion survey sondaggio eurobarometro",
+    "sicurezza": "sicurezza security conflict conflitto conflitti war guerra violence violenza attacks attacchi",
+    "eventi": "eventi events earthquake earthquakes terremoto terremoti fire fires incendi storm tempeste flood alluvioni volcano vulcano tsunami",
+    "osserva": "osserva observe satellite satellitare webcam webcams camera telecamere live immagini"
+  }
+}

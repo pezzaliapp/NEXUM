@@ -1,0 +1,34 @@
+id = "ca.quebec_mtmd"
+name = "Québec MTMD — traffic cameras, link only"
+owner = "Ministère des Transports et de la Mobilité durable du Québec"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "ca_quebec_mtmd"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: the list is open, the images are shown only in Québec 511's viewer.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0"
+url = "https://www.donneesquebec.ca/"
+attribution = "Ministère des Transports et de la Mobilité durable du Québec (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["ws.mapserver.transports.gouv.qc.ca"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

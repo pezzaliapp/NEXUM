@@ -13,7 +13,8 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "types": []
+    "types": [],
+    "paths": { "@nexum/web": ["./src/snapshot/client.ts"] }
   },
   "include": ["src"]
 }

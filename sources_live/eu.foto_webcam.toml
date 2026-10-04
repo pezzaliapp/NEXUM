@@ -1,0 +1,34 @@
+id = "eu.foto_webcam"
+name = "foto-webcam.eu — non-commercial webcam network"
+owner = "foto-webcam.eu"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "eu_foto_webcam"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): 'Eine Live-Einbindung des Kamerabildes ist erlaubt, wenn bei einem Klick auf das Bild obiger Link geöffnet wird' — whole 16:9 image, click opens the camera page, clickable credit www.foto-webcam.eu (clause verified on 8 cameras in AT, DE, IT).
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "foto-webcam-live-embedding"
+url = "https://www.foto-webcam.eu/impressum/"
+attribution = "www.foto-webcam.eu"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.foto-webcam.eu"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

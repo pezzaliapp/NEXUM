@@ -1,0 +1,24 @@
+{
+  "_comment": "How much of a country the webcam sources integrated in NEXUM cover (NEXUM's own assessment of its sources, 2026-10-04; never a count of the webcams that exist). BUONA: a national official source; PARZIALE: regional or city sources; LIMITATA: a few cameras or one network; any country not listed: no source integrated. Keyed by ISO 3166-1 alpha-2.",
+  "labels": { "good": "BUONA", "partial": "PARZIALE", "limited": "LIMITATA", "none": "NESSUNA FONTE INTEGRATA" },
+  "countries": {
+    "IT": ["partial", "Trentino, Alto Adige, Friuli Venezia Giulia, Venezia, Garda e Alpi (foto-webcam.eu), Etna e Eolie (INGV), Parma. Nessun elenco nazionale aperto: ANAS e Autostrade per l'Italia non pubblicano un elenco riutilizzabile."],
+    "FI": ["good", "Fintraffic: telecamere stradali e meteo di tutto il Paese."],
+    "IS": ["good", "Vegagerðin: telecamere stradali di tutto il Paese."],
+    "HK": ["good", "Transport Department: telecamere del traffico di tutto il territorio."],
+    "TW": ["good", "Highway Bureau (strade provinciali) e Water Resources Agency. Le telecamere della città di Taipei richiedono un contratto: non incluse."],
+    "LU": ["good", "CITA: telecamere delle autostrade."],
+    "ES": ["good", "DGT (rete nazionale, solo collegamento), Madrid, Galizia, Paesi Baschi, Catalogna (solo collegamento), Vigo."],
+    "GB": ["partial", "Londra (Transport for London). Le altre autorità richiedono una registrazione o non pubblicano immagini riutilizzabili."],
+    "US": ["partial", "California (Caltrans), Washington (WSDOT), Iowa, vulcani dell'Alaska (USGS/AVO), fiumi (USGS)."],
+    "CA": ["partial", "Columbia Britannica (DriveBC), Ontario (MTO), Toronto, Québec (solo collegamento)."],
+    "AT": ["limited", "Rete foto-webcam.eu (Alpi). ASFINAG consente solo l'uso privato."],
+    "DE": ["limited", "Rete foto-webcam.eu (Baviera, Alpi). Le telecamere autostradali non sono pubblicate."],
+    "CH": ["limited", "Ginevra (SITG), rete foto-webcam.eu."],
+    "FR": ["limited", "Lione (CRITER)."],
+    "SI": ["limited", "Alcune telecamere di confine (elenco ARPA FVG, solo collegamento)."],
+    "NO": ["limited", "Poche telecamere di confine. Statens vegvesen richiede una registrazione."],
+    "SE": ["limited", "Poche telecamere di confine. Trafikverket richiede una chiave."],
+    "RU": ["limited", "Poche telecamere di confine (Fintraffic)."]
+  }
+}

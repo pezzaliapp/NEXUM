@@ -1,0 +1,31 @@
+# Contesto di esposizione (WORLD pubblicato): violence → airports, entro 20 km. Configurazione, non codice del Core.
+[rule]
+id = "violence_airports_exposure"
+version = "1"
+label = "Aeroporti vicino a violenza organizzata"
+output = "context"
+anchor = "A"
+strength = 0.6
+emit_threshold = 0.3
+max_candidates = 4000
+collect = { var = "O", limit = 20 }
+explain = "Entro {radius|num0} km dall' evento di violenza organizzata «{A.label}» ({A.prop.deaths_best|num0} morti secondo UCDP, {A.time|date}) si trovano {n.O} aeroporti con voli di linea; il più vicino è {first.O.label} ({first.O.ident.icao}) a {first.O.dist|num1} km. Contesto di esposizione: vicinanza registrata, non una stima di danni né un rapporto di causa."
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["conflict.violence_event"]
+
+
+[[rule.var]]
+name = "O"
+kind = "object"
+types = ["transport.airport"]
+where = [["airport_type", "in", ["large_airport", "medium_airport"]], ["scheduled_service", "==", true]]
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "O"
+km = 20
+score = true

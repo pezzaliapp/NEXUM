@@ -1,0 +1,34 @@
+id = "curated.webcam_links"
+name = "Webcam pubbliche solo collegate (elenco curato da NEXUM; coordinate da Wikidata)"
+owner = "NEXUM (curated) · Wikidata"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-03"
+independence_group = "nexum_curated"
+connector = "connectors.webcam_links"
+
+# World Intelligence (2026-10-03): cameras whose publishers do not allow their images to be reproduced: only their
+# existence, what they frame, the framed landmark's coordinates (Wikidata, CC0) and the link to the original page.
+[license]
+id = "CC0-1.0"
+url = "https://www.wikidata.org/wiki/Wikidata:Licensing"
+attribution = "Coordinate: Wikidata (CC0); collegamento alla pagina del gestore della webcam"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.wikidata.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

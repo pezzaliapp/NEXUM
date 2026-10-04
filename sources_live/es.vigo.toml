@@ -1,0 +1,34 @@
+id = "es.vigo"
+name = "Concello de Vigo — traffic cameras, link only"
+owner = "Concello de Vigo"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "es_vigo"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): LINK ONLY: images served over http only.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "ODC-BY-1.0"
+url = "https://datos.vigo.org/"
+attribution = "Concello de Vigo (ODC-BY)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["datos.vigo.org"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

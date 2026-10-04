@@ -1,0 +1,24 @@
+# Webcam pubbliche (Phase 3B · block 1): camere fisse di infrastruttura pubblicate dall'autorità che le gestisce.
+# NEXUM conserva solo dove sono, chi le gestisce, l'URL stabile dell'immagine attuale e la frequenza dichiarata; l'immagine
+# NON è mai copiata né archiviata: il browser la chiede alla fonte originale soltanto quando la persona la apre.
+# Una JPEG aggiornata periodicamente è un'IMMAGINE ATTUALE, non un video live.
+[object_type."camera.public_webcam"]
+label = "Webcam pubblica"
+geometry = "point"
+identity_schemes = ["caltrans_cctv", "fintraffic_weathercam", "drivebc_webcam", "usgs_nims", "avo_webcam", "hk_td_cctv", "vegagerdin_cam", "madrid_cam", "lyon_criter", "geneve_sitg", "webcam_link", "tfl_jamcam", "cita_cam", "meteogalicia_cam", "euskadi_cam", "foto_webcam", "meteotrentino_cam", "venezia_maree_cam", "dgt_cam", "sct_cam", "vigo_cam", "odh_webcam", "arpafvg_cam", "ingv_oe_webcam", "thb_cctv", "wra_cctv", "iowa_dot_cam", "wsdot_cam", "toronto_cam", "mto_cam", "quebec_cam"]
+display = { family = "camera", density_priority = 6, group = "Webcam", headline = [{ property = "operator" }], facts = [{ property = "operator", label = "Gestore" }, { property = "subject", label = "Inquadra" }, { property = "route", label = "Strada" }, { property = "place_note", label = "Località" }, { property = "image_refresh_min", label = "Aggiornamento dichiarato dalla fonte", unit = "min", digits = 0 }], media = { property = "image_url", kind = "current_image", refresh_property = "image_refresh_min", credit_property = "credit", observed_property = "image_observed_at", state_property = "in_service" } }
+[object_type."camera.public_webcam".properties]
+image_url = { kind = "text" }
+image_refresh_min = { kind = "float", unit = "min" }
+image_observed_at = { kind = "text" }
+operator = { kind = "text" }
+subject = { kind = "text" }
+credit = { kind = "text" }
+in_service = { kind = "bool" }
+record_updated_at = { kind = "text" }
+availability = { kind = "text" }
+page_url = { kind = "text" }
+terms_note = { kind = "text" }
+credit_url = { kind = "text" }
+route = { kind = "text" }
+place_note = { kind = "text" }

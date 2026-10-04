@@ -1,0 +1,35 @@
+id = "worldbank.indicators"
+name = "World Bank — World Development Indicators (population, economy, living conditions, water)"
+owner = "The World Bank"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "worldbank_wdi"
+connector = "connectors.worldbank_indicators"
+
+# World Intelligence (2026-10-03): country indicators, one object per indicator, values as published (CC BY 4.0).
+# The underlying series come from UN WPP, UN WUP, WHO/UNICEF JMP, FAO AQUASTAT, ILO, ICP and national accounts,
+# compiled and republished by the World Bank under CC BY 4.0.
+[license]
+id = "CC-BY-4.0"
+url = "https://datacatalog.worldbank.org/public-licenses"
+attribution = "The World Bank: World Development Indicators (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["api.worldbank.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

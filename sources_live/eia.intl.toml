@@ -1,0 +1,34 @@
+id = "eia.intl"
+name = "U.S. EIA — International Energy Statistics (electricity trade, gas, oil, total energy)"
+owner = "U.S. Energy Information Administration"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "us_eia"
+connector = "connectors.eia_intl"
+
+# World Intelligence (2026-10-03): country totals without partners (185–187 of 193 UN states). Series the EIA no
+# longer updates are kept only as historical values, with their last year shown.
+[license]
+id = "US-PD"
+url = "https://www.eia.gov/about/copyrights_reuse.php"
+attribution = "Source: U.S. Energy Information Administration, International Energy Statistics (public domain)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["www.eia.gov"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

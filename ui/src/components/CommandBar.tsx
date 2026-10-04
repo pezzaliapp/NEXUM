@@ -2,6 +2,7 @@ import { S } from "../lib/strings";
 import { store, useStore } from "../store";
 import { useViewportClass } from "../App";
 import { SearchBox } from "./SearchBox";
+import { Freshness, PeriodChip, ResetChip } from "./Period";
 
 export function CommandBar() {
   const stage = useStore((s) => s.stage);
@@ -15,7 +16,10 @@ export function CommandBar() {
         <button type="button" className="primary" onClick={() => store.set({ railOpen: !store.get().railOpen })}
           aria-label={S.openRail}>☰<span className="desk"> {S.openRail}</span></button>
       )}
+      <button type="button" className="primary home-btn" data-testid="home" title={S.homeTitle} onClick={() => store.home()}>⌂ {S.home}</button>
       <SearchBox />
+      <PeriodChip />
+      <ResetChip />
       {size !== "phone" && (
         <div className="seg desk" role="group" aria-label="stage">
           {stages.map((v) => (
@@ -24,6 +28,7 @@ export function CommandBar() {
           ))}
         </div>
       )}
+      <Freshness className="desk xs dim" />
       <span className="chip desk mono" title={S.status.version}>{status?.world_id}</span>
     </header>
   );

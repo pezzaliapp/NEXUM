@@ -98,6 +98,34 @@ class RawPolygonProvider:
             self._payload = body
             return body
 
+    def labels(self) -> bytes | None:
+        """Place names for the backdrop (the same payload's attribute table): name, label point and the smallest
+        zoom at which the source recommends the label. Used to answer "where am I?" without any online service."""
+        with self._lock:
+            if getattr(self, "_labels", None) is not None:
+                return self._labels
+            store, entry = self._find()
+            if entry is None:
+                return None
+            z = zipfile.ZipFile(io.BytesIO(store.get(entry["sha256"])))
+            dbf = next(n for n in z.namelist() if n.lower().endswith(".dbf"))
+            cpg = [n for n in z.namelist() if n.lower().endswith(".cpg")]
+            enc = z.read(cpg[0]).decode("ascii").strip().lower() if cpg else "utf-8"
+            items = []
+            for r in shapefile.read_dbf(z.read(dbf), "utf-8" if "utf" in enc else enc):
+                if not r or r.get("LABEL_X") is None or r.get("LABEL_Y") is None or not r.get("NAME"):
+                    continue
+                items.append({"name": r["NAME"], "x": round(float(r["LABEL_X"]), 4), "y": round(float(r["LABEL_Y"]), 4),
+                              "min_zoom": float(r.get("MIN_LABEL") or 0), "rank": int(r.get("LABELRANK") or 9)})
+            items.sort(key=lambda i: (i["rank"], i["name"]))
+            body = json.dumps({"labels": items, "nexum_provenance": {"source_id": self.source_id, "raw_id": entry["raw_id"],
+                                                                     "sha256": entry["sha256"], "attribution": self.attribution,
+                                                                     "fields": ["NAME", "LABEL_X", "LABEL_Y", "MIN_LABEL",
+                                                                                "LABELRANK"]}},
+                              ensure_ascii=False, separators=(",", ":")).encode()
+            self._labels = body
+            return body
+
     def style(self) -> dict:
         layers = [{"id": "basemap-background", "type": "background", "paint": {"background-color": "#0B0E10"}}]
         sources = {}

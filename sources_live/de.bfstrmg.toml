@@ -1,0 +1,33 @@
+id = "de.bfstrmg"
+name = "Bundesfernstraßenmautgesetz (BFStrMG), Anlage 1 — toll rates (official consolidated XML)"
+owner = "Bundesministerium der Justiz / juris (gesetze-im-internet.de)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "de_law"
+connector = "connectors.bfstrmg_tariff"
+
+# Phase 3B · block 5: rates parsed from the law's own tables, never transcribed by hand.
+[license]
+id = "DE-UrhG-5"
+url = "https://www.gesetze-im-internet.de/hinweise.html"
+attribution = "Bundesfernstraßenmautgesetz (BFStrMG), Anlage 1 — amtlicher Text (gemeinfrei, § 5 UrhG), gesetze-im-internet.de"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["www.gesetze-im-internet.de"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

@@ -1,0 +1,40 @@
+# Associazione spazio-temporale: attivazione Copernicus EMS (categoria "volcan") ↔ evento NASA EONET dello stesso tipo
+# (volcanic.activity). Due fonti indipendenti che registrano lo stesso fenomeno nello stesso luogo e periodo: un'associazione,
+# non un rapporto di causa. Regola di configurazione del WORLD pubblicato, non codice del Core.
+[rule]
+id = "activation_volcan_association"
+version = "1"
+label = "Associazione: attivazione Copernicus e attività vulcanica"
+output = "association"
+anchor = "B"
+unique = true
+strength = 0.8
+emit_threshold = 0.3
+max_candidates = 500
+explain = "L'attivazione Copernicus EMS {B.ident.cems} ({B.prop.category}, {B.prop.countries|join}) e l'evento NASA EONET «{A.label}» (attività vulcanica) sono registrati a {dist.A.B|num1} km di distanza, con {dt.A.B|delta} tra l'inizio dell'uno e l'attivazione dell'altra. Associazione spazio-temporale tra due fonti indipendenti, non un rapporto di causa verificato."
+
+[[rule.var]]
+name = "B"
+kind = "event"
+types = ["emergency.mapping_activation"]
+where = [["category", "==", "volcan"]]
+
+[[rule.var]]
+name = "A"
+kind = "event"
+types = ["volcanic.activity"]
+
+[[rule.constraint]]
+op = "within_time"
+a = "A"
+b = "B"
+min = "-60d"
+max = "30d"
+score = true
+
+[[rule.constraint]]
+op = "within_distance"
+a = "A"
+b = "B"
+km = 150
+score = true

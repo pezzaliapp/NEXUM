@@ -1,0 +1,101 @@
+# NEXUM — sources of the published world (`live`)
+
+The published world (`live`) is world D1 (frozen as the validation world of Phases 1–2) plus the sources below.
+Each one was checked (2026-10-01 … 2026-10-04) against the €0 rule: free access, no card, no paid or metered API, **no key or
+account** (`auth = "none"` in every registry file), a licence that allows public redistribution, no forbidden scraping,
+no personal data, compatible with static snapshots rebuilt by GitHub Actions and hosted on Cloudflare Pages Free.
+A source that does not pass every check is not used. Registry files: `sources_live/`; connectors: `connectors/`;
+vocabulary: `vocab_live/`; rules: `rules_live/`.
+
+## Adopted
+
+| Source | Domains | Licence | Declared filters |
+|---|---|---|---|
+| NASA EONET v3 (`eonet.gsfc.nasa.gov`) | volcanic activity, wildfires, severe storms, floods, landslides | NASA open data (US Gov public domain); upstream reports as linked by EONET | categories used: 5 of 13 (the others add numbers, not connections); wildfires with a reported area < 1,000 acres; **items reported only by GDACS** (see below); invalid coordinates (e.g. latitude/longitude swapped at the source) are dropped, never guessed; a storm is placed at its point of maximum intensity (track kept as property) |
+| NOAA NCEI Natural Hazards (`www.ngdc.noaa.gov/hazel`) | volcanoes (with Smithsonian volcano numbers), significant eruptions, tsunamis, significant earthquakes with impact (deaths, damage) | US Gov public domain; citation NOAA NCEI/WDS | events from 2012 (the period of the world) |
+| Natural Earth populated places 1:10m (`naciscdn.org`) | cities and towns with population | public domain | — |
+| NGA World Port Index, Pub. 150 (`msi.nga.mil`) | ports | US Gov public domain ("Approved for Public Release") | — |
+| WRI Global Power Plant Database v1.3 (`raw.githubusercontent.com/wri/…`) | power plants (fuel, capacity) | CC BY 4.0 (attribution in the registry) | plants ≥ 20 MW; **data of 2021** (property `data_year`, stated in every explanation) |
+| UCDP Candidate Events (`ucdp.uu.se/downloads`) | organised violence | CC BY 4.0 | events with best estimate ≥ 5 deaths; **every `source_*` column dropped** (article lists and headlines can name individuals); monthly files listed in the registry (`options.files`) |
+| **Phase 3B (2026-10-03)** | | | |
+| Caltrans CWWP2 CCTV (`cwwp2.dot.ca.gov`), Fintraffic Digitraffic weathercams (`tie.digitraffic.fi`), DriveBC webcams (`www.drivebc.ca`), USGS NIMS (`api.waterdata.usgs.gov`), Alaska Volcano Observatory webcams (`avo.alaska.edu`) | public webcams (USA, Canada/BC, Finland) — **not worldwide** | Caltrans: information considered in the public domain (conditions of use); Fintraffic CC BY 4.0; Open Government Licence – British Columbia (DriveBC); US Gov public domain (USGS, AVO) | the camera's place, operator, stable URL of the CURRENT IMAGE and declared refresh only; **the image is never copied or stored**: the browser asks the source only when the person opens it (explicit CSP allowlist, `ui/media-hosts.json`); no recognition, identification or tracking |
+| Standard Eurobarometer (`webgate.ec.europa.eu`), waves 102.2–105.2 | public opinion (trust, direction of the country, economy, expectations, concerns) | CC BY 4.0 (Decision 2011/833/EU) | national shares with question, answer, fieldwork, sample, population, method; series join waves only for the same wording |
+| EC DG ECFIN Business and Consumer Surveys — consumers (`ec.europa.eu`) | perceived and expected prices, economy, unemployment, household finances | CC BY 4.0 | balances computed as the Commission defines them, with their sampling error; not seasonally adjusted: compared with the same month of the previous year |
+| Eurostat HICP (`prc_hicp_minr`), unemployment (`une_rt_m`); World Bank WDI (`FP.CPI.TOTL.ZG`, `SL.UEM.TOTL.ZS`) | official statistics (reality) | CC BY 4.0 | shown beside perception, never combined into an index or score |
+| Wikidata (`query.wikidata.org`, SPARQL) | heads of state and government of the 193 UN states, terms since 1990 | CC0 | **role facts only** (privacy gate: `NEXUM-PHASE3B-PRIVACY-GATE.md`): name and QID of the person, office, dates, statement, references; humans only; conflicts shown, never chosen; no photo, birth date, party or private data |
+| EC Weekly Oil Bulletin (`energy.ec.europa.eu`), DESNZ weekly road fuel prices (`www.gov.uk`), U.S. EIA weekly retail prices (`www.eia.gov`), Statistics Canada 18-10-0001-01, data.gov.my fuelprice | fuel prices — **31 of 193 states** (EU-27, UK, US, Canada, Malaysia) | CC BY 4.0, OGL v3, US public domain, StatCan Open Licence, CC BY 4.0 | national averages in the source's unit and currency; taxes only where published (EU-27, UK), each with its date of entry into force; Canada: regular gasoline only (no national diesel aggregate published) |
+| BALM Mauttabelle (`www.balm.bund.de`), BFStrMG Anlage 1 (`www.gesetze-im-internet.de`, consolidated XML) | German truck toll: 134,017 sections (grouped per road and federal state), rates | DL-DE-BY 2.0; statutory text (§ 5 UrhG) | rates parsed from the law's tables (never transcribed by hand); amount of a road's sections = Σ length × rate, rounded per section; **no routing** |
+| **World Intelligence (2026-10-03)** | | | |
+| World Bank WDI (`api.worldbank.org`) — 33 indicators | population and structure, cities, GDP, GNI, trade, employment, household consumption, PPP and price level, water and sanitation (JMP), water resources and stress (AQUASTAT), electricity access, energy imports | CC BY 4.0 | 193 UN states only; one object per indicator, values per country ("measured in"); `nature` estimated/modelled said per series (JMP, AQUASTAT, ILO modelled) |
+| ILOSTAT (`rplumber.ilo.org`) | mean and median monthly earnings, statutory minimum wage (national currency and 2021 PPP $) | CC BY 4.0 (ILO policy since 2023-05-03) | **one national source per country** (the most recent), never spliced across sources |
+| Ember Yearly Electricity Data (`files.ember-energy.org`, global generation release) | generation, shares and capacity by source, demand, net imports | CC BY 4.0 | years ≥ 2010; capacity, generation and share kept as three different measures; the former long-format file stopped updating on 2026-06-23 |
+| U.S. EIA International Energy Statistics (`www.eia.gov/opendata/bulk/INTL.zip`) | electricity imports/exports/consumption, geothermal, pumped storage, total energy, gas, crude oil, petroleum | US Gov public domain | series no longer updated by EIA (crude imports/exports 2018–2020, refined products 2014) kept as **historical** (old value flagged) |
+| Eurostat `nrg_ti_gas`, `nrg_ti_eh`, `nrg_te_eh`, `nrg_ti_oil` | energy flows between countries (relations `imports_gas_from`, `imports_electricity_from`, `exports_electricity_to`, `imports_crude_from`) | Eurostat reuse with acknowledgement | declared by European reporters only; partner as recorded (gas: possibly a transit country or hub); arcs between UN states with a positive volume |
+| FAO GIEWS FPMA (`fpma.fao.org`) | national average retail prices of bread, rice, wheat flour, milk, eggs, cooking oil | CC BY 4.0 (FAO database terms list FPMA); original source named on every value | **national-average retail series only** (never a capital city's price); units and currencies of the source |
+| Statistics Norway 09654, Swiss FSO CPI average prices, Uruguay Poder Ejecutivo/ANCAP | fuel prices: Norway, Switzerland (observed monthly averages), Uruguay (**maximum prices set by decree**) | CC BY 4.0 · opendata.swiss open use · Licencia de Datos Abiertos Uruguay | fuel coverage 34 of 193 |
+| Transport Department HKSAR, Vegagerðin (Iceland), Ayuntamiento de Madrid, Métropole de Lyon CRITER, SITG Genève | public webcams (current still images loaded on request by the browser, never copied) | DATA.GOV.HK terms · CC BY 4.0 · CC BY 4.0 · Licence Ouverte 2.0 · opendata.swiss open use | webcam countries: USA, Canada, Finland + Hong Kong (China), Iceland, Spain, France, Switzerland = 8 of 193 |
+| Curated link-only webcams (Parma, Piazza Garibaldi) + Wikidata Q21194420 | a camera whose publisher forbids reproduction: existence, framed landmark, link "APRI WEBCAM" | coordinates CC0 | **no preview, no embed, no image request** |
+| UCDP Candidate (digests) | security zones (red R1/R2, orange O1) over 90 days, 0.5° cells | CC BY 4.0 | every lethal event (≥ 1 death) kept in per-country digests; zones computed by declared rules in the API layer, never real time, never a forecast |
+| NASA GIBS / Worldview Snapshots, NASA CMR, EUMETSAT EUMETView (browser, on request) | imagery from orbit (VIIRS daily, GOES/Himawari/Meteosat 10 min, HLS 30 m) | NASA open data (acknowledgement) · EUMETSAT Core CC BY 4.0 | nothing stored or proxied; acquisition time read from the service; empty frames rejected |
+| **Completion (2026-10-04)** | | | |
+| OECD Average annual wages (`sdmx.oecd.org`, AV_AN_WAGE) | gross average annual wage per full-time-equivalent employee (41 countries), national currency (as stated by the OECD) and USD PPP | OECD Terms §3 Data: "extract … copy, adapt … distribute … for any purpose, even for commercial use" | the overview's pay when Eurostat's net pay is missing; gross, annual, per FTE employee — said on every value |
+| Eurostat `earn_nt_net`, `ilc_di03`, `ilc_mded01`, `ilc_lvho07a`, `nrg_pc_204`, `nrg_pc_202` | net and gross annual pay of a single person on the average wage; median equivalised net income (household); housing costs share and overburden; household electricity (band DC) and gas (band D2) prices with all taxes | Eurostat reuse with acknowledgement | EU-SILC: the survey of year Y measures incomes of Y-1 (said per value); prices half-yearly in EUR |
+| World Bank / FAO Food Prices for Nutrition (`api.worldbank.org`, source 88) | cost of a healthy diet per person per day (local currency, 2021 PPP $), share of the population who cannot afford it (145–165 countries) | CC BY 4.0 | affordability computed by the source, not by NEXUM; values `estimated` |
+| World Bank ICP 2021 (source 90) | price level indices, world = 100, by category (consumption, food, housing/water/energy, transport, restaurants, clothing, communication, health), 168 countries | CC BY 4.0 | benchmark years 2017 and 2021 only (said) |
+| Unicode CLDR 47 `currencyData` | the one legal tender of each UN state and the date it came into force (`connectors/currency_iso.json`) | Unicode License v3 | names the currency of "local currency" values only where the source does not state it, the state has one legal tender and it was in force for the whole series; ILOSTAT's own stated currency comes first |
+| MBIE weekly fuel price monitoring (NZ), Australian Petroleum Statistics (AU), Derzhstat average consumer prices (UA) | fuel prices — coverage **37 of 193** | CC BY 3.0 NZ · CC BY 4.0 · CC BY | NZ: weekly "Board price", average of the 4 main ports; AU: quarterly national average weighted by sales; UA: monthly national average; cents/l divided by 100 (said) |
+| Webcams, CURRENT image (browser, on request): TfL JamCams, CITA Luxembourg, MeteoGalicia, Open Data Euskadi (https only), foto-webcam.eu, Meteotrentino, Comune di Venezia (Centro Maree), Taiwan Highway Bureau, Taiwan WRA, Iowa DOT, WSDOT (own images only), City of Toronto, Ontario MTO | public webcams | TfL licence (OGL v2) · CC0 · CC BY-SA 4.0 · CC BY 4.0 · foto-webcam.eu live-embedding clause (whole 16:9 image, click opens the camera page, clickable credit) · CC BY 4.0 · CC BY 3.0 · OGDL-Taiwan v1 (CC BY 4.0 compatible) · CC BY 4.0 · WSDOT public traveler API · OGL-Toronto · OGL-Ontario | image never copied, archived or proxied; explicit CSP allowlist (`ui/media-hosts.json`) |
+| Webcams, LINK ONLY: DGT Spain (positions from the NAP), Servei Català de Trànsit, Concello de Vigo (http images), Open Data Hub Südtirol (CC0 list, images of their publishers), ARPA FVG – OSMER (CC BY-SA 3.0 IT list), INGV-OE (no stable image URL), Québec MTMD (CC BY 4.0 list, viewer only), WSDOT third-party cameras | public webcams whose images NEXUM may not show | as listed | existence, place and the link to the publisher's own page, with the reason on the card; never a preview |
+
+## Map illumination (not a NEXUM source)
+
+The single Operational Map always shows the Earth's illumination: day side as it is, night side darkened, a continuous
+terminator — computed in the browser from the current UTC time (solar position), no external data. On the night side
+only, the **reference** night lights: NASA Earth Observatory, *Black Marble 2016* (VIIRS Day/Night Band), composite of
+the cloud-free nights of 2016, grayscale 0.1° reduced to about 0.13° (`ui/scripts/night-lights.py`, 46,030 bytes, served from
+NEXUM's own files; source file sha256 4d2158f5…7c6). Described in the UI as "Luci notturne · NASA/VIIRS · composito di
+riferimento", never as live observation. NASA Images and Media Usage Guidelines (generally not subject to copyright in
+the US; NASA acknowledged as the source; no endorsement implied). No element, rule or evidence is made from it.
+
+## Not used
+
+| Source | Reason |
+|---|---|
+| GDACS (direct, and items reported only by GDACS through EONET) | the terms (gdacs.org/About/termofuse.aspx) contain disclaimers only, no permission to reuse or redistribute |
+| Smithsonian GVP volcano database (direct) | site terms: personal, educational, non-commercial use. NOAA NCEI carries the same volcano numbers in the public domain. EONET volcanic activity (reported by the Smithsonian weekly reports) is factual event metadata republished by NASA, cited as such |
+| OpenSky Network (live aviation) | non-profit research/education only; automated use of the API requires a written agreement |
+| AIS / maritime tracking | no free, key-less, redistributable global source (aisstream.io key, AISHub requires a receiver, commercial services) |
+| CelesTrak (satellites) | no explicit redistribution licence; upstream user agreement limits redistribution |
+| NASA FIRMS hotspots, NOAA SWPC space weather | free and open, not imported: many records, no connections of value to the other domains |
+| NWS alerts, MeteoAlarm | regional only (US / Europe); MeteoAlarm terms not verified |
+| Global Dam Watch / GeoDAR | gate passed (CC BY 4.0, figshare/Zenodo files) but not integrated in this iteration: ~40,000 facilities as searchable objects would exceed the snapshot's file limit (O7); a compact facility package is the next step |
+| IAEA PRIS | reuse of public data allowed, but no coordinates and undocumented endpoints: conditional; nuclear plants stay the WRI GPPD facilities (2021) + Ember/EIA country totals |
+| Wikidata nuclear plants | CC0 but incomplete (180 operating plants, China undercounted, status inferred for 107): not used as facilities |
+| Global Energy Monitor | download form asks for name and e-mail (personal identifiers): not used |
+| UN Comtrade | re-dissemination needs a premium subscription |
+| IRENASTAT, JODI, ENTSOG | not integrated in this iteration (JODI: derived data only; ENTSOG: conditional) — Ember + EIA cover the same totals |
+| WFP VAM (HDX) national averages | licence fine, but a national average exists for 5 countries only: FAO FPMA used instead |
+| Fuel (2026-10-04): Brazil ANP (CC BY-ND), India PPAC (PDF only), Thailand EPPO, South Africa (non-commercial, terms of 2026-01-08), Argentina and Peru (station level only), Mexico (station level, no national average published), Chile (token), South Korea Opinet (membership, all rights reserved), Turkey EPDK (no licence stated), Moldova ANRE (all rights reserved), Nigeria NBS (latest Oct 2024, no terms), Japan ANRE (403 to the project's User-Agent), Israel (refinery-gate maximum, 403) | not integrated: one gate criterion missing |
+| Webcams (2026-10-04): ASFINAG (private use only; links need approval), Autobahn GmbH (empty feed), Baden-Württemberg (withheld), Estonia Tark Tee and Norway Statens vegvesen (registration/API key required by the terms), Sweden Trafikverket (key), NZTA ("personal use"; API by request), NSW (key), QLD (registered key), Oregon TripCheck (subscription key), ibi511 states (developer key), Calgary (terms page unreadable), Ottawa (no licence), Taipei City CCTV (images under contract), Singapore (8 cameras), CAV and A22 (no terms: not a permission), ANAS (no public list), Autostrade per l'Italia (all rights reserved), Rijkswaterstaat (third-party streams behind a Referer check), police or enforcement cameras of any city | not integrated (or reachable only as the publisher's own portal) |
+| UCDP API | requires a token since 2025 (the bulk files do not) |
+| Afrobarometer | not used in this iteration (licence to be confirmed in writing) |
+| Latinobarómetro, Pew, Ipsos, Arab Barometer reports | reference only (no values copied) |
+| ANP Brazil fuel prices, NSW FuelCheck, WA FuelWatch | licence ambiguous (ANP), share-alike (NSW), no reuse licence (WA) |
+| French motorway concession tariffs | protected; not used |
+| Ministers, parties, biographies, photos of persons | outside the privacy gate of this iteration (ministers: model and UI only) |
+
+## Connections (rules, `rules_live/`)
+
+All rule outputs are **associations** (two independent sources recording compatible events close in time and space)
+or **contexts** (what lies within a declared radius of an event). None states a cause; every explanation says so.
+Plain geographic links (an element located in a country, the place of an event) stay in the world but are shown as
+*geographic context*, never as a NEXUM connection.
+
+- Copernicus EMS activation ↔ EONET event of the same kind (fire, flood, storm, volcanic activity)
+- USGS earthquake ↔ NCEI significant earthquake (impact: deaths, injuries, damage, houses destroyed)
+- NCEI tsunami ↔ USGS earthquake (M ≥ 6, −10 min … +6 h, ≤ 500 km)
+- Exposure contexts: cities, ports, power plants (nuclear apart), airports within a declared radius of earthquakes,
+  storms (maximum-intensity point), wildfires, tsunamis, volcanic activity, floods, organised violence
+- Links given by the sources themselves: EONET volcanic activity → volcano (Smithsonian number), NCEI eruption →
+  volcano (NCEI volcano location id)
+

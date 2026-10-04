@@ -1,5 +1,6 @@
 """Authorship (P24) and zero OSIRIS code (P25)."""
 
+import os
 import pathlib
 import subprocess
 
@@ -7,7 +8,26 @@ import pytest
 
 from tests.conftest import ROOT
 
-OSIRIS = pathlib.Path("/Users/alessandropezzali/Projects/OSIRIS-REFERENCE")
+
+# P25 portability (Phase 3, decision E8): the OSIRIS reference copy is outside the repository and is never versioned.
+# Its location comes from NEXUM_OSIRIS_REFERENCE. Without it, P25 is SKIPPED with an explicit reason (never a pass);
+# with NEXUM_REQUIRE_P25=1 (release gate, author's machine) a missing reference is a FAILURE; a variable pointing
+# to a path that does not exist is always a failure (misconfiguration).
+def p25_policy(env):
+    """('run', path) | ('skip', reason) | ('fail', reason) for an environment mapping."""
+    ref, require = env.get("NEXUM_OSIRIS_REFERENCE"), env.get("NEXUM_REQUIRE_P25") == "1"
+    if not ref:
+        if require:
+            return "fail", "NEXUM_REQUIRE_P25=1 but NEXUM_OSIRIS_REFERENCE is not set: P25 cannot be verified"
+        return "skip", "P25 non verificabile: OSIRIS-REFERENCE non disponibile (NEXUM_OSIRIS_REFERENCE)"
+    path = pathlib.Path(ref).expanduser()
+    if not path.is_dir():
+        return "fail", f"NEXUM_OSIRIS_REFERENCE points to a missing directory: {path}"
+    return "run", path
+
+
+_P25 = p25_policy(os.environ)
+OSIRIS = _P25[1] if _P25[0] == "run" else None
 
 
 def test_p24_single_author_no_coauthors():
@@ -129,9 +149,21 @@ def osiris_findings(files, index):
 
 @pytest.fixture(scope="module")
 def osiris():
-    if not OSIRIS.exists():
-        pytest.fail("OSIRIS-REFERENCE not found: cannot verify P25")
+    action, detail = _P25
+    if action == "skip":
+        pytest.skip(detail)
+    if action == "fail":
+        pytest.fail(detail)
     return osiris_index()
+
+
+def test_p25_policy(tmp_path):
+    """The four cases of the P25 policy (E8)."""
+    assert p25_policy({})[0] == "skip"
+    assert p25_policy({"NEXUM_REQUIRE_P25": "1"})[0] == "fail"
+    assert p25_policy({"NEXUM_OSIRIS_REFERENCE": str(tmp_path / "missing")})[0] == "fail"
+    assert p25_policy({"NEXUM_OSIRIS_REFERENCE": str(tmp_path), "NEXUM_REQUIRE_P25": "1"}) == ("run", tmp_path)
+    assert "/Users/" not in pathlib.Path(__file__).read_text(encoding="utf-8").split("def p25_policy")[0]
 
 
 def test_p25_no_osiris_code_assets_or_data(osiris):

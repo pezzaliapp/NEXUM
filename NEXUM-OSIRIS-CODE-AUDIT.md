@@ -1,6 +1,6 @@
 # NEXUM — Audit tecnico del codice OSIRIS
 
-Data: 2026-09-28 · Repository analizzato: `/Users/alessandropezzali/Projects/OSIRIS-REFERENCE` (origin `github.com/simplifaisoul/osiris`, HEAD `7a3daec`, clone completo, 324 commit) · Modalità: **sola lettura** (nessun file OSIRIS modificato, nessuna dipendenza installata, nessun codice OSIRIS eseguito; `git status` pulito al termine).
+Data: 2026-09-28 · Repository analizzato: `<LOCAL_PATH>/OSIRIS-REFERENCE` (origin `github.com/simplifaisoul/osiris`, HEAD `7a3daec`, clone completo, 324 commit) · Modalità: **sola lettura** (nessun file OSIRIS modificato, nessuna dipendenza installata, nessun codice OSIRIS eseguito; `git status` pulito al termine).
 
 Metodo: lettura del codice sorgente file per file in quattro aree (mappa e interfaccia, connettori dati, sicurezza e privacy, licenze/dipendenze/build), confronto con [NEXUM-SOURCES.md](NEXUM-SOURCES.md) e [NEXUM-LEGAL-BOUNDARIES.md](NEXUM-LEGAL-BOUNDARIES.md), verifica diretta a campione delle affermazioni più importanti (uso effettivo del modulo di header falsificati, middleware di analytics, valori sintetici, dimensioni dei file candidati).
 
@@ -601,7 +601,7 @@ Regole di integrazione, se si decide di importare:
 
 ## 17. Elenco preciso dei file OSIRIS eventualmente consigliati
 
-Tutti i path sono relativi a `/Users/alessandropezzali/Projects/OSIRIS-REFERENCE/` (commit `7a3daec`). **Nessuno è stato copiato.**
+Tutti i path sono relativi a `<LOCAL_PATH>/OSIRIS-REFERENCE/` (commit `7a3daec`). **Nessuno è stato copiato.**
 
 ### 17.1 REUSE — candidati alla copia (solo Fase 2, UI TypeScript + MapLibre)
 

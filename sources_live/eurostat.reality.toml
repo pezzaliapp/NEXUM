@@ -1,0 +1,34 @@
+id = "eurostat.reality"
+name = "Eurostat — HICP annual rate and monthly unemployment rate"
+owner = "Eurostat (European Commission)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-03"
+independence_group = "eurostat"
+connector = "connectors.eurostat_reality"
+
+# Phase 3B · block 2: observations with documented methodology (dates, sample, question, source). Perception (surveys)
+# and reality (official statistics) are separate types and are never combined into an index.
+[license]
+id = "Eurostat-reuse"
+url = "https://ec.europa.eu/eurostat/about-us/policies/copyright"
+attribution = "Source: Eurostat (prc_hicp_minr, une_rt_m) — reuse authorised provided the source is acknowledged"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["ec.europa.eu"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]

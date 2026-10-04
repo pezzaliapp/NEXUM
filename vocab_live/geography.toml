@@ -1,0 +1,43 @@
+# Geografia — tipi di dominio (fuori dal Core)
+
+[object_type."place.country"]
+label = "Paese / territorio"
+geometry = "area"
+identity_schemes = ["iso3166a3", "iso3166a2", "ne"]
+name_match = false
+display = { family = "place", density_priority = 1, group = "Paesi", headline = [], explore = { label = "Esplora un Paese", one = "Paese", many = "Paesi", hint = "Clicca il nome di un Paese sulla mappa o cercalo qui", placeholder = "Italia, Germany, Japan…", rank_property = "population_estimate" }, facts = [{ property = "formal_name", label = "Nome ufficiale" }, { property = "continent", label = "Continente" }, { property = "population_estimate", label = "Popolazione stimata", digits = 0 }] }
+[object_type."place.country".properties]
+formal_name = { kind = "text" }
+continent = { kind = "text" }
+region_un = { kind = "text" }
+subregion = { kind = "text" }
+sovereignty = { kind = "text" }
+ne_type = { kind = "text" }
+population_estimate = { kind = "float", unit = "people" }
+
+# Alias aggiuntivi documentati (chiave = identificatore canonico schema:valore).
+# Aggiunti il 2026-09-28 per nomi usati da Copernicus EMS e verificati uno per uno.
+# Nessun fuzzy matching: solo nome esatto normalizzato → identificatore canonico.
+[aliases."place.country"]
+"iso3166a3:VNM" = ["Viet Nam"]        # nome breve ISO 3166-1; in Natural Earth "Vietnam"
+"iso3166a3:MMR" = ["Myanmar/Burma"]   # convenzione di nome di Copernicus EMS; in Natural Earth "Myanmar" (alias "Burma")
+"iso3166a3:TUR" = ["Türkiye"]         # nome breve ufficiale dal 2022; in Natural Earth "Turkey"
+"iso3166a3:FRA" = ["Mayotte"]         # dipartimento d'oltremare francese: in Natural Earth 1:50m Mayotte è inclusa
+                                      # nella feature "France" (verificato con point-in-polygon a 45,14 E, 12,82 S).
+                                      # Alias di contenimento geografico, non un'affermazione di identità ISO (YT).
+# Non risolto di proposito: "United States Minor Outlying Islands" (ISO UM) — nessuna feature in Natural Earth
+# 1:50m; associarlo agli Stati Uniti (US) sarebbe un'identità errata.
+
+# Insediamenti (Natural Earth populated places) — WORLD pubblicato
+[object_type."place.settlement"]
+label = "Città / insediamento"
+geometry = "point"
+identity_schemes = ["ne_place"]
+name_match = false
+display = { family = "place", density_priority = 3, group = "Città", nearby_media_km = 10, place_index = { rank_property = "population", context_property = "country_name", min_rank = 50000 }, headline = [{ property = "population", suffix = " abitanti", digits = 0 }], facts = [{ property = "population", label = "Abitanti", digits = 0 }, { property = "country_name", label = "Paese" }] }
+[object_type."place.settlement".properties]
+population = { kind = "float", unit = "abitanti" }
+feature_class = { kind = "text" }
+world_city = { kind = "bool" }
+megacity = { kind = "bool" }
+country_name = { kind = "text" }

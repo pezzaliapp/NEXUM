@@ -1,0 +1,33 @@
+id = "oecd.wages"
+name = "OECD — Average annual wages (gross, per full-time-equivalent employee)"
+owner = "OECD"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "oecd"
+connector = "connectors.oecd_wages"
+
+# Completion (2026-10-04): gross average annual wage per full-time-equivalent employee, national currency and USD PPP.
+[license]
+id = "OECD-Terms-Data"
+url = "https://www.oecd.org/en/about/terms-conditions.html"
+attribution = "OECD (2026), Average annual wages, OECD Data Explorer"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["sdmx.oecd.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

@@ -1,0 +1,34 @@
+id = "it.meteotrentino"
+name = "Meteotrentino — webcam (Provincia autonoma di Trento)"
+owner = "Provincia autonoma di Trento"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "it_meteotrentino"
+connector = "connectors.webcams_more"
+
+# Observation coverage (2026-10-04): CURRENT image of the Meteotrentino webcams; positions from the open station list.
+# Image bytes are never fetched, copied or archived by NEXUM.
+[license]
+id = "CC-BY-4.0"
+url = "https://www.provincia.tn.it/Informative/Note-legali-e-crediti"
+attribution = "Meteotrentino – Provincia autonoma di Trento (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["dati.meteotrentino.it"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

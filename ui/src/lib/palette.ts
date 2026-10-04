@@ -7,7 +7,7 @@ export const TOKENS = {
   bg: "#0D1012", panel: "#13171A", raised: "#1A1F23", line: "#262C31",
   text: "#D6DBDE", dim: "#8A949A", accent: "#E0A640", link: "#79A7C9",
 };
-export const FAMILY_HUES = ["#6E8797", "#86A07A", "#C08064", "#9785B3", "#B39B5E", "#6FA3A0"];
+export const FAMILY_HUES = ["#6E8797", "#86A07A", "#C08064", "#9785B3", "#B39B5E", "#6FA3A0", "#B07A8C", "#8C9AB8"];
 export const OTHER = "#77858B";
 export const INSIGHT = "#C9B98A";
 export const SHAPE: Record<Kind, string> = { object: "■", event: "●", insight: "◆", relation: "—" };

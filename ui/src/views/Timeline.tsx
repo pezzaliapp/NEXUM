@@ -8,6 +8,8 @@ import { utc } from "../lib/format";
 import { colorOf, TOKENS } from "../lib/palette";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
+import { monthIndex } from "../lib/period";
+import { ResetChip, useChanges, usePeriodName } from "../components/Period";
 
 interface Bucket { start: number; end: number; n: number }
 interface Mark { id: string; t: number; track: 0 | 1 }
@@ -32,9 +34,12 @@ export function Timeline() {
   const [view, setView] = useState<[number, number] | null>(null);
   const [data, setData] = useState<{ buckets: Bucket[]; bucket: string; max: number; hlT: number | null } | null>(null);
   const [marks, setMarks] = useState<Mark[]>([]);
+  const [marksFor, setMarksFor] = useState<string | null>(null);   // focus whose connections the marks show
   const [drag, setDrag] = useState<[number, number] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const hover = useRef<string | null>(null);
+  const pname = usePeriodName();
+  const changed = useChanges().period;
 
   useEffect(() => {
     if (extent && !view) { const pad = (extent[1] - extent[0]) * 0.02; setView([extent[0] - pad, extent[1] + pad]); }
@@ -76,7 +81,7 @@ export function Timeline() {
       for (const it of d.items ?? []) { const e = store.entity(it.$ref); if (e?.t != null) out.push({ id: it.$ref, t: e.t, track: 1 }); }
       if (d.center_ms != null) out.push({ id: focus, t: d.center_ms, track: 0 });
     }));
-    Promise.allSettled(tasks).then(() => setMarks(out));
+    Promise.allSettled(tasks).then(() => { setMarks(out); setMarksFor(focus); });
   }, [focus, wv]);
 
   // ── drawing ─────────────────────────────────────────────────────────────
@@ -208,15 +213,13 @@ export function Timeline() {
     if (!down.current || !view) return;
     const r = canvas.current!.getBoundingClientRect();
     const px = e.clientX - r.left;
+    // the period changes only by a deliberate drag (whole months, as the map counts them); a click changes nothing
     if (drag) {
       const a = Math.round(Math.min(drag[0], drag[1])), b = Math.round(Math.max(drag[0], drag[1]));
       setDrag(null);
-      store.setScope({ time_window: [a, b] });
-    } else if (data) {
-      const t = geom().t(px);
-      const bk = data.buckets.find((b) => t >= b.start && t < bucketEnd(data.bucket, b.start));
-      if (bk) store.setScope({ time_window: [bk.start, bucketEnd(data.bucket, bk.start) - 1] });
+      store.setPeriod({ kind: "custom", from: monthIndex(a), to: monthIndex(b) });
     }
+    void px;
     down.current = null;
   };
   const onWheel = (e: React.WheelEvent) => {
@@ -236,16 +239,17 @@ export function Timeline() {
       data-hl={data?.hlT ?? ""} data-counts={data ? JSON.stringify(data.buckets.map((b) => [b.start, b.n])) : ""}
       data-buckets={data?.buckets.length ?? 0} data-window={scope.time_window ? scope.time_window.join(",") : ""}>
       <div className="tl-head">
-        <span>{S.time.density} · {S.time.bucket[data?.bucket ?? ""] ?? "—"}</span>
-        {view && <span className="mono">{utc(view[0], "day")} → {utc(view[1], "day")}</span>}
-        {scope.time_window && <span className="accent mono" data-testid="tl-window">[{utc(scope.time_window[0], "day")} → {utc(scope.time_window[1], "day")}]</span>}
+        <span>{S.time.density} · per {S.time.bucket[data?.bucket ?? ""] ?? "—"}</span>
+        <span className={changed ? "accent" : ""} data-testid="tl-window">{S.period.chip(pname)}</span>
         <span className="grow" />
         {err && <span className="err">{err}</span>}
-        {scope.time_window && <button type="button" className="xs" onClick={() => store.setScope({ time_window: null })}>{S.railTimeClear}</button>}
+        <ResetChip />
         <button type="button" className="xs" onClick={() => { const pad = (extent[1] - extent[0]) * 0.02; setView([extent[0] - pad, extent[1] + pad]); }}>{S.time.reset}</button>
       </div>
       <canvas ref={canvas} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onWheel={onWheel}
         onDoubleClick={() => { const pad = (extent[1] - extent[0]) * 0.02; setView([extent[0] - pad, extent[1] + pad]); }} />
+      {focus && !focus.startsWith("rel_") && marksFor === focus && !marks.some((m) => m.id !== focus) && (
+        <div className="tl-empty" data-testid="tl-empty">{S.time.noDated(store.entity(focus)?.label ?? focus)}</div>)}
     </section>
   );
 }
