@@ -25,6 +25,8 @@ import { usePeriodName } from "../components/Period";
 import { typeLabelOf, useSummaries } from "../components/Highlights";
 import { fmtValue, sentence, summaryOf } from "../lib/summary";
 import { isSheet, isTouch } from "../lib/layers";
+const LocalTime = lazy(() => import("../components/LocalTime"));
+const LivePlayer = lazy(() => import("../components/LivePlayer"));
 
 const KIND_TITLE: Record<string, string> = S.kinds;
 const SAT_SKIP = new Set(["observation", "person", "office", "government", "toll"]);
@@ -70,6 +72,8 @@ export function ObjectMode({ id }: { id: string }) {
         <div className="whatline"><span data-testid="focus-what">
           {[what, conn?.where, when != null ? dayLabel(when) : null].filter(Boolean).join(" · ")}</span>
           {outside && <span className="outside-mark" data-testid="focus-outside"> · {S.period.outsideShort}</span>}</div>
+        {(d?.properties?.timezone || (d?.identifiers ?? []).some((x: any) => x.scheme === "iso3166a2")) && <Suspense fallback={null}>
+          <LocalTime zone={d?.properties?.timezone ?? null} code={(d?.identifiers ?? []).find((x: any) => x.scheme === "iso3166a2")?.value ?? null} /></Suspense>}
         <ObservedWith id={id} />
         {e?.kind === "insight" && <InsightHead id={id} button={!whyAfter} />}
         {/* the support band says how well a CONNECTION is supported; for a place, a camera, a plant it is a record's
@@ -162,6 +166,9 @@ function MediaBlock({ id, props }: { id: string; props: Record<string, any> }) {
         referrerPolicy="no-referrer">{S.media.linkOpen} ↗</a>
       <p className="xs faint" data-testid="webcam-link-note">{props.terms_note ?? S.media.linkNote}</p>
     </section>);
+  // LIVE: the publisher's own continuous video (HLS or MJPEG), started only by the person; the current image stays too
+  const stream: string | null = typeof props.stream_url === "string" && /^https:\/\//.test(props.stream_url) && avail === "live_stream" ? props.stream_url : null;
+  if (m && stream) return <LiveBlock id={id} props={props} stream={stream} still={url && /^https:\/\//.test(url) ? url : null} />;
   if (!m || !url || !/^https:\/\//.test(url)) return null;
   const refresh = m.refresh_property ? props[m.refresh_property] : null;
   const observed = m.observed_property ? props[m.observed_property] : null;
@@ -196,6 +203,33 @@ function MediaBlock({ id, props }: { id: string; props: Record<string, any> }) {
             {" "}<button type="button" className="linklike xs" data-testid="media-reload" onClick={() => { setImageBroken(false); setShown({ t: Date.now() }); }}>{S.media.reload}</button></figcaption>
         </figure>)}
       <p className="xs faint">{S.media.privacy}</p>
+    </section>);
+}
+
+function LiveBlock({ id, props, stream, still }: { id: string; props: Record<string, any>; stream: string; still: string | null }) {
+  const e = store.entity(id);
+  const [on, setOn] = useState(false);
+  const [image, setImage] = useState<number | null>(null);
+  const [st, setSt] = useState<string>("idle");
+  useEffect(() => { setOn(false); setImage(null); setSt("idle"); }, [id]);
+  const page: string | null = typeof props.page_url === "string" && /^https:\/\//.test(props.page_url) ? props.page_url : null;
+  return (
+    <section className="media" data-testid="media" data-media-kind="live_video" data-live-state={st}>
+      <div className="conn-h">{S.media.kinds.live_video} <span className="tag live_stream" data-testid="media-status">{S.media.status.live_stream}</span></div>
+      <p className="xs dim media-what" data-testid="media-what">{S.media.liveWhat(props.stream_type)}{props.operator ? ` · ${props.operator}` : ""}
+        {props.place_note ? ` · ${props.place_note}` : ""}</p>
+      {props.stream_note && <p className="xs faint">{props.stream_note}</p>}
+      {!on ? <button type="button" className="primary media-open" data-testid="live-start" onClick={() => setOn(true)}>{S.media.liveStart}</button>
+        : <>
+          <Suspense fallback={<p className="xs dim">{S.media.connecting}</p>}>
+            <LivePlayer url={stream} type={props.stream_type} label={e?.label ?? ""} onState={setSt} />
+          </Suspense>
+          <button type="button" className="linklike xs" data-testid="live-stop" onClick={() => { setOn(false); setSt("idle"); }}>{S.media.liveStop}</button>
+        </>}
+      {still && (image == null
+        ? <button type="button" className="linklike xs" data-testid="media-open" onClick={() => setImage(Date.now())}>{S.media.alsoImage}</button>
+        : <figure className="media-fig"><img src={`${still}${still.includes("?") ? "&" : "?"}nexum_t=${image}`} alt={e?.label ?? ""} referrerPolicy="no-referrer" data-testid="media-img" /></figure>)}
+      <p className="xs faint">{S.media.credit}: {page ? <a href={page} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">{props.credit ?? props.operator}</a> : (props.credit ?? props.operator)}</p>
     </section>);
 }
 

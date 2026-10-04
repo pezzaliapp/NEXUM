@@ -41,3 +41,6 @@ feature_class = { kind = "text" }
 world_city = { kind = "bool" }
 megacity = { kind = "bool" }
 country_name = { kind = "text" }
+timezone = { kind = "text" }
+capital = { kind = "bool" }
+country_iso2 = { kind = "text" }

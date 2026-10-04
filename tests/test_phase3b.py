@@ -44,6 +44,14 @@ def test_every_webcam_image_is_https_on_the_declared_allowlist(live):
             # loaded into NEXUM); the images NEXUM shows stay https and on the allowlist
             assert p.get("image_url") is None and urllib.parse.urlparse(p["page_url"]).scheme in ("https", "http")
             continue
+        if p.get("stream_url"):   # LIVE (2026-10-04): the publisher's stream, https, on the declared video/img origins
+            v = urllib.parse.urlparse(p["stream_url"])
+            assert v.scheme == "https" and p["availability"] in ("live_stream", "offline") and p["stream_type"] in ("hls", "mjpeg")
+            allowed = json.loads((ROOT / "ui" / "media-hosts.json").read_text())["video" if p["stream_type"] == "hls" else "img"]
+            assert f"https://{v.netloc}" in allowed, p["stream_url"]
+        if not p.get("image_url"):
+            assert p.get("stream_url")
+            continue
         u = urllib.parse.urlparse(p["image_url"])
         assert u.scheme == "https", p["image_url"]
         seen.add(f"https://{u.netloc}")

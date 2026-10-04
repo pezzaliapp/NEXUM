@@ -839,7 +839,8 @@ def make_handler(svc: Service, port: int, verbose=False):
             return self._send(200, f.read_bytes(), ctype, headers={
                 "Cache-Control": "public, max-age=31536000, immutable" if immutable else "no-cache",
                 "Content-Security-Policy": f"default-src 'self'; img-src 'self' data: blob: {_media_hosts()}; style-src 'self' "
-                                           f"'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' {_media_hosts('connect')}"})
+                                           f"'unsafe-inline'; worker-src 'self' blob:; media-src 'self' blob: {_media_hosts('video')}; "
+                                           f"connect-src 'self' {_media_hosts('connect')} {_media_hosts('video')}"})
 
     return Handler
 
@@ -851,7 +852,7 @@ def _media_hosts(kind: str = "img") -> str:
         hosts = json.loads((pathlib.Path(__file__).resolve().parents[2] / "ui" / "media-hosts.json").read_text()).get(kind, [])
     except (OSError, ValueError, KeyError):
         return ""
-    return " ".join(h for h in hosts if re.fullmatch(r"https://[a-z0-9.-]+", h))
+    return " ".join(h for h in hosts if re.fullmatch(r"https://[a-z0-9.-]+(:\d{2,5})?", h))
 
 
 def serve(svc: Service, host="127.0.0.1", port=8765, verbose=False):
@@ -1219,7 +1220,7 @@ def tenures_of(q):
 
 
 IND_PROPS = ("indicator", "indicator_label", "unit", "section", "topic", "definition", "statistic", "nature", "frequency",
-             "dataset", "keywords", "group", "order", "digits", "note", "coverage_n", "latest_period")
+             "dataset", "keywords", "group", "order", "digits", "note", "unit_note", "coverage_n", "latest_period")
 _IND_CACHE: dict = {}
 
 
@@ -1481,8 +1482,19 @@ def event_media_of(q):
             if near:
                 by_place[o["object_id"]] = sorted(near, key=lambda x: (x[2], x[0]))[:20]
                 place_n[o["object_id"]] = len(near)          # how many in all within the distance (the 20 nearest are listed)
+    # what each explorable place's cameras can show, by the source's availability (e.g. live video, current image, link
+    # only): the place's own view says these numbers apart, never one total that hides how many are live
+    by_avail = {}
+    explore = [t for t, (_l, h) in hints.items() if h.get("explore")]
+    if media and explore:
+        mm, em = ",".join("?" * len(media)), ",".join("?" * len(explore))
+        for place, av, n in conn.execute(
+                f"SELECT r.to_id, json_extract(o.props_json, '$.availability'), COUNT(DISTINCT o.object_id) FROM relation r "
+                f"JOIN object o ON o.object_id=r.from_id JOIN object p ON p.object_id=r.to_id "
+                f"WHERE o.type IN ({mm}) AND p.type IN ({em}) GROUP BY 1, 2 ORDER BY 1, 2", (*media, *explore)):
+            by_avail.setdefault(place, {})[av or "unknown"] = n
     data = {"by_event": out, "days": EVENT_MEDIA_DAYS, "km": EVENT_MEDIA_KM, "anchor_ms": last, "by_place": by_place, "place_km": place_km,
-            "place_n": place_n}
+            "place_n": place_n, "by_avail": by_avail}
     return q._envelope(data, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=len(out), returned=len(out))
 
 

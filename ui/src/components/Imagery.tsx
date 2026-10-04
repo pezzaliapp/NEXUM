@@ -200,6 +200,19 @@ export function ImageryBlock({ id, geometry, label, when }: { id: string; geomet
 }
 
 let evMedia: Promise<any> | null = null;
+
+/** What a place's cameras can show, by availability (live video, current image, link only…), from the webcam package
+ *  (read once, on demand). null while loading. */
+export function useWebcamCounts(id: string): Record<string, number> | null {
+  const [d, setD] = useState<any | null>(null);
+  useEffect(() => {
+    let live = true;
+    evMedia ??= call<any>("/event-webcams", undefined, { channel: "event-webcams" }).then((r) => r.data);
+    evMedia.then((x) => { if (live) setD(x); }, () => { evMedia = null; });
+    return () => { live = false; };
+  }, [id]);
+  return d ? (d.by_avail?.[id] ?? {}) : null;
+}
 /** Public webcams near a RECENT event (the API layer's package: events of the last 30 days of the data, ≤ 25 km). */
 export function EventWebcams({ id }: { id: string }) {
   const [d, setD] = useState<any | null>(null);

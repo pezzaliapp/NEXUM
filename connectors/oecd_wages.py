@@ -61,10 +61,10 @@ def parse(data: bytes, meta: dict):
     if rec:
         yield rec
     rec = indicator(meta, "oecd.wage.gross_annual_ppp", "Retribuzione lorda media annua in dollari PPA (per confronti)",
-                    f"$ USA a parità di potere d'acquisto, prezzi costanti {base or ''}".strip(), ppp, section="vivere",
-                    topic="stipendi", definition=DEFINITION + ". Convertita dall'OECD in dollari a parità di potere d'acquisto e a "
+                    f"$ PPA, prezzi costanti {base or ''}".strip(), ppp, section="vivere",
+                    topic="confronto internazionale", unit_note="dollari a parità di potere d'acquisto (OECD): misura di confronto, non dollari USA", definition=DEFINITION + ". Convertita dall'OECD in dollari a parità di potere d'acquisto e a "
                     "prezzi costanti: serve a confrontare Paesi e anni, non è una somma pagata in dollari",
                     statistic="level", nature="reported", frequency="annuale", dataset=dataset,
-                    keywords="salary wage ppp potere d'acquisto confronto", digits=0, order=-19, locator="csv", text="OECD")
+                    keywords="salary wage ppp potere d'acquisto confronto", digits=0, order=119, locator="csv", text="OECD")
     if rec:
         yield rec

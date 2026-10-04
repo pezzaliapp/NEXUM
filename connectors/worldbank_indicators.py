@@ -13,11 +13,25 @@ from connectors.indicator_common import indicator
 from connectors.obs_common import UN193, iso
 from nexum.core.scheduler import FetchRequest
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"   # 1.1.0 (2026-10-04): GDP in the country's currency first; dollar series as comparison measures
 URL = "https://api.worldbank.org/v2/country/all/indicator/{}?format=json&per_page=20000&date=2010:2026"
 JMP = "stima WHO/UNICEF JMP (modellata dove mancano indagini)"
 AQ = ("FAO AQUASTAT: l'anno indicato è l'ultimo pubblicato e può riportare in avanti l'ultima osservazione nazionale; "
       "molti valori sono stime FAO")
+# COUNTRY CURRENCY FIRST (2026-10-04): the values in the country's own currency answer the country's view; the series
+# converted by the World Bank into US dollars (market rates), constant 2015 dollars or PPP international dollars are
+# kept as INTERNATIONAL COMPARISON measures, apart, each with a short note on what its unit is (never converted by
+# NEXUM, never shown as money a resident spends)
+COMPARE = "confronto internazionale"
+UNIT_NOTE = {
+    "NY.GDP.MKTP.CD": "convertito in dollari USA ai cambi di mercato dalla Banca Mondiale: serve a confrontare i Paesi",
+    "NY.GDP.PCAP.CD": "convertito in dollari USA ai cambi di mercato dalla Banca Mondiale: serve a confrontare i Paesi",
+    "NY.GNP.PCAP.CD": "dollari USA con il metodo Atlas della Banca Mondiale: serve a confrontare i Paesi",
+    "NY.GDP.PCAP.PP.CD": "dollari internazionali a parità di potere d'acquisto: misura di confronto, non dollari USA",
+    "NY.GNP.PCAP.PP.CD": "dollari internazionali a parità di potere d'acquisto: misura di confronto, non dollari USA",
+    "NE.CON.PRVT.PC.KD": "dollari a prezzi costanti 2015: misura per confronti nel tempo e tra Paesi, non una spesa in dollari",
+}
+LOCAL = {"NY.GDP.MKTP.CN": "{cur} a prezzi correnti", "NY.GDP.PCAP.CN": "{cur} per abitante, prezzi correnti"}
 # code: (section, topic, label, unit, statistic, nature, digits, keywords, definition)
 INDICATORS = {
     "SP.POP.TOTL": ("popolazione", "popolazione", "Popolazione totale", "abitanti", "level", "reported", 0,
@@ -41,6 +55,10 @@ INDICATORS = {
                           "age elderly anziani età", "Quota della popolazione con almeno 65 anni (UN World Population Prospects)"),
     "SP.DYN.LE00.IN": ("popolazione", "salute", "Speranza di vita alla nascita", "anni", "level", "estimated", 1,
                        "life expectancy speranza di vita", "Anni che vivrebbe un neonato con i tassi di mortalità dell'anno"),
+    "NY.GDP.MKTP.CN": ("economia", "prodotto", "Prodotto interno lordo (PIL)", "valuta nazionale, prezzi correnti", "level", "reported", 0,
+                       "gdp pil economy economia", "Valore aggiunto lordo di tutti i produttori residenti, in valuta nazionale a prezzi correnti (conti nazionali)"),
+    "NY.GDP.PCAP.CN": ("economia", "prodotto", "PIL pro capite", "valuta nazionale per abitante, prezzi correnti", "per_capita", "reported", 0,
+                       "gdp per capita pil pro capite", "PIL in valuta nazionale diviso per la popolazione di metà anno. Non è uno stipendio"),
     "NY.GDP.MKTP.CD": ("economia", "prodotto", "Prodotto interno lordo (PIL)", "US$ correnti", "level", "reported", 0,
                        "gdp pil economy economia", "Valore aggiunto lordo di tutti i produttori residenti, in dollari correnti"),
     "NY.GDP.PCAP.CD": ("economia", "prodotto", "PIL pro capite", "US$ correnti", "per_capita", "reported", 0,
@@ -126,9 +144,11 @@ def parse(data: bytes, meta: dict):
     if code not in INDICATORS or not by:
         return
     section, topic, label, unit, stat, nature, digits, kw, definition = INDICATORS[code]
-    rec = indicator(meta, code, label, unit, by, section=section, topic=topic, definition=definition, statistic=stat,
+    compare = code in UNIT_NOTE
+    rec = indicator(meta, code, label, unit, by, section=section, topic=COMPARE if compare else topic, definition=definition, statistic=stat,
                     nature=nature, frequency="annuale", dataset=f"World Bank WDI {code} (aggiornato {doc[0].get('lastupdated', '')})",
-                    keywords=kw, digits=digits, order=list(INDICATORS).index(code), locator="$[1]", text="World Bank",
+                    keywords=kw, digits=digits, order=list(INDICATORS).index(code) + (100 if compare else 0), locator="$[1]", text="World Bank",
+                    unit_note=UNIT_NOTE.get(code), unit_local=LOCAL.get(code),
                     allow_negative=code in ("EG.IMP.CONS.ZS", "SP.POP.GROW", "NY.GDP.MKTP.KD.ZG"))
     if rec:
         yield rec

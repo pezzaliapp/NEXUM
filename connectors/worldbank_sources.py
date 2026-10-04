@@ -31,7 +31,7 @@ SERIES = {
                      "{cur} al giorno per persona", "prezzi", "cibo", "price", "estimated", 2, 0, DIET,
                      "costo cibo spesa alimentare food cost dieta"),
         "CoHD_PPP": ("fpn.healthy_diet.cost_ppp", "Costo di una dieta sana in dollari PPA (per confronti)", "$ PPA 2021 al giorno per persona",
-                     None, "prezzi", "cibo", "price", "estimated", 2, 1,
+                     None, "prezzi", "confronto internazionale", "price", "estimated", 2, 101,
                      DIET + ". In dollari a parità di potere d'acquisto 2021: serve a confrontare Paesi",
                      "costo cibo food cost ppp"),
     }),
@@ -90,6 +90,7 @@ def parse(data: bytes, meta: dict):
         cid, label, unit, unit_local, section, topic, stat, nature, digits, order, definition, kw = spec
         rec = indicator(meta, cid, label, unit, by, section=section, topic=topic, definition=definition, statistic=stat,
                         nature=nature, frequency="annuale", dataset=dataset, keywords=kw, digits=digits, order=order,
-                        locator="source.data", text="World Bank FAO", unit_local=unit_local)
+                        locator="source.data", text="World Bank FAO", unit_local=unit_local,
+                        unit_note="dollari internazionali a parità di potere d'acquisto 2021: misura di confronto, non dollari USA" if "PPA" in unit else None)
     if rec:
         yield rec

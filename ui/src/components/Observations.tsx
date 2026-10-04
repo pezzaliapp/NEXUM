@@ -49,7 +49,13 @@ export function fmt(s: Series, v: number): string {
   if (a >= 1e6 && (stat === "level" || stat === "per_capita")) return `${nf(1).format(v / 1e6)} ${S.obs.units.mn}${unit}`;
   return `${nf(digits(s, v)).format(v)}${unit}`;
 }
-export const signed = (v: number, d = 1) => `${v > 0 ? "+" : v < 0 ? "−" : "±"}${nf(d).format(Math.abs(v))}`;
+export const signed = (v: number, d = 1) => {
+  // a large change said in words, like its value (+56,0 miliardi, not +56.017.500.000)
+  const a = Math.abs(v), s = v > 0 ? "+" : v < 0 ? "−" : "±";
+  if (a >= 1e9) return `${s}${nf(1).format(a / 1e9)} ${S.obs.units.bn}`;
+  if (a >= 1e6) return `${s}${nf(1).format(a / 1e6)} ${S.obs.units.mn}`;
+  return `${s}${nf(d).format(a)}`;
+};
 
 export interface ObsData { list: Series[]; groups: Record<string, string>; notes: Record<string, string>; names: Record<string, string>;
   attribution: Record<string, string> }
@@ -208,6 +214,7 @@ export function SeriesRow({ s, src, attr }: { s: Series; src: string; attr: stri
           {String(last[6] ?? "").startsWith("ANOMALIA") && <span className="tag stale" data-testid="obs-anomaly"> {S.obs.anomalyTag}</span>}
           {stale(s) && <span className="tag stale" data-testid="obs-stale"> {S.obs.staleTag}</span>}
         </span>
+        {p.unit_note && <span className="xs faint obs-unitnote" data-testid="obs-unit-note">{p.unit_note}</span>}
         <span className="xs dim obs-dir" data-testid="obs-direction">{dirText}</span>
       </summary>
       {/* the fact first: what was measured, the result, its period, its change (only when valid) */}

@@ -7,7 +7,7 @@ import json
 from connectors.webcam_common import camera, f
 from nexum.core.scheduler import FetchRequest
 
-VERSION = "1.1.0"   # 1.1.0 (2026-10-03): recordTimestamp is the time of the camera's RECORD, never the image's time
+VERSION = "1.2.0"   # 1.2.0 (2026-10-04): the live HLS video URL · 1.1.0 (2026-10-03): recordTimestamp is the time of the camera's RECORD, never the image's time
 DISTRICTS = range(1, 13)
 
 
@@ -38,6 +38,9 @@ def parse(data: bytes, meta: dict):
                      record_updated_at=f"{ts.get('recordDate')}T{ts.get('recordTime')}" if ts.get("recordDate") else None,
                      in_service=c.get("inService") == "true", route=loc.get("route"),
                      place_note=", ".join(x for x in (loc.get("nearbyPlace"), loc.get("county")) if x and x != "Not Reported"),
-                     locator=f"data[{i}]", text=" ".join(x for x in (loc.get("route"), loc.get("nearbyPlace"), "California") if x))
+                     locator=f"data[{i}]", text=" ".join(x for x in (loc.get("route"), loc.get("nearbyPlace"), "California") if x),
+                     # the live video Caltrans publishes for the camera (HLS, played by its own "Live Traffic Cameras" pages)
+                     stream_url=((c.get("imageData") or {}).get("streamingVideoURL") or None), stream_type="hls",
+                     stream_note="video continuo HLS di Caltrans; ritardo tipico di alcuni secondi")
         if rec:
             yield rec

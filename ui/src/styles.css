@@ -717,3 +717,10 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .cov.good { color: var(--ok, #2e7d32); }
 .cov.partial { color: var(--warn, #b26a00); }
 .cov.limited, .cov.none { color: var(--dim, #888); }
+
+/* live video (2026-10-04): the red dot only for a stream really playing or a camera whose publisher serves live video */
+.live-on { color: #ff4d4d; font-weight: 600; }
+.tag.live_stream { color: #ff4d4d; border-color: #ff4d4d66; }
+.media-fig.live video, .media-fig.live img { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: #000; border: 1px solid var(--line); }
+.localtime { margin-top: 2px; }
+.obs-unitnote { display: block; margin-top: 1px; }

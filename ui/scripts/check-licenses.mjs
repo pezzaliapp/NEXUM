@@ -12,7 +12,9 @@ const policy = JSON.parse(fs.readFileSync(process.env.NEXUM_LICENSE_POLICY ?? pa
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 const lock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json"), "utf8"));
 // @sqlite.org/sqlite-wasm: Phase 3 decision E4 (approved 2026-09-29), Apache-2.0 — the Core's FTS5 index in the browser
-const RUNTIME = ["@sqlite.org/sqlite-wasm", "graphology", "maplibre-gl", "react", "react-dom", "sigma"];
+// hls.js (2026-10-04, Apache-2.0): plays the publishers' live HLS video in browsers without native HLS, loaded only
+// when a person starts a live camera
+const RUNTIME = ["@sqlite.org/sqlite-wasm", "graphology", "hls.js", "maplibre-gl", "react", "react-dom", "sigma"];
 const DEV = ["@playwright/test", "@types/react", "@types/react-dom", "@vitejs/plugin-react", "typescript", "vite"];
 const problems = [];
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());

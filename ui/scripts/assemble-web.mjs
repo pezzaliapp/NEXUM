@@ -32,10 +32,13 @@ fs.writeFileSync(path.join(out, "current.json"), JSON.stringify(cur));
 
 // images of approved sources, loaded only when the person opens them: an explicit list of origins, never a wildcard
 const HOSTS = JSON.parse(fs.readFileSync(path.join(root, "media-hosts.json"), "utf8"));
-const MEDIA = HOSTS.img, CONNECT = HOSTS.connect ?? [];
-if ([...MEDIA, ...CONNECT].some((h) => !/^https:\/\/[a-z0-9.-]+$/.test(h))) throw new Error("media-hosts.json: only explicit https origins");
+// live video (2026-10-04): the origins of the publishers' live streams — HLS playlists and segments (read by the
+// player: connect-src, media-src) and MJPEG streams (shown as an image: img-src)
+const MEDIA = HOSTS.img, CONNECT = HOSTS.connect ?? [], VIDEO = HOSTS.video ?? [];
+if ([...MEDIA, ...CONNECT, ...VIDEO].some((h) => !/^https:\/\/[a-z0-9.-]+(:\d{2,5})?$/.test(h))) throw new Error("media-hosts.json: only explicit https origins");
 const CSP = `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' data: blob: ${MEDIA.join(" ")}; ` +
-  `style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' ${CONNECT.join(" ")}; manifest-src 'self'; ` +
+  `media-src 'self' blob: ${VIDEO.join(" ")}; ` +
+  `style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' ${[...CONNECT, ...VIDEO].join(" ")}; manifest-src 'self'; ` +
   "object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
 fs.writeFileSync(path.join(out, "_headers"), [
   "/*",

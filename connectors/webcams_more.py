@@ -18,6 +18,8 @@ CURRENT IMAGE (the publisher allows its current still image elsewhere; loaded by
   us.iowa_dot         Iowa DOT traffic and road-weather cameras — CC BY 4.0
   us.wsdot            Washington State DOT highway cameras — KML offered on WSDOT's public traveler API page
   ca.toronto          City of Toronto traffic cameras — Open Government Licence – Toronto
+  it.garr_live        GARR.tv public live channels of INGV (Etna, Eolie) and CNR-ISMAR (Acqua Alta, Venezia) — CC BY 4.0
+                      as each video declares it; HLS, LIVE only while GARR.tv says the video is live
   ca.ontario_mto      Ontario Ministry of Transportation cameras (511on images) — Open Government Licence – Ontario
 
 LINK ONLY (the list is open, the images are not licensed for reuse, or not served over https):
@@ -42,7 +44,7 @@ import xml.etree.ElementTree as ET
 from connectors.webcam_common import camera, f, finalize, link_camera
 from nexum.core.scheduler import FetchRequest
 
-VERSION = "1.1.0"
+VERSION = "1.2.1"
 LISTS = {
     "uk.tfl_jamcams": ["https://api.tfl.gov.uk/Place/Type/JamCam"],
     "lu.cita": ["https://www.cita.lu/kml/cameras.kml"],
@@ -58,6 +60,7 @@ LISTS = {
     "it.arpa_fvg": ["https://www.meteo.fvg.it/ajax/webcamList.php"],
     "it.ingv_oe": ["https://www.ct.ingv.it/sezioniesterne/webcam/WebcamEtna.php"],
     "tw.thb_cctv": ["https://cctv-maintain.thb.gov.tw/opendataCCTVs.xml"],
+    "it.garr_live": ["https://garr.tv/api/v1/videos?isLive=true&count=100"],
     "tw.wra_cctv": ["https://opendata.wra.gov.tw/api/v2/f71b74eb-cbe5-42c6-8be5-7500450e7db0?format=JSON"],
     "us.iowa_dot": ["https://services.arcgis.com/8lRhdTsQyJpO52F1/arcgis/rest/services/Traffic_Cameras_View/FeatureServer/0/query"
                     "?where=1%3D1&outFields=*&outSR=4326&f=json&resultRecordCount=5000"],
@@ -77,6 +80,16 @@ TRENTINO = {"T094_last.jpg": "T0094", "T153_last.jpg": "T0153", "T374_last.jpg":
 # Venezia, Centro Maree: the four places of its cameras (position of the building/landmark the page names, ±200 m)
 VENEZIA = {"murano": ("Murano · Faro", 12.3539, 45.4572), "rialto": ("Rialto · Palazzo Cavalli", 12.3333, 45.4366),
            "salute": ("Punta della Dogana · Salute", 12.3364, 45.4306), "smarco": ("San Marco · Torre dell'Orologio", 12.3393, 45.4347)}
+# GARR.tv (PeerTube of the Italian research network): the public live channels of research institutions, with the
+# place each one frames (the channel names it; position of the place, ±1 km)
+GARR = {"INGV Catania": {"Etna": (14.9934, 37.7510, "Etna, Sicilia, Italia", "attività del vulcano Etna",
+                                   "INGV – Osservatorio Etneo · Pecora E., Prestifilippo M., et al. (2025). Etna's TV channel. doi:10.13127/etna/tvchn"),
+                          "Eolie": (15.2133, 38.7892, "Stromboli, Isole Eolie, Italia", "attività dei vulcani delle Eolie",
+                                    "INGV – Osservatorio Etneo · Pecora E., Prestifilippo M., et al. (2025). Aeolian's TV channel. doi:10.13127/aeolian/tvchn")},
+        "CNR-ISMAR": {"Acqua Alta": (12.5081, 45.3143, "Torre oceanografica Acqua Alta, Golfo di Venezia, Italia", "mare e piattaforma oceanografica",
+                                     "CNR – Istituto di Scienze Marine (ISMAR)"),
+                      "Riva Sette Martiri": (12.3505, 45.4337, "Venezia, Riva dei Sette Martiri, Italia", "laguna di Venezia",
+                                             "CNR – Istituto di Scienze Marine (ISMAR)")}}
 # INGV-OE: the webcam pages of each volcano (point: the volcano's summit area, the cameras ring it)
 INGV = [("etna", "Webcam INGV dell'Etna (9 telecamere)", "https://www.ct.ingv.it/sezioniesterne/webcam/WebcamEtna.php", 14.9934, 37.7510, "Etna"),
         ("stromboli", "Webcam INGV di Stromboli", "https://www.ct.ingv.it/sezioniesterne/webcam/WebcamEolie.php", 15.2133, 38.7892, "Stromboli, Isole Eolie"),
@@ -293,7 +306,9 @@ def _parse(data, meta):
         for i, c in enumerate(re.findall(r"<CCTV>(.*?)</CCTV>", text, re.S)):
             g = lambda k: html.unescape((re.search(f"<{k}>(.*?)</{k}>", c, re.S) or [None, ""])[1].strip())   # noqa: E731
             yield camera(meta, g("CCTVID"), "thb_cctv", f"Taiwan · {g('SurveillanceDescription') or g('RoadName')}", f(g("PositionLon")), f(g("PositionLat")),
-                         g("VideoImageURL").replace(".thb.gov.tw:443/", ".thb.gov.tw/"), operator="Highway Bureau, MOTC (Taiwan)", subject="traffico stradale", route=g("RoadName"),
+                         g("VideoImageURL").replace(".thb.gov.tw:443/", ".thb.gov.tw/"), operator="Highway Bureau, MOTC (Taiwan)",
+                         stream_url=g("VideoStreamURL").replace(".thb.gov.tw:443/", ".thb.gov.tw/") or None, stream_type="mjpeg",
+                         stream_note="video continuo MJPEG del Highway Bureau (fotogrammi in sequenza)", subject="traffico stradale", route=g("RoadName"),
                          credit="交通部公路局 Highway Bureau – Open Government Data License v1", place_note="Taiwan",
                          locator=f"CCTV[{i}]", text=f"{g('RoadName')} {g('SurveillanceDescription')} Taiwan 台灣 traffic webcam")
     elif sid == "tw.wra_cctv":
@@ -309,6 +324,8 @@ def _parse(data, meta):
             yield camera(meta, _h(a.get("ImageURL") or a.get("device_id")), "iowa_dot_cam", f"Iowa · {a.get('Desc_')}", f(a.get("longitude")), f(a.get("latitude")), a.get("ImageURL"),
                          operator="Iowa Department of Transportation", subject="strada e condizioni meteo" if a.get("Type") == "RWIS" else "traffico stradale",
                          credit="Iowa DOT, CC BY 4.0", route=a.get("Route"), place_note="Iowa, Stati Uniti", locator=f"$.features[{i}]",
+                         stream_url=a.get("VideoURL") or None, stream_type="hls",
+                         stream_note="video continuo HLS di Iowa DOT (CC BY 4.0, \"including motion video URL\"); ritardo tipico di alcuni secondi",
                          text=f"{a.get('Desc_')} Iowa traffic webcam")
     elif sid == "us.wsdot":
         for i, name, (lon, lat), d in _kml_placemarks(text):
@@ -355,4 +372,20 @@ def _parse(data, meta):
                               locator=f"$.features[{i}]",
                               reason="Il Québec pubblica con licenza aperta l'elenco delle telecamere, non le immagini: NEXUM apre il visualizzatore di Québec 511.",
                               text=f"{p.get('DescriptionLocalisationFr')} Québec traffic webcam")
-
+    elif sid == "it.garr_live":
+        for i, v in enumerate(json.loads(text).get("data") or []):
+            chan = (v.get("channel") or {}).get("displayName") or ""
+            org = next((k for k in GARR if k in chan), None)
+            place = next((x for k, x in (GARR.get(org) or {}).items() if k in (v.get("name") or "")), None)
+            lic = (v.get("licence") or {}).get("label") or ""
+            if not (org and place and v.get("isLive") and lic.startswith("CC BY") and (v.get("privacy") or {}).get("label") == "Public"):
+                continue
+            lon, lat, where, subject, credit = place
+            yield camera(meta, v["uuid"], "garr_live", f"{v.get('name')} (live)", lon, lat, None,
+                         operator=f"{credit.split(' · ')[0]} via GARR.tv", subject=subject, credit=f"{credit} — {lic}",
+                         credit_url=f"https://garr.tv/w/{v.get('shortUUID')}" if v.get("shortUUID") else None,
+                         page_url=f"https://garr.tv/w/{v.get('shortUUID')}" if v.get("shortUUID") else None,
+                         place_note=where, locator=f"$.data[{i}]",
+                         stream_url=f"https://garr.tv/static/streaming-playlists/hls/{v['uuid']}/master.m3u8", stream_type="hls",
+                         stream_note="diretta HLS pubblicata su GARR.tv dall'ente di ricerca; può interrompersi e ripartire", country="IT",
+                         text=f"{v.get('name')} {where} live diretta video webcam")

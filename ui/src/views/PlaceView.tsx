@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Flows, Gaps, IndicatorList, KeyLine, perCapita, purchasing, sectionOf, useIndicators, type Flow } from "../components/Indicators";
-import { ImageryBlock } from "../components/Imagery";
+import { ImageryBlock, useWebcamCounts } from "../components/Imagery";
 import SECTIONS_CFG from "../config/sections.json";
 import COVERAGE_CFG from "../config/webcam-coverage.json";
 
@@ -18,7 +18,7 @@ import { type Series } from "../lib/observations";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
 import { ConnectionsBlock } from "../components/Connections";
-import { ObservationsBlock, useObservations, hasObservations } from "../components/Observations";
+import { ObservationsBlock, useObservations, hasObservations, fmt } from "../components/Observations";
 import { currentHolders, TenuresBlock, useTenures } from "../components/Tenures";
 import { Ref, Section, useFetch } from "../components/common";
 import { dayLabel } from "../lib/period";
@@ -210,12 +210,18 @@ export function coverageOf(d: any): { level: string; label: string; note: string
   return { level, label: cfg.labels[level], note: row?.[1] ?? "" };
 }
 
-function CoverageLine({ d, n }: { d: any; n: number }) {
+function CoverageLine({ d, n, id }: { d: any; n: number; id: string }) {
   const c = coverageOf(d);
+  // never one total that hides how many are live: LIVE · current images · link only · offline or old, apart
+  const by = useWebcamCounts(id);
+  const live = by?.live_stream ?? 0, cur = by?.current_snapshot ?? 0, link = by?.link_only ?? 0, off = (by?.offline ?? 0) + (by?.stale ?? 0);
   return (
-    <p className="xs" data-testid="webcam-coverage" data-level={c?.level ?? ""}>
-      {S.place.webcamsInNexum(n)}{c && <> · {S.place.coverage} <b className={`cov ${c.level}`}>{c.label}</b>{c.note ? <span className="dim"> — {c.note}</span> : null}</>}
-    </p>);
+    <div className="xs" data-testid="webcam-coverage" data-level={c?.level ?? ""}>
+      <p>{S.place.webcamsInNexum(n)}{c && <> · {S.place.coverage} <b className={`cov ${c.level}`}>{c.label}</b>{c.note ? <span className="dim"> — {c.note}</span> : null}</>}</p>
+      {by && n > 0 && <p data-testid="webcam-counts" data-live={live} data-current={cur} data-link={link}>
+        <b className={live ? "live-on" : "dim"}>{S.media.countLive(live)}</b> · {S.media.countCurrent(cur)} · {S.media.countLink(link)}
+        {off ? <span className="dim"> · {S.media.countOff(off)}</span> : null}</p>}
+    </div>);
 }
 
 /** What can be observed of the place now: imagery from orbit on request, public webcams with a current image. */
@@ -223,7 +229,7 @@ function Observe({ id, d, mediaTypes }: { id: string; d: any; mediaTypes: [strin
   const types = useStore((s) => s.types);
   return (
     <div className="place-sec" data-testid="sec-osserva">
-      <CoverageLine d={d} n={mediaTypes.reduce((a, [, n]) => a + n, 0)} />
+      <CoverageLine d={d} id={id} n={mediaTypes.reduce((a, [, n]) => a + n, 0)} />
       <ImageryBlock id={id} geometry={d?.geometry} label={d?.label ?? ""} />
       {mediaTypes.map(([t, n]) => (
         <section key={t} className="ov-block" data-testid="ov-media">
@@ -270,7 +276,11 @@ function Overview(p: { id: string; d: any; ctxData: any; conn: Conn | null; hold
     .filter((s) => s.points[s.points.length - 1][2] > 0).sort((a, b) => b.points[b.points.length - 1][2] - a.points[a.points.length - 1][2]);
   const gasFrom = p.flows.filter((f) => f.type === "imports_gas_from" && f.direction === "out" && (f.series[f.series.length - 1]?.[1] ?? 0) > 0)
     .sort((a, b) => b.series[b.series.length - 1][1] - a.series[a.series.length - 1][1]).slice(0, 3);
-  const economy = pick("economia", "NY.GDP.MKTP.CD", "NY.GDP.PCAP.CD", "NY.GDP.MKTP.KD.ZG");
+  // the place's own currency first; the dollar and PPP series are comparison measures, said apart in one small line
+  const gdp = pick("economia", "NY.GDP.MKTP.CN"), gdpPc = pick("economia", "NY.GDP.PCAP.CN");
+  const economy = [...(gdp.length ? gdp : pick("economia", "NY.GDP.MKTP.CD")), ...(gdpPc.length ? gdpPc : pick("economia", "NY.GDP.PCAP.CD")),
+    ...pick("economia", "NY.GDP.MKTP.KD.ZG")];
+  const compare = [...(gdp.length ? pick("economia", "NY.GDP.MKTP.CD") : []), ...pick("economia", "NY.GDP.PCAP.PP.CD")];
   const unemployment = (bySec.get("economia") ?? []).filter((s) => s.kind === "official").slice(0, 1);
   const mixYear = mix[0] ? (mix[0].points[mix[0].points.length - 1][1] ?? "").slice(0, 4) : "";
   const events = ((ctxData?.related_events?.items ?? []) as any[]).map((it) => store.entity(it.$ref)).filter(Boolean)
@@ -314,6 +324,9 @@ function Overview(p: { id: string; d: any; ctxData: any; conn: Conn | null; hold
       {(economy.length > 0 || unemployment.length > 0) && <Block title={S.place.economy} k="economia" go={go} test="ov-economy">
         {economy.map((s) => <KeyLine key={s.id} s={s} names={names} />)}
         {unemployment.map((s) => <KeyLine key={s.id} s={s} names={names} />)}
+        {compare.length > 0 && <p className="xs dim" data-testid="ov-compare">{S.place.compareLead}{" "}
+          {compare.map((s, i) => <span key={s.id}>{i ? " · " : ""}{s.label} <b>{fmt(s, s.points[s.points.length - 1][2])}</b></span>)}
+          {" "}<span className="faint">({S.place.compareNote})</span></p>}
       </Block>}
       {holders.length > 0 && <Block title={S.place.gov} k="gov" go={go} test="ov-gov">
         {holders.map(([oid, o, cur]) => (
@@ -335,7 +348,7 @@ function Overview(p: { id: string; d: any; ctxData: any; conn: Conn | null; hold
       </Block>}
       <Block title={S.place.observe} k="osserva" go={go} test="ov-observe">
         <p className="xs dim">{S.place.observeImagery}</p>
-        <CoverageLine d={d} n={p.mediaTypes.reduce((a, [, n]) => a + n, 0)} /></Block>
+        <CoverageLine d={d} id={id} n={p.mediaTypes.reduce((a, [, n]) => a + n, 0)} /></Block>
       {/* what NEXUM found around it (the same connections as every element), after what is known about it */}
       {p.conn && <LinksOnMap id={id} />}
       {p.conn && <ConnectionsBlock c={p.conn} plain />}

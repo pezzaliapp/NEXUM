@@ -227,7 +227,7 @@ export function KeyLine({ s, names }: { s: Series | undefined; names: Record<str
   return (
     <div className="ov-line" data-testid="ov-key" data-indicator={s.props.indicator}>
       <span className="ov-label">{s.label}</span>{" "}<b className="obs-v">{fmt(s, last[2])}</b>
-      <span className="xs dim"> · {(last[1] ?? "").slice(0, 4)} · {src}{s.props.derived ? ` · ${S.obs.derived}` : ""}</span>
+      <span className="xs dim"> · {(last[1] ?? "").slice(0, 4)} · {src}{s.props.derived && src !== S.ind.nexum ? ` · ${S.obs.derived}` : ""}</span>
     </div>);
 }
 

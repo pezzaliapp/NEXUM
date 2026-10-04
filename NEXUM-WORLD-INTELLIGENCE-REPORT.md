@@ -222,3 +222,28 @@ first search.
 - Fuel: 37 of 193; Japan (ANRE) blocks the project's User-Agent; Turkey (EPDK) states no licence.
 - LNG terminals, refineries, pipelines: Global Energy Monitor requires personal data to download.
 - O9 following searches on Fast 4G (see above).
+
+---
+
+# Hotfix after the physical review of 31c547a (2026-10-04): live video, local time, currencies
+
+- **LIVE video: 0 → 5,214 cameras** whose publisher serves a continuous stream — Caltrans HLS 2,174 (USA), Iowa DOT
+  HLS 700 (USA), Taiwan Highway Bureau MJPEG 2,334 (Taiwan), GARR.tv HLS 6 (Italy: INGV Etna and Eolie, CNR-ISMAR
+  Acqua Alta tower ×3 and Venice). Status "● LIVE" only for these; a refreshed still stays "IMMAGINE CORRENTE"
+  (16,087 → 10,879 current images, the others moved to LIVE with their still kept as fallback). The player starts only
+  on request, says "IN ONDA" only once frames arrive and says when a stream does not answer. Proof today: HLS media
+  sequence advancing / distinct MJPEG frames — Caltrans 11/12, Iowa 10/12, Taiwan 12/12, GARR INGV 2/2; in the
+  browser: Etna (time advancing, the video's own UTC clock matching), a Caltrans camera from Los Angeles, a Taiwan
+  camera near Taipei. Each country's Osserva says LIVE · current images · link only apart (Italy: LIVE 6 · 57 · 602;
+  Taiwan: 2,334 LIVE; USA: 2,874 LIVE).
+- **Local date and time** in the header of every city and country, from IANA zones (Natural Earth's zone checked
+  against IANA zone.tab: Juba = Africa/Juba), DST included, refreshed without reload: Italy/Parma UTC+2 CEST, London
+  BST, New York EDT UTC−4, Tokyo and Sydney (already 5 October), India UTC+5:30, Nepal UTC+5:45, Hong Kong; countries
+  with several offsets (USA: 7) say "Più fusi orari" and the capital's time ("Ora della capitale (Washington, D.C.)").
+- **Currencies**: GDP and GDP per inhabitant in the country's currency first (Italy 2,258 billion EUR, 38,327 EUR per
+  inhabitant; Japan JPY; USA USD); the World Bank's US$, constant-2015 US$ and PPP series kept as "confronto
+  internazionale", apart, each with a one-line note ("misura di confronto, non dollari USA"; "prezzi costanti 2015:
+  … non una spesa in dollari"); Eurostat pay, income and household energy prices in the national currency of states
+  outside the euro (USA net pay in USD, Poland in PLN). Nothing converted by NEXUM.
+- Measured: O6 996,315 B · O7 7,491 files · O8 p95 683 ms · O9 first 5,938 ms (PASS), following p95 1,187 ms on
+  Fast 4G (still FAIL, not worse) · parity 2,018/2,018 · pytest 129 · web 123 · mobile 50 · E2E 23 · lights unchanged.

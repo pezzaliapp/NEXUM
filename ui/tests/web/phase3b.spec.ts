@@ -40,7 +40,8 @@ test("webcams: described first; the image is requested from its source only afte
   const asked: string[] = [];
   page.on("request", (r) => asked.push(r.url()));
   await open(page);
-  const cam = await search(page, "Donner", "camera.public_webcam");
+  // declared change (2026-10-04): Caltrans "Donner" now has its live video; a camera with a current still is used
+  const cam = await search(page, "Kelikamera Helsinki", "camera.public_webcam");
   await select(page, cam);
   await expect(page.getByTestId("media")).toBeVisible();
   await expect(page.getByTestId("media-what")).toContainText("non un video");

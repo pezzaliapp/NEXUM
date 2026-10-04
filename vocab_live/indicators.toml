@@ -28,6 +28,7 @@ latest_period = { kind = "text" }
 anomalies_n = { kind = "int" }
 by_country = { kind = "list" }
 unit_by_country = { kind = "list" }
+unit_note = { kind = "text" }
 
 # FLUSSI DI ENERGIA FRA PAESI: dichiarati dal Paese che importa (o esporta), con i volumi annuali della fonte
 # ("series" = [[anno, valore], …], unità della fonte). Mai dedotti dalla geografia; il partner può essere un Paese di

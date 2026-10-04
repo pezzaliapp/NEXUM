@@ -17,18 +17,18 @@ acknowledged" (Eurostat copyright notice). JSON-stat API, no key. Values as publ
 
 import json
 
-from connectors.indicator_common import indicator
+from connectors.indicator_common import CURRENCY, indicator
 from connectors.obs_common import iso
 from nexum.core.scheduler import FetchRequest
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"   # 1.1.0 (2026-10-04): national currency for states outside the euro
 BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
 FLAGS = {"e": "stima", "p": "provvisorio", "b": "interruzione di serie", "u": "affidabilità bassa", "d": "definizione diversa"}
 SILC = "indagine EU-SILC: i redditi si riferiscono all'anno precedente l'anno dell'indagine"
 # key: (dataset query, fixed dimensions, [(code, label, unit, section, topic, statistic, digits, order, definition, keywords, filter)])
 SETS = {
     "earn_nt_net": (
-        "earn_nt_net?format=JSON&lang=EN&ecase=P1_NCH_AW100&currency=EUR&estruct=NET&estruct=GRS&sinceTimePeriod=2010",
+        "earn_nt_net?format=JSON&lang=EN&ecase=P1_NCH_AW100&currency=EUR&currency=NAC&estruct=NET&estruct=GRS&sinceTimePeriod=2010",
         [("eurostat.earnings.net", "Retribuzione netta annua · persona sola con il salario medio", "EUR all'anno (netto)",
           "vivere", "stipendi", "level", 0, -18,
           "Retribuzione NETTA annua di una persona sola senza figli che guadagna il salario medio: lordo meno imposte sul reddito "
@@ -40,7 +40,7 @@ SETS = {
           "Retribuzione LORDA annua del salario medio usato da Eurostat per il calcolo del netto (stessa persona e stesso anno "
           "del valore netto)", "salario lordo gross earnings", {"estruct": "GRS"})]),
     "ilc_di03": (
-        "ilc_di03?format=JSON&lang=EN&age=TOTAL&sex=T&statinfo=MED_EI&unit=EUR&sinceTimePeriod=2010",
+        "ilc_di03?format=JSON&lang=EN&age=TOTAL&sex=T&statinfo=MED_EI&unit=EUR&unit=NAC&sinceTimePeriod=2010",
         [("eurostat.income.median_equivalised", "Reddito netto mediano equivalente (famiglie)", "EUR all'anno per adulto equivalente",
           "vivere", "redditi", "level", 0, -16,
           "Reddito disponibile NETTO della famiglia diviso per i suoi adulti equivalenti (scala OCSE modificata); metà della "
@@ -61,14 +61,14 @@ SETS = {
           "(definizione Eurostat di sovraccarico). " + SILC,
           "casa abitazione affitto housing overburden", {})]),
     "nrg_pc_204": (
-        "nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&unit=KWH&sinceTimePeriod=2015-S1",
+        "nrg_pc_204?format=JSON&lang=EN&nrg_cons=KWH2500-4999&tax=I_TAX&currency=EUR&currency=NAC&unit=KWH&sinceTimePeriod=2015-S1",
         [("eurostat.price.electricity_household", "Elettricità per le famiglie · prezzo con tasse", "EUR/kWh",
           "prezzi", "energia per la casa", "price", 4, 10,
           "Prezzo medio dell'elettricità pagato dalle famiglie con consumo annuo tra 2.500 e 4.999 kWh (fascia DC), tutte le "
           "tasse e gli oneri inclusi, media del semestre (Eurostat)",
           "bolletta luce elettricità electricity price household energia casa", {})]),
     "nrg_pc_202": (
-        "nrg_pc_202?format=JSON&lang=EN&nrg_cons=GJ20-199&tax=I_TAX&currency=EUR&unit=KWH&sinceTimePeriod=2015-S1",
+        "nrg_pc_202?format=JSON&lang=EN&nrg_cons=GJ20-199&tax=I_TAX&currency=EUR&currency=NAC&unit=KWH&sinceTimePeriod=2015-S1",
         [("eurostat.price.gas_household", "Gas naturale per le famiglie · prezzo con tasse", "EUR/kWh",
           "prezzi", "energia per la casa", "price", 4, 11,
           "Prezzo medio del gas naturale pagato dalle famiglie con consumo annuo tra 20 e 199 GJ (fascia D2), tutte le tasse e "
@@ -110,21 +110,46 @@ def parse(data: bytes, meta: dict):
         return
     d = json.loads(data.decode("utf-8"))
     cells = list(_cells(d))
+    # THE COUNTRY'S OWN CURRENCY (2026-10-04): Eurostat publishes these amounts in EUR (converted by Eurostat for the
+    # states outside the euro) and in national currency (NAC). A euro state: EUR. Another state: its national currency,
+    # named when it had one legal tender for the whole series (CLDR); otherwise Eurostat's EUR values stay, said so.
+    money = "currency" in d["id"] or ("unit" in d["id"] and "NAC" in d["dimension"]["unit"]["category"]["index"])
+    mdim = "currency" if "currency" in d["id"] else "unit"
     for code, label, unit, section, topic, stat, digits, order, definition, kw, filt in SETS[key][1]:
-        by = {}
+        by, units = {}, {}
+        series = {}
         for coord, v, flag in cells:
             if any(coord.get(k) != val for k, val in filt.items()) or v is None:
                 continue
             c = iso(coord["geo"])
             if not c:
                 continue
-            note = FLAGS.get(flag, flag) if flag else None
-            if key.startswith("ilc_"):
-                note = f"{note} · {SILC}" if note else SILC
-            by.setdefault(c, []).append((coord["time"], v, note))
+            series.setdefault((c, coord.get(mdim) if money else None), []).append((coord, v, flag))
+        pick = {}
+        for (c, cur), rows in series.items():
+            if not money:
+                pick[c] = rows
+                continue
+            legal = CURRENCY.get(c)
+            first = min(int(str(r[0]["time"])[:4]) for r in rows)
+            latest = lambda cc: max((str(r[0]["time"]) for r in series.get((c, cc), [])), default="")   # noqa: E731
+            nac_ok = legal and legal[0] != "EUR" and (first > int(legal[1][:4]) or (first == int(legal[1][:4]) and legal[1][5:] == "01-01")) \
+                and latest("NAC") >= latest("EUR")   # the national-currency series only when it is as recent as the EUR one
+            if (cur == "EUR" and (not legal or legal[0] == "EUR" or not nac_ok)) or (cur == "NAC" and nac_ok):
+                pick[c] = rows
+                if cur == "NAC":
+                    units[c] = unit.replace("EUR", legal[0], 1)
+                elif legal and legal[0] != "EUR":
+                    units[c] = unit.replace("EUR", "EUR (convertiti da Eurostat)", 1)
+        for c, rows in pick.items():
+            for coord, v, flag in rows:
+                note = FLAGS.get(flag, flag) if flag else None
+                if key.startswith("ilc_"):
+                    note = f"{note} · {SILC}" if note else SILC
+                by.setdefault(c, []).append((coord["time"], v, note))
         rec = indicator(meta, code, label, unit, by, section=section, topic=topic, definition=definition, statistic=stat,
                         nature="reported", frequency="semestrale" if key.startswith("nrg_") else "annuale",
                         dataset=f"Eurostat {key} (aggiornato {str(d.get('updated', ''))[:10]})", keywords=kw, digits=digits,
-                        order=order, locator=key, text="Eurostat")
+                        order=order, locator=key, text="Eurostat", unit_of=units or None)
         if rec:
             yield rec

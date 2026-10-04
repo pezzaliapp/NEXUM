@@ -1,0 +1,36 @@
+id = "it.garr_live"
+name = "GARR.tv — public live video of research institutions (INGV Etna/Eolie, CNR-ISMAR)"
+owner = "Consortium GARR (platform) · INGV · CNR-ISMAR (publishers)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "it_garr_live"
+connector = "connectors.webcams_more"
+
+# Live observation (2026-10-04): the public live channels whose licence field is CC BY 4.0; HLS played by the
+# browser from GARR.tv only when the person starts it (CORS "*", no token, no Referer; nothing copied or relayed).
+# GARR.tv terms: "nothing in this Agreement is intended to prevent you from reusing content available under a
+# Creative Commons licence in accordance with the terms of the applicable licence".
+[license]
+id = "CC-BY-4.0"
+url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "INGV – Osservatorio Etneo (doi:10.13127/etna/tvchn, doi:10.13127/aeolian/tvchn); CNR-ISMAR — video via GARR.tv, CC BY 4.0"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["garr.tv"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 3600
+
+[options]

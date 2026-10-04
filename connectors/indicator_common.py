@@ -88,7 +88,7 @@ def _flag(f, v, statistic, allow_negative):
 
 def indicator(meta, code, label, unit, by_country, *, section, topic, definition, statistic, nature, frequency,
               dataset, keywords="", group=None, locator="", order=0, digits=None, note=None, text="",
-              allow_negative=False, unit_local=None, unit_of=None):
+              allow_negative=False, unit_local=None, unit_of=None, unit_note=None):
     """One indicator of one source for every country it covers (only the 193 UN member states are kept)."""
     assert section in SECTIONS and nature in NATURES and statistic in STATISTICS, (section, nature, statistic)
     rows, anomalies = [], 0
@@ -106,7 +106,7 @@ def indicator(meta, code, label, unit, by_country, *, section, topic, definition
     props = {"indicator": code, "indicator_label": label, "unit": unit, "section": section, "topic": topic,
              "definition": definition, "statistic": statistic, "nature": nature, "frequency": frequency,
              "dataset": dataset, "keywords": keywords or None, "group": group, "order": order, "digits": digits,
-             "note": note, "coverage_n": len(rows), "latest_period": latest, "anomalies_n": anomalies or None, "by_country": rows,
+             "note": note, "unit_note": unit_note, "coverage_n": len(rows), "latest_period": latest, "anomalies_n": anomalies or None, "by_country": rows,
              "unit_by_country": _units(rows, unit_local, unit_of)}
     return NormalizedRecord(
         source_id=meta["source_id"], native_id=sid, native_version=content_version(props),

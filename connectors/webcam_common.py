@@ -8,7 +8,8 @@ import datetime as dt
 from connectors.base import content_version
 from nexum.core.records import Assertion, NormalizedRecord, Target
 
-STALE_AFTER_H = 24          # an image a day older than the freshest image of the same list: shown as such, never as current
+STALE_AFTER_H = 24
+STREAM_TYPES = ("hls", "mjpeg")   # what the browser can play without a plug-in or a relay          # an image a day older than the freshest image of the same list: shown as such, never as current
 
 
 def _ts(v):
@@ -41,8 +42,14 @@ def finalize(records):
 
 def camera(meta, native_id, scheme, label, lon, lat, image_url, *, operator, subject=None, refresh_min=None,
            observed_at=None, credit=None, in_service=True, route=None, place_note=None, locator="", text="",
-           record_updated_at=None, page_url=None, credit_url=None):
-    if lon is None or lat is None or not image_url or not image_url.startswith("https://"):
+           record_updated_at=None, page_url=None, credit_url=None, stream_url=None, stream_type=None, stream_note=None, country=None):
+    # https on its default port is the same origin: written without ":443" (one form for the allowlist and the CSP)
+    stream_url = stream_url.replace(":443/", "/", 1) if stream_url else stream_url
+    image_url = image_url.replace(":443/", "/", 1) if image_url else image_url
+    stream = stream_url if stream_url and stream_url.startswith("https://") and stream_type in STREAM_TYPES else None
+    if image_url and not image_url.startswith("https://"):
+        image_url = None
+    if lon is None or lat is None or not (image_url or stream):
         return None
     if not (-180 <= lon <= 180 and -90 <= lat <= 90) or (lon == 0 and lat == 0):
         return None
@@ -54,15 +61,19 @@ def camera(meta, native_id, scheme, label, lon, lat, image_url, *, operator, sub
              "credit_url": credit_url if credit_url and credit_url.startswith("https://") else None,
              # what NEXUM can show of it: a CURRENT still image (refreshed by the source), or nothing while the source
              # declares the camera out of service; STALE is set by finalize() (2026-10-03: CURRENT_SNAPSHOT · STALE · OFFLINE)
-             "availability": "current_snapshot" if in_service else "offline"}
+             "availability": ("live_stream" if stream else "current_snapshot") if in_service else "offline",
+             # LIVE (2026-10-04): a continuous video the publisher serves (HLS playlist or MJPEG stream), played by the
+             # browser only when the person starts it; a refreshed still is never live
+             "stream_url": stream, "stream_type": stream_type if stream else None, "stream_note": stream_note if stream else None}
     # the version ignores the image timestamp: a new picture at the source is not a new version of the camera
-    props = {k: v for k, v in props.items() if v is not None or k not in ("page_url", "credit_url")}
+    props = {k: v for k, v in props.items() if v is not None or k not in ("page_url", "credit_url", "stream_url", "stream_type", "stream_note")}
     version = content_version({k: v for k, v in props.items() if k not in ("image_observed_at", "record_updated_at")} | {"lon": lon, "lat": lat})
     return NormalizedRecord(
         source_id=meta["source_id"], native_id=str(native_id), native_version=version,
         kind="object", type="camera.public_webcam", label=label or str(native_id),
         identifiers=[(scheme, str(native_id))], properties=props,
         geometry={"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]}, geo_uncertainty_m=100.0,
+        assertions=[Assertion("relation", "located_in", Target("place.country", scheme="iso3166a2", value=country))] if country else [],
         status="reviewed", method="asserted", raw_locator=locator, text=text)
 
 
