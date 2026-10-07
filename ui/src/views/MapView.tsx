@@ -122,7 +122,64 @@ function viewportOf(map: MLMap): { vp: [number, number, number, number]; z: numb
 
 // the place the Core's /locate gives a focus, kept even when the element's own record is not in the store yet
 const located = new Map<string, [number, number]>();
-const pointOf = (id: string | null | undefined) => (id ? (store.entity(id)?.point as [number, number] | undefined) ?? located.get(id) : undefined);
+// AN AREA'S MARK (2026-10-07, physical test): the Core gives an area one stable point for aggregation, the centre of its
+// bounding box — for an area with distant territories that point lies outside it (France: in Mali, its box running
+// from French Guiana to Réunion; the Netherlands and the United States: in the Atlantic). Where the map marks the
+// element itself (its ring, its name, its relation lines, "show me"), an area is marked inside its largest polygon:
+// the polygon's centroid, or — when that falls outside a concave shape — the middle of the widest crossing at its
+// latitude. Points and lines keep their own point. The Core's point is unchanged (it places the aggregation cells).
+const anchors = new Map<string, [number, number] | null>();
+function ringArea(r: number[][]): number { let a = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += (r[j][0] + r[i][0]) * (r[j][1] - r[i][1]); return a / 2; }
+function inside(r: number[][], x: number, y: number): boolean {
+  let c = false;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) if ((r[i][1] > y) !== (r[j][1] > y) && x < ((r[j][0] - r[i][0]) * (y - r[i][1])) / (r[j][1] - r[i][1]) + r[i][0]) c = !c;
+  return c;
+}
+/** The bounding box [w, s, e, n] of an area's largest polygon (null for anything else). */
+function largestPolygon(g: any): number[][] | null {
+  if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return null;
+  const polys: number[][][][] = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+  let best: number[][] | null = null, bestA = 0;
+  for (const poly of polys) {
+    const r = poly[0], lat = r.reduce((s, p) => s + p[1], 0) / r.length;
+    const a = Math.abs(ringArea(r)) * Math.cos((lat * Math.PI) / 180);
+    if (a > bestA) { bestA = a; best = r; }
+  }
+  return best;
+}
+function largestBox(g: any): [number, number, number, number] | null {
+  const r = largestPolygon(g);
+  if (!r) return null;
+  const xs = r.map((p) => p[0]), ys = r.map((p) => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+const areaAnchorOf = (id: string, g: any) => areaAnchor(id, g);
+function areaAnchor(id: string, given?: any): [number, number] | undefined {
+  if (anchors.has(id)) return anchors.get(id) ?? undefined;
+  const g = given ?? store.entity(id)?.details?.geometry;
+  if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return undefined;      // not known yet, or not an area
+  const best = largestPolygon(g);
+  let out: [number, number] | null = null;
+  if (best) {
+    let A = 0, cx = 0, cy = 0;
+    for (let i = 0, j = best.length - 1; i < best.length; j = i++) {
+      const f = best[j][0] * best[i][1] - best[i][0] * best[j][1];
+      A += f; cx += (best[j][0] + best[i][0]) * f; cy += (best[j][1] + best[i][1]) * f;
+    }
+    out = A ? [cx / (3 * A), cy / (3 * A)] : [best[0][0], best[0][1]];
+    if (!inside(best, out[0], out[1])) {
+      const y = out[1], xs: number[] = [];
+      for (let i = 0, j = best.length - 1; i < best.length; j = i++)
+        if ((best[i][1] > y) !== (best[j][1] > y)) xs.push(((best[j][0] - best[i][0]) * (y - best[i][1])) / (best[j][1] - best[i][1]) + best[i][0]);
+      xs.sort((p, q) => p - q);
+      let w = -1;
+      for (let k = 0; k + 1 < xs.length; k += 2) if (xs[k + 1] - xs[k] > w) { w = xs[k + 1] - xs[k]; out = [(xs[k] + xs[k + 1]) / 2, y]; }
+    }
+  }
+  anchors.set(id, out);
+  return out ?? undefined;
+}
+const pointOf = (id: string | null | undefined) => (id ? areaAnchor(id) ?? (store.entity(id)?.point as [number, number] | undefined) ?? located.get(id) : undefined);
 
 const emptyTypes = (s: Scope) => Array.isArray(s.types) && s.types.length === 0;
 
@@ -502,6 +559,10 @@ export function MapView() {
       if (id && p) feats.push({ type: "Feature", geometry: { type: "Point", coordinates: p }, properties: { role } });
     }
     (m.getSource("nexum-sel") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats });
+    // ONE indicator per selection (2026-10-07, physical test): the ring of the aggregate cell holding the focus marks
+    // where the focus is only when the focus has no ring of its own (its position not known); otherwise it was a second,
+    // empty and offset circle for the same selection (at the cell's centre, until zooming in turned cells into elements)
+    if (m.getLayer("nexum-cells-hl")) m.setFilter("nexum-cells-hl", feats.some((f) => f.properties?.role === "focus") ? ["==", ["get", "hl"], -1] : ["==", ["get", "hl"], 1]);
     const geom = store.entity(focus)?.details?.geometry;
     (m.getSource("nexum-focus-geom") as GeoJSONSource).setData(
       geom && /Polygon|LineString/.test(geom.type) ? { type: "Feature", geometry: geom, properties: {} } : EMPTY);   // areas and lines (e.g. a priced road)
@@ -626,8 +687,13 @@ export function MapView() {
     }
     pendingFocus.current = focus;
     const settle = () => { if (pendingFocus.current === focus) { pendingFocus.current = null; schedule(); } };
-    call<any>(`/entities/${focus}/locate`, undefined, { channel: "map-locate" }).then((r) => {
+    // an area is framed by its largest polygon (its mainland, not the box of all its territories); its geometry
+    // comes with the element's own card (the same request, cached)
+    Promise.all([call<any>(`/entities/${focus}/locate`, undefined, { channel: "map-locate" }),
+      call<any>(`/entities/${focus}`, undefined, { channel: `map-geom-${focus}` }).catch(() => null)]).then(([r, ent0]) => {
       const loc = r.data.map;
+      const main = ent0 ? largestBox(ent0.data?.geometry) : null;
+      if (loc?.point && main && ent0) { loc.bbox = main; const a = areaAnchorOf(focus, ent0.data.geometry); if (a) loc.point = a; }
       if (!loc?.point || !mapRef.current) { settle(); return; }
       const ent = store.entity(focus);   // reached without its point (deep link, trail): ring and label need it
       located.set(focus, loc.point);

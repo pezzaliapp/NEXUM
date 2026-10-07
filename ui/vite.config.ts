@@ -9,9 +9,20 @@ import react from "@vitejs/plugin-react";
 // - "web" mode (Phase 3, `vite build --mode web` → dist-web): the same UI, whose /api/v1 is answered in the browser
 //   from the static snapshot (src/snapshot); installable manifest (E6). `__NEXUM_WEB__` is a build-time constant, so
 //   the local build contains none of the snapshot code.
+// LINK PREVIEW (2026-10-07, physical test: a shared link showed the old, badly drawn icon as a doubled "N"): Open Graph and
+// Twitter metadata with the preview image drawn from NEXUM's mark (scripts/brand-images.mjs). Social parsers need
+// absolute addresses: the site's origin, the official one unless a verification build names its own (NEXUM_ORIGIN).
+const ORIGIN = (process.env.NEXUM_ORIGIN ?? "https://nexum.pezzalihub.app").replace(/\/$/, "");
+const MOTTO = "NEXUM — ONE OBJECT. MANY RELATIONS. ONE TIMELINE.";
+const og = (property: string, content: string) => ({ tag: "meta", attrs: { property, content }, injectTo: "head" as const });
+const tw = (name: string, content: string) => ({ tag: "meta", attrs: { name, content }, injectTo: "head" as const });
 const installable = (): Plugin => ({
   name: "nexum-installable",
   transformIndexHtml: () => [
+    og("og:type", "website"), og("og:site_name", "NEXUM"), og("og:title", "NEXUM"), og("og:description", MOTTO), og("og:url", `${ORIGIN}/`),
+    og("og:locale", "it_IT"), og("og:image", `${ORIGIN}/og-image.png`), og("og:image:secure_url", `${ORIGIN}/og-image.png`),
+    og("og:image:type", "image/png"), og("og:image:width", "1200"), og("og:image:height", "630"), og("og:image:alt", MOTTO),
+    tw("twitter:card", "summary_large_image"), tw("twitter:title", "NEXUM"), tw("twitter:description", MOTTO), tw("twitter:image", `${ORIGIN}/og-image.png`),
     { tag: "link", attrs: { rel: "manifest", href: "/manifest.webmanifest" }, injectTo: "head" },
     { tag: "meta", attrs: { name: "theme-color", content: "#0D1012" }, injectTo: "head" },
     { tag: "link", attrs: { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" }, injectTo: "head" },
