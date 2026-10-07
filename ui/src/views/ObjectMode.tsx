@@ -1,7 +1,8 @@
 // OBJECT MODE — the context around any element, in the same workspace. One call (/context/{id}), twelve sections;
 // every reference is a pivot that becomes the new focus.
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useState, lazy, Suspense } from "react";
+import { lazyStale } from "../lib/stale";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState, Suspense } from "react";
 import { call, plain } from "../lib/api";
 import { recompute } from "../lib/confidence";
 import { conf, duration, km, num, utc } from "../lib/format";
@@ -14,19 +15,19 @@ import { TenuresBlock } from "../components/Tenures";
 import { RatesBlock } from "../components/Rates";
 import { clearNameOf } from "../components/SearchBox";
 // loaded only when needed (O6: never part of the opening download): a place's view, the imagery, an indicator's table
-const PlaceView = lazy(() => import("./PlaceView").then((m) => ({ default: m.PlaceView })));
-const ImageryBlock = lazy(() => import("../components/Imagery").then((m) => ({ default: m.ImageryBlock })));
-const PlaceWebcams = lazy(() => import("../components/Imagery").then((m) => ({ default: m.PlaceWebcams })));
-const EventWebcams = lazy(() => import("../components/Imagery").then((m) => ({ default: m.EventWebcams })));
-const IndicatorRecord = lazy(() => import("../components/Indicators").then((m) => ({ default: m.IndicatorRecord })));
+const PlaceView = lazyStale(() => import("./PlaceView").then((m) => ({ default: m.PlaceView })));
+const ImageryBlock = lazyStale(() => import("../components/Imagery").then((m) => ({ default: m.ImageryBlock })));
+const PlaceWebcams = lazyStale(() => import("../components/Imagery").then((m) => ({ default: m.PlaceWebcams })));
+const EventWebcams = lazyStale(() => import("../components/Imagery").then((m) => ({ default: m.EventWebcams })));
+const IndicatorRecord = lazyStale(() => import("../components/Indicators").then((m) => ({ default: m.IndicatorRecord })));
 import { buildConnections } from "../lib/connections";
 import { dayLabel, inPeriod, periodName, periodOfWindow } from "../lib/period";
 import { usePeriodName } from "../components/Period";
 import { typeLabelOf, useSummaries } from "../components/Highlights";
 import { fmtValue, sentence, summaryOf } from "../lib/summary";
 import { isSheet, isTouch } from "../lib/layers";
-const LocalTime = lazy(() => import("../components/LocalTime"));
-const LivePlayer = lazy(() => import("../components/LivePlayer"));
+const LocalTime = lazyStale(() => import("../components/LocalTime"));
+const CamViewer = lazyStale(() => import("../components/CamViewer"));
 
 const KIND_TITLE: Record<string, string> = S.kinds;
 const SAT_SKIP = new Set(["observation", "person", "office", "government", "toll"]);
@@ -94,8 +95,9 @@ export function ObjectMode({ id }: { id: string }) {
         {!explorable && <>
         {/* an observation's record: the measured results first, then its own facts and provenance */}
         {(types.get(e?.type ?? "")?.series || types.get(e?.type ?? "")?.wave) && <ObservationRecord id={id} />}
+        {/* a camera (vocabulary hint "media"): the viewer of THIS camera, first; other cameras only after it, apart */}
+        {d?.properties && types.get(e?.type ?? "")?.media && <Suspense fallback={<p className="xs dim conn-pad">{S.loading}</p>}><CamViewer id={id} props={d.properties} /></Suspense>}
         {ctx.data && e?.kind !== "insight" && <Facts id={id} d={d} data={ctx.data.data} />}
-        {d?.properties && <MediaBlock id={id} props={d.properties} />}
         {/* OSSERVA: the public webcams near a place (a city), surfaced in its own view */}
         {ready && types.get(e?.type ?? "")?.nearby_media_km && <Suspense fallback={null}><PlaceWebcams id={id} /></Suspense>}
         {ready && d?.properties && <RatesBlock id={id} props={d.properties} ctxData={ctx.data!.data} />}
@@ -147,92 +149,6 @@ const WhyBig = ({ id }: { id: string }) =>
 
 /** The source's own data about the element, in words (the vocabulary's display hints choose and name them). An
  * element without connections is never an element without information. */
-/** An image its source keeps current (vocabulary hint "media"): described first (what it is, how fresh the source
- * declares it), loaded ONLY when the person asks, straight from the source (no copy, no archive, no analysis). */
-function MediaBlock({ id, props }: { id: string; props: Record<string, any> }) {
-  const e = store.entity(id);
-  const m = store.get().types.get(e?.type ?? "")?.media;
-  const [shown, setShown] = useState<{ t: number } | null>(null);
-  const [imageBroken, setImageBroken] = useState<boolean>(false);
-  useEffect(() => { setShown(null); setImageBroken(false); }, [id]);
-  const url: string | undefined = m ? props[m.property] : undefined;
-  const avail: string | undefined = props.availability;
-  // a camera whose publisher does not allow its images elsewhere: only the way to the publisher's own page
-  if (m && avail === "link_only" && typeof props.page_url === "string" && /^https?:\/\//.test(props.page_url)) return (
-    <section className="media" data-testid="media" data-media-kind="link_only">
-      <div className="conn-h">{S.media.linkTitle} <span className="tag" data-testid="media-status">{S.media.status.link_only}</span></div>
-      <p className="xs dim">{props.subject ? `${props.subject} · ` : ""}{props.operator ?? ""}</p>
-      <a className="primary media-open" data-testid="webcam-link" href={props.page_url} target="_blank" rel="noopener noreferrer"
-        referrerPolicy="no-referrer">{S.media.linkOpen} ↗</a>
-      <p className="xs faint" data-testid="webcam-link-note">{props.terms_note ?? S.media.linkNote}</p>
-    </section>);
-  // LIVE: the publisher's own continuous video (HLS or MJPEG), started only by the person; the current image stays too
-  const stream: string | null = typeof props.stream_url === "string" && /^https:\/\//.test(props.stream_url) && avail === "live_stream" ? props.stream_url : null;
-  if (m && stream) return <LiveBlock id={id} props={props} stream={stream} still={url && /^https:\/\//.test(url) ? url : null} />;
-  if (!m || !url || !/^https:\/\//.test(url)) return null;
-  const refresh = m.refresh_property ? props[m.refresh_property] : null;
-  const observed = m.observed_property ? props[m.observed_property] : null;
-  const credit = m.credit_property ? props[m.credit_property] : null;
-  const off = m.state_property ? props[m.state_property] === false : false;
-  // the publisher's own page (when given): a click on the image opens it, and the credit links to it — some publishers
-  // allow their current image elsewhere only this way (whole image, no crop, clickable source)
-  const page: string | null = typeof props.page_url === "string" && /^https:\/\//.test(props.page_url) ? props.page_url : null;
-  const creditUrl: string | null = typeof props.credit_url === "string" && /^https:\/\//.test(props.credit_url) ? props.credit_url : page;
-  const src = shown ? `${url}${url.includes("?") ? "&" : "?"}nexum_t=${shown.t}` : null;
-  const hhmm = (t: number) => new Date(t).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  return (
-    <section className="media" data-testid="media" data-media-kind={m.kind}>
-      <div className="conn-h">{S.media.kinds[m.kind] ?? m.kind}
-        {avail && <span className={`tag ${avail}`} data-testid="media-status"> {S.media.status[avail] ?? avail}</span>}</div>
-      {avail === "stale" && <p className="xs warn" data-testid="media-stale">{S.media.stale}</p>}
-      <p className="xs dim media-what" data-testid="media-what">
-        {m.kind === "current_image" ? S.media.notLive : ""}{refresh ? ` · ${S.media.refresh(num(refresh))}` : ""}
-        {observed ? ` · ${S.media.observed(String(observed).replace("T", " ").slice(0, 16))}` : ""}</p>
-      {off && <p className="xs warn" data-testid="media-off">{S.media.off}</p>}
-      {!src ? (
-        <button type="button" className="primary media-open" data-testid="media-open" onClick={() => { setImageBroken(false); setShown({ t: Date.now() }); }}>{S.media.open}</button>
-      ) : (
-        <figure className="media-fig">
-          {imageBroken ? <p className="note" data-testid="media-error">{S.media.error}</p> : page
-            ? <a href={page} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" data-testid="media-img-link">
-                <img src={src} alt={e?.label ?? ""} referrerPolicy="no-referrer" decoding="async" data-testid="media-img" onError={() => setImageBroken(true)} /></a>
-            : <img src={src} alt={e?.label ?? ""} referrerPolicy="no-referrer" decoding="async" data-testid="media-img" onError={() => setImageBroken(true)} />}
-          <figcaption className="xs dim">{S.media.loaded(hhmm(shown!.t))}
-            {credit ? <> · {S.media.credit}: {creditUrl ? <a href={creditUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
-              data-testid="media-credit-link">{credit}</a> : credit}</> : null}
-            {" "}<button type="button" className="linklike xs" data-testid="media-reload" onClick={() => { setImageBroken(false); setShown({ t: Date.now() }); }}>{S.media.reload}</button></figcaption>
-        </figure>)}
-      <p className="xs faint">{S.media.privacy}</p>
-    </section>);
-}
-
-function LiveBlock({ id, props, stream, still }: { id: string; props: Record<string, any>; stream: string; still: string | null }) {
-  const e = store.entity(id);
-  const [on, setOn] = useState(false);
-  const [image, setImage] = useState<number | null>(null);
-  const [st, setSt] = useState<string>("idle");
-  useEffect(() => { setOn(false); setImage(null); setSt("idle"); }, [id]);
-  const page: string | null = typeof props.page_url === "string" && /^https:\/\//.test(props.page_url) ? props.page_url : null;
-  return (
-    <section className="media" data-testid="media" data-media-kind="live_video" data-live-state={st}>
-      <div className="conn-h">{S.media.kinds.live_video} <span className="tag live_stream" data-testid="media-status">{S.media.status.live_stream}</span></div>
-      <p className="xs dim media-what" data-testid="media-what">{S.media.liveWhat(props.stream_type)}{props.operator ? ` · ${props.operator}` : ""}
-        {props.place_note ? ` · ${props.place_note}` : ""}</p>
-      {props.stream_note && <p className="xs faint">{props.stream_note}</p>}
-      {!on ? <button type="button" className="primary media-open" data-testid="live-start" onClick={() => setOn(true)}>{S.media.liveStart}</button>
-        : <>
-          <Suspense fallback={<p className="xs dim">{S.media.connecting}</p>}>
-            <LivePlayer url={stream} type={props.stream_type} label={e?.label ?? ""} onState={setSt} />
-          </Suspense>
-          <button type="button" className="linklike xs" data-testid="live-stop" onClick={() => { setOn(false); setSt("idle"); }}>{S.media.liveStop}</button>
-        </>}
-      {still && (image == null
-        ? <button type="button" className="linklike xs" data-testid="media-open" onClick={() => setImage(Date.now())}>{S.media.alsoImage}</button>
-        : <figure className="media-fig"><img src={`${still}${still.includes("?") ? "&" : "?"}nexum_t=${image}`} alt={e?.label ?? ""} referrerPolicy="no-referrer" data-testid="media-img" /></figure>)}
-      <p className="xs faint">{S.media.credit}: {page ? <a href={page} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">{props.credit ?? props.operator}</a> : (props.credit ?? props.operator)}</p>
-    </section>);
-}
-
 export function Facts({ id, d, data }: { id: string; d: any; data: any }) {
   const e = store.entity(id);
   const t = store.get().types.get(e?.type ?? "");

@@ -10,6 +10,8 @@ import { type Point, type Series } from "../lib/observations";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
 import { ByTopic, fmt } from "./Observations";
+import CTX from "../config/indicator-context.json";
+import { IndContext, type IndCtx } from "./IndContext";
 
 export interface Flow { relation: string; type: string; type_label: string; direction: "out" | "in"; other: string; other_label: string | null;
   series: [string, number][]; unit: string; reporter: string; dataset: string; note: string; label: string }
@@ -29,7 +31,11 @@ function load(id: string, wv: number): Promise<IndData> {
       // a place's own unit where the source's is generic (e.g. its currency for "local currency")
       const list: Series[] = (d.series ?? []).map((x: any) => {
         const def = d.defs[x.def];
-        return { ...def, props: x.unit ? { ...def.props, unit: x.unit } : def.props, id: x.id, points: x.points, refs: [x.def] };
+        const props = x.unit ? { ...def.props, unit: x.unit } : { ...def.props };
+        // a value about one element the source does not name: the note, and NEXUM's own most populous one beside it
+        const cx = (CTX as Record<string, any>)[def.props?.indicator];
+        if (cx && typeof cx === "object") props._context = { ...cx, leader: d.leaders?.[cx.leader] ?? null } as IndCtx;
+        return { ...def, props, id: x.id, points: x.points, refs: [x.def] };
       });
       return { list, flows: d.flows ?? [], names: d.source_names ?? {}, subtypes: d.subtypes ?? {},
         attribution: Object.fromEntries((r.sources ?? []).map((s: any) => [s.source_id, s.attribution])) };
@@ -228,6 +234,7 @@ export function KeyLine({ s, names }: { s: Series | undefined; names: Record<str
     <div className="ov-line" data-testid="ov-key" data-indicator={s.props.indicator}>
       <span className="ov-label">{s.label}</span>{" "}<b className="obs-v">{fmt(s, last[2])}</b>
       <span className="xs dim"> · {(last[1] ?? "").slice(0, 4)} · {src}{s.props.derived && src !== S.ind.nexum ? ` · ${S.obs.derived}` : ""}</span>
+      <IndContext c={s.props._context} />
     </div>);
 }
 

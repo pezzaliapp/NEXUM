@@ -1,5 +1,5 @@
 {
-  "_comment": "Explicit allowlist of the origins whose CURRENT images the browser may load on request (Phase 3B · block 1; satellite imagery, World Intelligence 2026-10-03). One entry per approved source (ACCEPT, no key); never a wildcard. \"connect\": origins the browser may ask (on a person's request only) for the time and availability of an image (NASA GIBS/Worldview Snapshots headers, EUMETView frames, NASA CMR acquisition dates). Read by scripts/assemble-web.mjs (web CSP) and by nexum/api/server.py (local CSP). \"video\": origins of the publishers' LIVE streams (HLS playlists and segments: media-src and connect-src), played only when the person starts a live camera; MJPEG live streams are images (img).",
+  "_comment": "Explicit allowlist of the origins whose CURRENT images the browser may load on request (Phase 3B · block 1; satellite imagery, World Intelligence 2026-10-03). One entry per approved source (ACCEPT, no key); never a wildcard. \"connect\": origins the browser may ask (on a person's request only) for the time and availability of an image (NASA GIBS/Worldview Snapshots headers, EUMETView frames, NASA CMR acquisition dates). Read by scripts/assemble-web.mjs (web CSP) and by nexum/api/server.py (local CSP). \"video\": origins of the publishers' LIVE streams (HLS playlists and segments: media-src and connect-src), played only when the person starts a live camera; MJPEG live streams are images (img). OPERATIONAL SURFACE (2026-10-04, OSIRIS-level transformation): the keyless €0 providers of src/config/ops.json — \"tiles\": the basemap detail, imagery, terrain and clouds providers (img + connect: MapLibre fetches tiles; kept apart from the camera and imagery hosts of \"img\"), and the services the tools ask only on the person's action (connect). \"frame\": the only embedded player, YouTube's privacy-enhanced domain, loaded only when the person starts an official live channel.",
   "img": [
     "https://cwwp2.dot.ca.gov",
     "https://weathercam.digitraffic.fi",
@@ -32,13 +32,62 @@
     "https://www.cita.lu",
     "https://www.comune.venezia.it",
     "https://www.foto-webcam.eu",
-    "https://www.meteogalicia.gal"
+    "https://www.meteogalicia.gal",
+    "https://sentinel-cogs.s3.us-west-2.amazonaws.com"
   ],
   "connect": [
     "https://gibs.earthdata.nasa.gov",
     "https://wvs.earthdata.nasa.gov",
     "https://view.eumetsat.int",
-    "https://cmr.earthdata.nasa.gov"
+    "https://cmr.earthdata.nasa.gov",
+    "https://services.swpc.noaa.gov",
+    "https://www.gdacs.org",
+    "https://api.weather.gov",
+    "https://api.frankfurter.dev",
+    "https://api.coinbase.com",
+    "https://photon.komoot.io",
+    "https://routing.openstreetmap.de",
+    "https://meri.digitraffic.fi",
+    "https://earth-search.aws.element84.com",
+    "https://www.arcgis.com",
+    "https://services.arcgis.com",
+    "https://services1.arcgis.com",
+    "https://services2.arcgis.com",
+    "https://services3.arcgis.com",
+    "https://services4.arcgis.com",
+    "https://services5.arcgis.com",
+    "https://services6.arcgis.com",
+    "https://services7.arcgis.com",
+    "https://services8.arcgis.com",
+    "https://services9.arcgis.com",
+    "https://api.open-meteo.com",
+    "https://air-quality-api.open-meteo.com",
+    "https://it.wikipedia.org",
+    "https://dns.google",
+    "https://rdap.org",
+    "https://rdap.verisign.com",
+    "https://rdap.publicinterestregistry.org",
+    "https://rdap.arin.net",
+    "https://rdap.db.ripe.net",
+    "https://rdap.apnic.net",
+    "https://rdap.lacnic.net",
+    "https://rdap.afrinic.net",
+    "https://api.certspotter.com",
+    "https://stat.ripe.net",
+    "https://huggingface.co",
+    "https://us.aws.cdn.hf.co",
+    "https://cas-bridge.xethub.hf.co",
+    "https://cdn-lfs.hf.co",
+    "https://cdn-lfs-us-1.hf.co",
+    "https://cdn-lfs-eu-1.hf.co",
+    "https://raw.githubusercontent.com",
+    "https://home.treasury.gov",
+    "https://drmkc.jrc.ec.europa.eu",
+    "https://cveawg.mitre.org",
+    "https://internetdb.shodan.io",
+    "https://api.llama.fi",
+    "https://earthquake.usgs.gov",
+    "https://valhalla1.openstreetmap.de"
   ],
   "video": [
     "https://garr.tv",
@@ -46,5 +95,14 @@
     "https://video3.iowadot.gov:8888",
     "https://video4.iowadot.gov:8888",
     "https://wzmedia.dot.ca.gov"
+  ],
+  "frame": [
+    "https://www.youtube-nocookie.com"
+  ],
+  "tiles": [
+    "https://tiles.openfreemap.org",
+    "https://tiles.maps.eox.at",
+    "https://s3.amazonaws.com",
+    "https://nowcoast.noaa.gov"
   ]
 }

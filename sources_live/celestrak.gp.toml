@@ -1,0 +1,36 @@
+id = "celestrak.gp"
+name = "CelesTrak — General Perturbations orbital elements (OMM)"
+owner = "CelesTrak (Dr T.S. Kelso); data from US government sources"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "celestrak"
+connector = "connectors.celestrak_gp"
+
+# OSIRIS baseline (2026-10-04): orbital elements of the active satellites and the four large debris fields. The
+# usage policy asks to download each GP set once per update (about every 2 hours): minimum interval 2 hours, one
+# request per set. Positions are computed in the browser (SGP4) and said as calculated, never observed.
+[license]
+id = "public-data-celestrak"
+url = "https://celestrak.org/NORAD/documentation/gp-data-formats.php"
+attribution = "Orbital data: CelesTrak (celestrak.org), from US Space Force public data"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["celestrak.org"]
+
+[politeness]
+min_interval_s = 7200
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 7200
+
+[options]
+published_table = "orbits"

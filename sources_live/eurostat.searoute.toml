@@ -1,0 +1,43 @@
+id = "eurostat.searoute"
+name = "Eurostat SeaRoute — maritime network MARNET (50 km), worldwide"
+owner = "Eurostat (European Commission), SeaRoute project"
+verdict = "adopt"
+reliability_tier = "T2"
+verified_at = "2026-10-06"
+independence_group = "eurostat"
+connector = "connectors.searoute_marnet"
+
+# Physical acceptance (2026-10-06): "Rotte marittime" — a NETWORK MODEL of navigable sea lanes (ORNL Global Shipping Lane
+# Network 2000, enriched around Europe from AIS data, generalised at 50 km): not observed traffic, no counts, no dates of
+# passage. OSIRIS has no sea routes (its "Maritime Lines" are submarine cables). Published as one table
+# (GET /tables/searoutes), read only when a person computes a route. Fetched at a fixed commit, at most monthly.
+# Rights chain (closed 2026-10-06, evidence in NEXUM-PHYSICAL-ACCEPTANCE-PASS-REPORT.md): ORNL CTA transnet pages, "global
+# seaways … These datasets are in the public domain" (2002–2015 captures) → GeoCommons archive (terms of the source) →
+# Eurostat SeaRoute, EUPL-1.2 (Art. 6 warranty for its own additions) → NEXUM derived file under EUPL-1.2, licence text
+# shipped (/licenses/EUPL-1.2.txt), modification and date stated in THIRD-PARTY-NOTICES.txt.
+# Stabilization (2026-10-07): the network is the ENGINE of a route between two ports, computed in the browser; NEXUM
+# draws only the one computed route, never the graph (three physical tests rejected every drawing of the whole network).
+[license]
+id = "eupl-1.2"
+url = "https://github.com/eurostat/searoute/blob/master/LICENSE"
+attribution = "Maritime network derived from Eurostat SeaRoute MARNET (© European Union, Eurostat; EUPL-1.2), based on ORNL CTA Global Shipping Lane Network 2000 (public domain); modified by NEXUM 2026-10-07 (rounded, sections joined)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["raw.githubusercontent.com"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]
+published_table = "searoutes"

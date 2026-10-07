@@ -1,0 +1,48 @@
+{
+ "_comment": "POINT LAYERS the map clusters on its own (2026-10-05, physical acceptance: webcams were an anonymous density and tiny marks). One entry per type: the property whose values the map tells apart, the colour of the layer, and per value a mark (shape and a word, never colour alone) and its name in the legend and tooltips. A value not listed is drawn as 'other'. 'external_live' is the official live channels of public bodies (YouTube, src/config/ops.json), shown with the webcams.",
+ "camera.public_webcam": {
+  "status": "availability",
+  "name": "Webcam",
+  "names": "webcam",
+  "color": "#4FC3D9",
+  "states": {
+   "live_stream": {
+    "mark": "live",
+    "label": "LIVE · video del gestore",
+    "short": "LIVE",
+    "legend": "LIVE video"
+   },
+   "external_live": {
+    "mark": "external",
+    "label": "LIVE · canale ufficiale (YouTube)",
+    "short": "LIVE ▶",
+    "legend": "LIVE YouTube"
+   },
+   "current_snapshot": {
+    "mark": "still",
+    "label": "immagine attuale (non video)",
+    "short": "IMG",
+    "legend": "immagine attuale"
+   },
+   "stale": {
+    "mark": "stale",
+    "label": "immagine non aggiornata",
+    "short": "IMG",
+    "legend": "immagine vecchia"
+   },
+   "link_only": {
+    "mark": "link",
+    "label": "solo collegamento al gestore",
+    "short": "LINK",
+    "legend": "solo link"
+   },
+   "offline": {
+    "mark": "off",
+    "label": "fuori servizio",
+    "short": "OFF",
+    "legend": "fuori servizio"
+   }
+  },
+  "withChannels": true
+ }
+}

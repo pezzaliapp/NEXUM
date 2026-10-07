@@ -1,0 +1,37 @@
+id = "osm.cables"
+name = "OpenStreetMap — submarine power and telecom cables (global extract)"
+owner = "OpenStreetMap contributors (via FOSSGIS Overpass)"
+verdict = "adopt"
+reliability_tier = "T3"
+verified_at = "2026-10-06"
+independence_group = "openstreetmap"
+connector = "connectors.osm_overpass"
+
+# Master pass (2026-10-06): the legal equivalent of OSIRIS's "Maritime lines" (TeleGeography's cable map, used there without a licence).
+# One global Overpass query at most once a week (FOSSGIS fair use: one request, identifying User-Agent); published as
+# one table (GET /tables/cables) drawn only when the person turns the layer on.
+[license]
+id = "odbl-1.0"
+url = "https://www.openstreetmap.org/copyright"
+attribution = "© OpenStreetMap contributors (ODbL 1.0)"
+redistribution = "allowed_with_attribution_share_alike"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["overpass-api.de"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = false
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]
+published_table = "cables"
+query = '[out:json][timeout:300];(way["location"="underwater"]["power"="cable"];way["location"="underwater"]["communication"="line"];way["seamark:type"="cable_submarine"];);out tags geom;'

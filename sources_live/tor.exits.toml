@@ -1,0 +1,35 @@
+id = "tor.exits"
+name = "Tor exit relay list"
+owner = "The Tor Project"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "tor_exits"
+connector = "connectors.registers"
+
+# OSIRIS baseline (2026-10-04): a public register for the passive network tools, published as a table
+# (GET /tables/torexits) and looked up in the browser. Network metadata only: no person, no scanning.
+[license]
+id = "tor-metrics-public"
+url = "https://metrics.torproject.org/"
+attribution = "Tor exit relays: The Tor Project (public network metadata)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["check.torproject.org"]
+
+[politeness]
+min_interval_s = 21600
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 21600
+
+[options]
+published_table = "torexits"

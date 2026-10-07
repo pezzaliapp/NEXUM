@@ -1,0 +1,36 @@
+id = "gdelt.events"
+name = "GDELT 2.0 — geolocated news events of the last hour"
+owner = "The GDELT Project"
+verdict = "adopt"
+reliability_tier = "T3"
+verified_at = "2026-10-04"
+independence_group = "gdelt"
+connector = "connectors.gdelt_events"
+
+# OSIRIS baseline (2026-10-04): the intel feed. Automatic coding of what news media report, published as a table of
+# the last hour (GET /tables/newsevents), drawn on request and always said as "reported by the news, automatic coding".
+# Never NEXUM events; actors (possibly persons) are dropped.
+[license]
+id = "gdelt-open"
+url = "https://www.gdeltproject.org/about.html#termsofuse"
+attribution = "News events: The GDELT Project (gdeltproject.org), automatic coding of news media"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"
+auth = "none"
+allowed_hosts = ["data.gdeltproject.org"]
+
+[politeness]
+min_interval_s = 900
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 900
+
+[options]
+published_table = "newsevents"

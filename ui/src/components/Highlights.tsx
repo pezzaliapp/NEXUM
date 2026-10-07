@@ -53,7 +53,7 @@ export function Discovery({ id, compact = false }: { id: string; compact?: boole
 }
 
 /** An event: what (type) and its headline fact, its name, when; the line opens it. */
-function EventLine({ id, h }: { id: string; h?: any[] }) {
+export function EventLine({ id, h }: { id: string; h?: any[] }) {
   const e = store.entity(id);
   const t = store.get().types.get(e?.type ?? "");
   const fact = head(h as any);

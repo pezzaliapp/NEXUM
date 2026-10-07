@@ -1,0 +1,18 @@
+# Satelliti (OSIRIS baseline, 2026-10-04): i satelliti NOTEVOLI come oggetti (stazioni, navigazione, meteo,
+# osservazione della Terra, telescopi spaziali), con la forma della loro orbita. La POSIZIONE non è un dato: il browser
+# la calcola dagli elementi orbitali correnti (CelesTrak, GET /orbits) con SGP4 e la dice calcolata, mai osservata.
+[object_type."space.satellite"]
+label = "Satellite"
+geometry = "none"
+identity_schemes = ["norad", "cospar"]
+name_match = false
+display = { family = "space", density_priority = 7, group = "Satelliti", map = false, orbit = { property = "norad_id" }, headline = [{ property = "regime" }, { property = "apogee_km", suffix = " km", digits = 0 }], facts = [{ property = "family", label = "Tipo", values = { station = "stazione spaziale", navigation = "navigazione", weather = "meteorologia", earth_observation = "osservazione della Terra", science = "scienza", other = "tra i più luminosi" } }, { property = "regime", label = "Orbita" }, { property = "norad_id", label = "Numero NORAD", digits = 0 }, { property = "intl_designator", label = "Designazione internazionale" }, { property = "inclination_deg", label = "Inclinazione", unit = "°", digits = 1 }, { property = "period_min", label = "Periodo", unit = "min", digits = 1 }, { property = "apogee_km", label = "Apogeo", unit = "km", digits = 0 }, { property = "perigee_km", label = "Perigeo", unit = "km", digits = 0 }] }
+[object_type."space.satellite".properties]
+norad_id = { kind = "int" }
+intl_designator = { kind = "text" }
+family = { kind = "text" }
+regime = { kind = "text" }
+inclination_deg = { kind = "float", unit = "°" }
+period_min = { kind = "float", unit = "min" }
+apogee_km = { kind = "float", unit = "km" }
+perigee_km = { kind = "float", unit = "km" }

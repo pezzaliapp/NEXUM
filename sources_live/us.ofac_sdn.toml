@@ -1,0 +1,35 @@
+id = "us.ofac_sdn"
+name = "OFAC Specially Designated Nationals list — entities, vessels and aircraft"
+owner = "U.S. Department of the Treasury, Office of Foreign Assets Control"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "us_ofac"
+connector = "connectors.registers"
+
+# OSIRIS baseline (2026-10-04): the sanctions register, published as a table (GET /tables/sanctions) searched in the
+# browser. Individuals are never listed (NEXUM lists no persons): entities, vessels and aircraft only.
+[license]
+id = "us-government-work"
+url = "https://ofac.treasury.gov/sanctions-list-service"
+attribution = "Sanctions: OFAC SDN list, U.S. Department of the Treasury (public domain)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["www.treasury.gov", "wc2h-sls-prod-public-published.s3.us-gov-west-1.amazonaws.com"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]
+published_table = "sanctions"

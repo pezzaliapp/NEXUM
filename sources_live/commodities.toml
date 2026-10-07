@@ -1,0 +1,36 @@
+id = "commodities"
+name = "Commodity prices — EIA daily crude spot prices and World Bank Pink Sheet monthly prices"
+owner = "U.S. Energy Information Administration · World Bank (Prospects Group)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "commodities"
+connector = "connectors.commodities"
+
+# OSIRIS baseline (2026-10-04): the markets panel's commodities, published as one table (GET /tables/commodities).
+# EIA data are public domain; the World Bank Commodity Price Data are CC BY 4.0 ("World Bank Commodity Price Data
+# (The Pink Sheet)"). Equities are not available under a free licence (exchange-licensed data).
+[license]
+id = "CC-BY-4.0"
+url = "https://www.worldbank.org/en/research/commodity-markets"
+attribution = "Commodity prices: World Bank Commodity Price Data (The Pink Sheet), CC BY 4.0 · U.S. EIA spot prices (public domain)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.eia.gov", "www.worldbank.org", "thedocs.worldbank.org"]
+
+[politeness]
+min_interval_s = 43200
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 43200
+
+[options]
+published_table = "commodities"

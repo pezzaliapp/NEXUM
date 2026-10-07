@@ -17,13 +17,24 @@ export const isSheet = () => typeof innerWidth === "number" && innerWidth < 700;
 export type Layout = "phone" | "land" | "tablet" | "desk";
 export const layoutOf = (): Layout => innerWidth >= DESK_W ? "desk" : innerWidth < 700 ? "phone" : innerHeight < 500 ? "land" : "tablet";
 
+// layers that live outside the workspace store (the map's tools sheet, 2026-10-05): one open at a time, topmost
+const extra: { open: () => boolean; close: () => void }[] = [];
+let resync: (() => void) | null = null;
+/** A layer of its own (the map's tools): Back and Esc close it first; `changed()` must be called when it opens or closes. */
+export function registerLayer(l: { open: () => boolean; close: () => void }) {
+  extra.unshift(l);   // the newest is on top
+  return { changed: () => resync?.(), off: () => { const i = extra.indexOf(l); if (i >= 0) extra.splice(i, 1); } };
+}
+
 export function hasLayer(): boolean {
   const s = store.get();
-  return !!s.overlay || (s.panel === "why" && !!s.whyId) || (isSheet() && s.sheet === "full");
+  return extra.some((l) => l.open()) || !!s.overlay || (s.panel === "why" && !!s.whyId) || (isSheet() && s.sheet === "full");
 }
 
 /** Close the topmost layer; false when there is none. */
 export function dismissTop(): boolean {
+  const top = extra.find((l) => l.open());
+  if (top) { top.close(); return true; }
   const s = store.get();
   if (s.overlay) { store.set({ overlay: null, railOpen: false }); return true; }
   if (s.panel === "why" && s.whyId) { store.set({ panel: s.focus ? "object" : "world", whyId: null, sheet: "peek" }); return true; }
@@ -61,5 +72,6 @@ export function installBackHandling() {
   };
   addEventListener("popstate", onPop);
   const off = store.subscribe(sync);
-  return () => { removeEventListener("popstate", onPop); off(); };
+  resync = sync;
+  return () => { removeEventListener("popstate", onPop); off(); resync = null; };
 }

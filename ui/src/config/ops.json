@@ -1,0 +1,920 @@
+{
+ "_comment": "NEXUM OPERATIONAL SURFACE (2026-10-04, OSIRIS-level transformation). Every provider here was checked on 2026-10-04: keyless, €0, CORS open to a static site, terms read (see NEXUM-OSIRIS-CAPABILITY-MATRIX.md). Domain words live here, never in the code (W9). Nothing is fetched until the person turns the layer or panel on (except the basemap detail and the space-weather Kp of the header).",
+ "basemap": {
+  "vector": {
+   "style": "https://tiles.openfreemap.org/styles/dark",
+   "attribution": "OpenFreeMap © OpenMapTiles · dati © OpenStreetMap contributors",
+   "fillMinZoom": 4.5,
+   "labelMinZoom": 7
+  },
+  "sat": [
+   {
+    "id": "ops-sat-bm",
+    "tiles": [
+     "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg"
+    ],
+    "maxzoom": 8,
+    "attribution": "Blue Marble: NASA Earth Observatory · NASA GIBS"
+   },
+   {
+    "id": "ops-sat-s2",
+    "tiles": [
+     "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"
+    ],
+    "minzoom": 3,
+    "maxzoom": 14,
+    "attribution": "Sentinel-2 cloudless – https://s2maps.eu by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016) · CC BY 4.0"
+   }
+  ],
+  "today": {
+   "id": "ops-today",
+   "tiles": [
+    "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/{date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg"
+   ],
+   "maxzoom": 9,
+   "attribution": "NASA EOSDIS GIBS · VIIRS SNPP true colour of {date} (immagine del giorno, non in diretta)"
+  },
+  "terrain": {
+   "tiles": [
+    "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+   ],
+   "maxzoom": 12,
+   "encoding": "terrarium",
+   "attribution": "Rilievo: Terrain Tiles (AWS Open Data · Mapzen/Tilezen; SRTM, GMTED, 3DEP e altre fonti)"
+  },
+  "clouds": {
+   "tiles": [
+    "https://nowcoast.noaa.gov/geoserver/satellite/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=global_longwave_imagery_mosaic&STYLES=&FORMAT=image/png&TRANSPARENT=true&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}"
+   ],
+   "maxzoom": 7,
+   "attribution": "Nubi: NOAA/NESDIS GMGSI infrarosso (mosaico orario, nowCOAST)"
+  },
+  "precip": {
+   "tiles": [
+    "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png"
+   ],
+   "maxzoom": 6,
+   "attribution": "Precipitazioni: NASA GPM IMERG (GIBS), tasso del giorno {date}"
+  }
+ },
+ "presets": [
+  {
+   "id": "global",
+   "label": "Globo",
+   "c": [
+    12,
+    25
+   ],
+   "z": 1.4
+  },
+  {
+   "id": "europe",
+   "label": "Europa",
+   "c": [
+    12,
+    50
+   ],
+   "z": 3.4
+  },
+  {
+   "id": "italy",
+   "label": "Italia",
+   "c": [
+    12.5,
+    42.2
+   ],
+   "z": 5.0
+  },
+  {
+   "id": "mideast",
+   "label": "Medio Oriente",
+   "c": [
+    42,
+    29
+   ],
+   "z": 3.6
+  },
+  {
+   "id": "eastasia",
+   "label": "Asia orientale",
+   "c": [
+    118,
+    33
+   ],
+   "z": 3.2
+  },
+  {
+   "id": "americas",
+   "label": "Americhe",
+   "c": [
+    -80,
+    15
+   ],
+   "z": 2.2
+  },
+  {
+   "id": "ukraine",
+   "label": "Ucraina",
+   "c": [
+    32,
+    48.5
+   ],
+   "z": 4.8
+  },
+  {
+   "id": "africa",
+   "label": "Africa",
+   "c": [
+    20,
+    3
+   ],
+   "z": 2.7
+  },
+  {
+   "id": "seasia",
+   "label": "Sud-est asiatico",
+   "c": [
+    110,
+    8
+   ],
+   "z": 3.6
+  },
+  {
+   "id": "arctic",
+   "label": "Artico",
+   "c": [
+    0,
+    78
+   ],
+   "z": 2.4
+  },
+  {
+   "id": "india",
+   "label": "India",
+   "c": [
+    79,
+    22
+   ],
+   "z": 3.8
+  },
+  {
+   "id": "oceania",
+   "label": "Oceania",
+   "c": [
+    140,
+    -25
+   ],
+   "z": 3.0
+  }
+ ],
+ "orbits": {
+  "label": "Satelliti",
+  "families": {
+   "station": [
+    "Stazioni spaziali",
+    "#E0A640"
+   ],
+   "navigation": [
+    "Navigazione (GNSS)",
+    "#79A7C9"
+   ],
+   "weather": [
+    "Meteorologici",
+    "#86C5A0"
+   ],
+   "earth_observation": [
+    "Osservazione della Terra",
+    "#9FD07A"
+   ],
+   "science": [
+    "Scientifici",
+    "#C9A0E0"
+   ],
+   "geostationary": [
+    "Geostazionari",
+    "#D6DBDE"
+   ],
+   "starlink": [
+    "Starlink",
+    "#5D6B73"
+   ],
+   "oneweb": [
+    "OneWeb",
+    "#6F7E87"
+   ],
+   "iridium": [
+    "Iridium",
+    "#8A949A"
+   ],
+   "globalstar": [
+    "Globalstar",
+    "#8A949A"
+   ],
+   "orbcomm": [
+    "Orbcomm",
+    "#8A949A"
+   ],
+   "amateur": [
+    "Radioamatori",
+    "#E8C36A"
+   ],
+   "cubesat": [
+    "CubeSat",
+    "#B0A08A"
+   ],
+   "military": [
+    "Militari (dichiarati)",
+    "#D7836F"
+   ],
+   "debris": [
+    "Detriti",
+    "#6A5450"
+   ],
+   "other": [
+    "Altri",
+    "#808A90"
+   ]
+  },
+  "note": "Posizioni CALCOLATE nel tuo browser (SGP4) dagli elementi orbitali pubblicati da CelesTrak: propagate, non osservate in diretta. Precisione: qualche km vicino all'epoca degli elementi, peggiore lontano da essa.",
+  "credit": "Elementi orbitali: CelesTrak (celestrak.org), dati pubblici della US Space Force",
+  "airTraffic": "AEREI: BLOCCATO. Nessuna fonte ADS-B legale, gratuita e utilizzabile da un sito statico passa la verifica (adsb.lol e adsb.fi senza CORS e solo uso non commerciale, airplanes.live 403, ADS-B Exchange a pagamento, OpenSky escluso come predefinito). NEXUM non simula aerei.",
+  "notable": [
+   "station",
+   "science",
+   "earth_observation",
+   "weather",
+   "navigation",
+   "geostationary",
+   "amateur"
+  ],
+  "groups": [
+   [
+    "comms",
+    "Comunicazioni (Starlink, OneWeb, geostazionari…)",
+    [
+     "starlink",
+     "oneweb",
+     "iridium",
+     "globalstar",
+     "orbcomm",
+     "geostationary",
+     "qianfan"
+    ]
+   ],
+   [
+    "military",
+    "Militari (dichiarati)",
+    [
+     "military"
+    ]
+   ],
+   [
+    "navigation",
+    "Navigazione (GPS, Galileo, GLONASS, BeiDou)",
+    [
+     "navigation"
+    ]
+   ],
+   [
+    "earth",
+    "Osservazione della Terra e meteo",
+    [
+     "earth_observation",
+     "weather"
+    ]
+   ],
+   [
+    "science",
+    "Stazioni spaziali e scienza",
+    [
+     "station",
+     "science"
+    ]
+   ],
+   [
+    "other",
+    "Altri (CubeSat, radioamatori)",
+    [
+     "cubesat",
+     "amateur",
+     "other"
+    ]
+   ],
+   [
+    "debris",
+    "Detriti",
+    [
+     "debris"
+    ]
+   ]
+  ],
+  "n2yo": "https://www.n2yo.com/satellite/?s={norad}"
+ },
+ "alerts": {
+  "gdacs": "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=EQ;TC;FL;VO;DR;WF&alertlevel=Orange;Red",
+  "gdacsCredit": "GDACS (Commissione europea, Nazioni Unite) — allerte automatiche",
+  "gdacsTypes": {
+   "EQ": "Terremoto",
+   "TC": "Ciclone tropicale",
+   "FL": "Alluvione",
+   "VO": "Vulcano",
+   "DR": "Siccità",
+   "WF": "Incendio"
+  },
+  "nws": "https://api.weather.gov/alerts/active?status=actual&severity=Extreme,Severe&limit=60",
+  "nwsCredit": "US National Weather Service (dominio pubblico) — solo Stati Uniti",
+  "gdacsFields": {
+   "type": "eventtype",
+   "name": "name",
+   "level": "alertlevel",
+   "place": "country",
+   "from": "fromdate",
+   "to": "todate",
+   "severity": "severitydata",
+   "links": "url"
+  },
+  "geoFeed": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",
+  "geoCredit": "Terremoti: U.S. Geological Survey (dominio pubblico) — ultime 24 ore, M 2,5 e oltre, aggiornati ogni minuto alla fonte",
+  "names": {
+   "news": "GDELT (media)",
+   "geo": "USGS",
+   "gdacs": "GDACS",
+   "nws": "NWS (USA)"
+  },
+  "geoLink": "Scheda USGS",
+  "layerLabel": "Terremoti in diretta (USGS, 24 h)"
+ },
+ "markets": {
+  "fx": "https://api.frankfurter.dev/v1/latest?base=EUR",
+  "fxSeries": "https://api.frankfurter.dev/v1/{from}..?base=EUR&symbols={sym}",
+  "fxCredit": "Cambi: tassi di riferimento della Banca centrale europea (via Frankfurter, open source), aggiornati nei giorni lavorativi verso le 16:00 CET",
+  "crypto": "https://api.coinbase.com/v2/exchange-rates?currency={c}",
+  "cryptoCredit": "Cripto: tassi pubblici di Coinbase (API pubblica senza chiave), indicativi",
+  "cryptos": [
+   "BTC",
+   "ETH",
+   "SOL"
+  ],
+  "fxShown": [
+   "USD",
+   "GBP",
+   "CHF",
+   "JPY",
+   "CNY",
+   "TRY",
+   "PLN",
+   "SEK",
+   "INR",
+   "BRL"
+  ],
+  "impossible": "Azioni, indici (S&P 500, VIX…) e futures in tempo reale: IMPOSSIBILE a €0 — i dati di borsa sono concessi in licenza dalle borse (redistribuzione a pagamento); Yahoo Finance e simili vietano l'uso automatico.",
+  "yields": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value_month={ym}",
+  "yieldsCredit": "Rendimenti dei titoli del Tesoro USA: U.S. Department of the Treasury, curva giornaliera (dominio pubblico)",
+  "yieldTenors": [
+   [
+    "BC_3MONTH",
+    "3 mesi"
+   ],
+   [
+    "BC_2YEAR",
+    "2 anni"
+   ],
+   [
+    "BC_10YEAR",
+    "10 anni"
+   ],
+   [
+    "BC_30YEAR",
+    "30 anni"
+   ]
+  ],
+  "commodityLabels": {
+   "Crude oil, Brent": "Petrolio Brent",
+   "Crude oil, WTI": "Petrolio WTI",
+   "Natural gas, Europe": "Gas naturale (Europa)",
+   "Natural gas, US": "Gas naturale (USA)",
+   "Liquefied natural gas, Japan": "GNL (Giappone)",
+   "Coal, Australian": "Carbone (Australia)",
+   "Gold": "Oro",
+   "Silver": "Argento",
+   "Copper": "Rame",
+   "Aluminum": "Alluminio",
+   "Iron ore, cfr spot": "Minerale di ferro",
+   "Nickel": "Nichel",
+   "Wheat, US HRW": "Frumento (USA HRW)",
+   "Maize": "Mais",
+   "Rice, Thai 5%": "Riso (Thai 5%)",
+   "Soybeans": "Soia",
+   "Coffee, Arabica": "Caffè Arabica",
+   "Sugar, world": "Zucchero",
+   "Urea": "Urea (fertilizzante)",
+   "Palm oil": "Olio di palma"
+  },
+  "commodityCredit": "Materie prime: World Bank Commodity Price Data (Pink Sheet, CC BY 4.0), medie mensili · prezzi spot giornalieri del petrolio: U.S. EIA (dominio pubblico). Pubblicati da NEXUM con lo snapshot."
+ },
+ "geocode": {
+  "photon": "https://photon.komoot.io/api/?q={q}&limit=6&lang=default",
+  "nominatim": "https://nominatim.openstreetmap.org/search?q={q}&format=jsonv2&limit=6",
+  "credit": "Ricerca luoghi © OpenStreetMap contributors · Photon (komoot) · Nominatim (OSMF). Al massimo 1 richiesta al secondo, solo su tua richiesta.",
+  "labelFields": [
+   "name",
+   "city",
+   "state",
+   "country"
+  ]
+ },
+ "route": {
+  "osrm": "https://routing.openstreetmap.de/{profile}/route/v1/driving/{coords}?overview=full&geometries=geojson&steps=true",
+  "profiles": {
+   "car": [
+    "routed-car",
+    "Auto"
+   ],
+   "bike": [
+    "routed-bike",
+    "Bici"
+   ],
+   "foot": [
+    "routed-foot",
+    "A piedi"
+   ]
+  },
+  "credit": "Percorsi: FOSSGIS e.V. (Valhalla valhalla1.openstreetmap.de; di riserva OSRM routing.openstreetmap.de), servizio comunitario senza garanzie: un percorso alla volta, solo su tua richiesta, al massimo una richiesta al secondo. Dati © OpenStreetMap-Mitwirkende (ODbL).",
+  "valhalla": "https://valhalla1.openstreetmap.de",
+  "modes": {
+   "car": [
+    "auto",
+    "Auto"
+   ],
+   "bike": [
+    "bicycle",
+    "Bici"
+   ],
+   "foot": [
+    "pedestrian",
+    "A piedi"
+   ]
+  },
+  "fixthemap": "https://www.openstreetmap.org/fixthemap"
+ },
+ "ais": {
+  "url": "https://meri.digitraffic.fi/api/ais/v1/locations",
+  "meta": "https://meri.digitraffic.fi/api/ais/v1/vessels",
+  "credit": "Navi: Fintraffic / Digitraffic, AIS del Mar Baltico (CC BY 4.0). Solo le navi che trasmettono AIS nelle acque coperte da Digitraffic.",
+  "label": "Navi (AIS Baltico)"
+ },
+ "stac": {
+  "url": "https://earth-search.aws.element84.com/v1/search",
+  "collections": [
+   "sentinel-2-l2a"
+  ],
+  "credit": "Scene Sentinel-2: Copernicus (licenza libera) · catalogo Earth Search (Element 84, AWS Open Data)"
+ },
+ "arcgis": {
+  "search": "https://www.arcgis.com/sharing/rest/search?q={q}%20AND%20type:%22Feature%20Service%22%20AND%20access:public&f=json&num=20&sortField=numViews&sortOrder=desc{bbox}",
+  "credit": "Catalogo pubblico ArcGIS Online: ogni elemento ha la sua licenza (mostrata); NEXUM importa solo nel tuo browser, nulla viene salvato altrove.",
+  "item": "https://www.arcgis.com/home/item.html?id={id}",
+  "categories": [
+   [
+    "Condotte",
+    "pipeline"
+   ],
+   [
+    "Rete elettrica",
+    "power grid transmission lines"
+   ],
+   [
+    "Infrastrutture",
+    "critical infrastructure"
+   ],
+   [
+    "Emergenza",
+    "emergency shelter evacuation"
+   ],
+   [
+    "Alluvioni",
+    "flood hazard zones"
+   ],
+   [
+    "Trasporti",
+    "transportation network roads rail"
+   ]
+  ],
+  "gate": "Nessuna ricerca predefinita su installazioni militari o su persone: la ricerca libera resta aperta ai dataset pubblici che i loro proprietari hanno pubblicato con una licenza."
+ },
+ "dossier": {
+  "summary": "https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}",
+  "geosearch": "https://{lang}.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord={lat}%7C{lon}&gsradius=10000&gslimit=8&format=json&origin=*",
+  "credit": "Wikipedia (CC BY-SA 4.0)"
+ },
+ "air": {
+  "url": "https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&current=european_aqi,us_aqi,pm10,pm2_5,nitrogen_dioxide,ozone",
+  "wx": "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,cloud_cover&timezone=auto",
+  "credit": "Aria e meteo del punto: Open-Meteo (CC BY 4.0; CAMS Copernicus, servizi meteorologici nazionali), uso non commerciale gratuito"
+ },
+ "net": {
+  "doh": "https://dns.google/resolve?name={q}&type={t}",
+  "rdap": "https://rdap.org/{kind}/{q}",
+  "ct": "https://api.certspotter.com/v1/issuances?domain={q}&include_subdomains=false&expand=dns_names",
+  "ripe": "https://stat.ripe.net/data/{what}/data.json?resource={q}",
+  "credit": "Strumenti di rete PASSIVI su dati pubblici: DNS (Google Public DNS over HTTPS), RDAP (registri Internet), Certificate Transparency (SSLMate Cert Spotter), RIPEstat. Nessuna scansione, nessuna persona.",
+  "impossible": "Scansione di porte, ricerca di persone per nome utente, telefono o email, database di violazioni: ESCLUSI (illegali o invasivi: GDPR, c.p. artt. 615-ter, 615-quater, 617-quater; confini NEXUM).",
+  "internetdb": "https://internetdb.shodan.io/{q}",
+  "internetdbNote": "Shodan InternetDB: porte e servizi già osservati pubblicamente da Shodan per un indirizzo (passivo, nessuna scansione da NEXUM); uso non commerciale gratuito. Facoltativo: parte solo se lo scegli.",
+  "flaw": "https://cveawg.mitre.org/api/cve/{q}",
+  "flawLabel": "CVE (MITRE)"
+ },
+ "live": {
+  "note": "Canali YouTube UFFICIALI dei gestori (enti pubblici), incorporati con youtube-nocookie e caricati solo quando li avvii. «IN ONDA» compare solo quando il lettore riproduce davvero; un canale senza diretta è detto fuori onda.",
+  "consent": "Avviando il video il tuo browser si collega a YouTube (Google), che può impostare cookie o archiviazione locale.",
+  "channels": [
+   {
+    "id": "UCuaFFNhZkcEg2JjEPvzjzzw",
+    "name": "Porto di Helsinki",
+    "publisher": "Port of Helsinki (società portuale municipale)",
+    "place": "Helsinki, Finlandia",
+    "c": [
+     24.956,
+     60.163
+    ]
+   },
+   {
+    "id": "UCuarPSgSklrmX2z0iA-Ua4Q",
+    "name": "Rovaniemi",
+    "publisher": "City of Rovaniemi (comune)",
+    "place": "Rovaniemi, Finlandia",
+    "c": [
+     25.729,
+     66.504
+    ]
+   },
+   {
+    "id": "UCGTkElF_NAgKVnJyeFddRkA",
+    "name": "Naumburg (Saale)",
+    "publisher": "Stadt Naumburg (comune)",
+    "place": "Naumburg, Germania",
+    "c": [
+     11.81,
+     51.153
+    ]
+   },
+   {
+    "id": "UCaLDNGnkbTjnpG7j00om-Qg",
+    "name": "Rees · Reno",
+    "publisher": "Stadt Rees (comune)",
+    "place": "Rees, Germania",
+    "c": [
+     6.397,
+     51.759
+    ]
+   },
+   {
+    "id": "UCeGyo_v1ppwH-e77CVqLSJg",
+    "name": "Porto di Dublino",
+    "publisher": "Dublin Port Company (società pubblica)",
+    "place": "Dublino, Irlanda",
+    "c": [
+     -6.196,
+     53.347
+    ]
+   },
+   {
+    "id": "UCv0wG9OEynMBWnoH1url0ig",
+    "name": "Porto di Rotterdam · Hoek van Holland",
+    "publisher": "Port of Rotterdam Authority (pubblica)",
+    "place": "Hoek van Holland, Paesi Bassi",
+    "c": [
+     4.12,
+     51.981
+    ]
+   },
+   {
+    "id": "UCdtX73uGb9stWFQTr0SfxEQ",
+    "name": "Rotterdam · Rijnhaven",
+    "publisher": "Gemeente Rotterdam (comune)",
+    "place": "Rotterdam, Paesi Bassi",
+    "c": [
+     4.487,
+     51.904
+    ]
+   },
+   {
+    "id": "UCWsRYU3f0gtQVcnWIds1Lxg",
+    "name": "Kirkenes",
+    "publisher": "Sør-Varanger kommune (comune)",
+    "place": "Kirkenes, Norvegia",
+    "c": [
+     30.045,
+     69.727
+    ]
+   },
+   {
+    "id": "UCsvVB0izExckoxLqPIYla6Q",
+    "name": "Porto di Bridport (West Bay)",
+    "publisher": "Dorset Council (consiglio di contea)",
+    "place": "West Bay, Dorset, Regno Unito",
+    "c": [
+     -2.764,
+     50.711
+    ]
+   },
+   {
+    "id": "UCY8S0Pa6lQKzvlrY87ki6sQ",
+    "name": "Collingwood",
+    "publisher": "Town of Collingwood (comune)",
+    "place": "Collingwood, Ontario, Canada",
+    "c": [
+     -80.216,
+     44.501
+    ]
+   },
+   {
+    "id": "UCv9D0xATZ18lnDzhWVEtnIA",
+    "name": "Coldwater",
+    "publisher": "City of Coldwater (comune)",
+    "place": "Coldwater, Michigan, Stati Uniti",
+    "c": [
+     -85.0,
+     41.94
+    ]
+   },
+   {
+    "id": "UCVtTjaaajzCaWsMxHBmTIsA",
+    "name": "Hollywood Beach",
+    "publisher": "City of Hollywood (comune)",
+    "place": "Hollywood, Florida, Stati Uniti",
+    "c": [
+     -80.117,
+     26.017
+    ]
+   },
+   {
+    "id": "UCGdN7euhQIEeA8F0iX-E5bQ",
+    "name": "Porto di Port Angeles",
+    "publisher": "Port of Port Angeles (distretto portuale pubblico)",
+    "place": "Port Angeles, Washington, Stati Uniti",
+    "c": [
+     -123.44,
+     48.12
+    ]
+   },
+   {
+    "id": "UCn4oQ60oxfvq7aesEPYqpKw",
+    "name": "Cantiere ferroviario di Meteren",
+    "publisher": "ProRail (infrastruttura ferroviaria statale)",
+    "place": "Meteren, Paesi Bassi",
+    "c": [
+     5.283,
+     51.864
+    ]
+   },
+   {
+    "id": "UCTjuaoHtIJPs8TPJOFPisTw",
+    "name": "Parco nazionale De Hoge Veluwe",
+    "publisher": "Het Nationale Park De Hoge Veluwe (fondazione)",
+    "place": "Otterlo, Paesi Bassi",
+    "c": [
+     5.83,
+     52.08
+    ]
+   },
+   {
+    "id": "UCDB5inJCR5dLstdupj-FySA",
+    "name": "Zwin · nido di cicogne",
+    "publisher": "Zwin Natuur Park (Provincia delle Fiandre Occidentali)",
+    "place": "Knokke-Heist, Belgio",
+    "c": [
+     3.364,
+     51.36
+    ]
+   },
+   {
+    "id": "UCAFBsuz-BuuSGW4qmMv4suQ",
+    "name": "Sint-Niklaas · municipio",
+    "publisher": "Stadhuis Sint-Niklaas (canale del municipio)",
+    "place": "Sint-Niklaas, Belgio",
+    "c": [
+     4.143,
+     51.165
+    ]
+   },
+   {
+    "id": "UC1rns9F-g8PDChqPc17U-Xw",
+    "name": "Three Rivers Parks",
+    "publisher": "Three Rivers Park District (ente pubblico)",
+    "place": "Bloomington, Minnesota, Stati Uniti",
+    "c": [
+     -93.37,
+     44.83
+    ]
+   },
+   {
+    "id": "UCGHb2e0YrnQ6k9ZFxCLCRSQ",
+    "name": "Cielo di Grand Forks",
+    "publisher": "University of North Dakota, Atmospheric Sciences (università pubblica)",
+    "place": "Grand Forks, North Dakota, Stati Uniti",
+    "c": [
+     -97.077,
+     47.922
+    ]
+   }
+  ],
+  "space": [
+   {
+    "video": "fO9e9jnhYK8",
+    "name": "Sen · la Terra dalla ISS in 4K",
+    "publisher": "Sen (operatore delle proprie telecamere sulla Stazione spaziale)",
+    "note": "Telecamere 4K dell'operatore a bordo della ISS: la Terra in diretta quando la stazione trasmette"
+   },
+   {
+    "id": "UCLA_DiR1FfKNvjuUpBHmylQ",
+    "name": "NASA",
+    "publisher": "NASA (canale ufficiale)",
+    "note": "Le dirette della NASA: lanci, passeggiate spaziali e la vista dalla Stazione spaziale quando trasmessa"
+   },
+   {
+    "id": "UCIBaDdAbGlFDeS33shmlD0A",
+    "name": "ESA",
+    "publisher": "European Space Agency (canale ufficiale)",
+    "note": "Le dirette dell'ESA quando in onda"
+   }
+  ],
+  "news": [
+   {
+    "id": "UCoMdktPbSTixAyNGwb-UYkQ",
+    "name": "Sky News",
+    "place": "Londra"
+   },
+   {
+    "id": "UCQfwfsi5VrQ8yKZ-UWmAEFg",
+    "name": "France 24 English",
+    "place": "Parigi"
+   },
+   {
+    "id": "UCknLrEdhRCp1aegoMqRaCZg",
+    "name": "DW News",
+    "place": "Berlino"
+   },
+   {
+    "id": "UCNye-wNBqNL5ZzHSJj3l8Bg",
+    "name": "Al Jazeera English",
+    "place": "Doha"
+   },
+   {
+    "id": "UCSPEjw8F2nQDtmUKPFNF7_A",
+    "name": "NHK World-Japan",
+    "place": "Tokyo"
+   },
+   {
+    "id": "UC83jt4dlz1Gjl58fzQrrKZg",
+    "name": "CNA",
+    "place": "Singapore"
+   },
+   {
+    "id": "UC_gUM8rL-Lrg6O3adPW9K1g",
+    "name": "WION",
+    "place": "Nuova Delhi"
+   }
+  ],
+  "newsNote": "Canali ufficiali delle emittenti, incorporabili per scelta dell'emittente: informazione televisiva, non osservazione di un luogo. RT escluso (sanzioni UE)."
+ },
+ "words": {
+  "events": "eventi",
+  "objects": "oggetti",
+  "cams": "Telecamere",
+  "camsLive": "dirette",
+  "kp": "Kp",
+  "country": "paese"
+ },
+ "cables": {
+  "credit": "Cavi sottomarini: © OpenStreetMap contributors (ODbL 1.0) — estratto globale pubblicato da NEXUM (aggiornato al più una volta a settimana). La mappa di TeleGeography (CC BY-NC-SA) non è usata."
+ },
+ "hotspots": {
+  "credit": "Punti caldi: NASA FIRMS (LANCE), VIIRS 375 m — rilevamenti termici delle ultime 24 ore, non incendi confermati"
+ },
+ "news": {
+  "label": "Notizie dal mondo (GDELT, ultima ora)",
+  "credit": "Eventi riportati dai media di tutto il mondo e codificati automaticamente da The GDELT Project (CAMEO): ciò che le notizie RIPORTANO, non fatti verificati; gli attori sono omessi.",
+  "roots": {
+   "01": "Dichiarazione pubblica",
+   "02": "Appello",
+   "03": "Intenzione di cooperare",
+   "04": "Consultazione",
+   "05": "Cooperazione diplomatica",
+   "06": "Cooperazione materiale",
+   "07": "Aiuti",
+   "08": "Concessione",
+   "09": "Indagine",
+   "10": "Richiesta",
+   "11": "Disapprovazione",
+   "12": "Rifiuto",
+   "13": "Minaccia",
+   "14": "Protesta",
+   "15": "Dimostrazione di forza",
+   "16": "Riduzione delle relazioni",
+   "17": "Coercizione",
+   "18": "Aggressione",
+   "19": "Combattimenti",
+   "20": "Violenza di massa"
+  },
+  "conflict": [
+   "14",
+   "15",
+   "16",
+   "17",
+   "18",
+   "19",
+   "20"
+  ]
+ },
+ "registers": {
+  "sanctionsCredit": "Sanzioni: elenco SDN dell'OFAC (Tesoro degli Stati Uniti, dominio pubblico) — solo enti, navi e aeromobili; le persone fisiche non sono elencate da NEXUM.",
+  "kevCredit": "Vulnerabilità sfruttate: catalogo KEV della CISA (governo degli Stati Uniti). Informazione difensiva: nessun exploit, nessuna scansione.",
+  "kevTitle": "Falle software sfruttate attivamente (CISA KEV)",
+  "sanctionsTitle": "Sanzioni (OFAC SDN)",
+  "inform": "https://drmkc.jrc.ec.europa.eu/inform-index/API/InformAPI/Countries/Scores/?WorkflowId=482&IndicatorId=INFORM",
+  "informTitle": "Rischio INFORM (UE)",
+  "informCredit": "INFORM Risk Index: Commissione europea, Joint Research Centre (DRMKC) — indice 0–10 di rischio di crisi umanitarie e disastri per paese; riuso autorizzato con citazione della fonte (Decisione 2011/833/UE).",
+  "hacks": "https://api.llama.fi/hacks",
+  "hacksTitle": "Incidenti DeFi",
+  "hacksCredit": "Incidenti dei protocolli di finanza decentralizzata: DefiLlama (API pubblica aperta). Protocolli, non persone; nessun tracciamento di portafogli."
+ },
+ "privacy": [
+  [
+   "Sempre, dallo stesso sito NEXUM",
+   "dati del mondo, mappa NEXUM, luci notturne, catalogo orbitale, punti caldi, notizie GDELT, cavi sottomarini e basi navali (estratti OpenStreetMap), registri, Kp: nessun servizio di terzi"
+  ],
+  [
+   "Solo se scegli STRADE, SAT o OGGI",
+   "OpenFreeMap (strade), EOX e NASA GIBS (immagini)"
+  ],
+  [
+   "Solo se accendi il livello",
+   "NOAA nowCOAST (nubi), NASA GIBS (precipitazioni), Terrain Tiles AWS (rilievo), Digitraffic (navi), NOAA SWPC (aurora), USGS (terremoti in diretta), GDACS e NWS (allerte), IMF PortWatch su ArcGIS (stretti e porti), i gestori delle telecamere (anteprime sulla mappa, solo da zoom 13)"
+  ],
+  [
+   "Solo se apri lo strumento o agisci",
+   "USGS, GDACS e NWS (avvisi in diretta), BCE/Frankfurter, Coinbase e Tesoro USA (mercati), Photon e FOSSGIS Valhalla/OSRM (percorsi e profilo altimetrico; a FOSSGIS solo l'origine del sito, come chiedono), Open-Meteo e Wikipedia (punto), Earth Search (Sentinel-2), ArcGIS Online (cerca e importa), IMF PortWatch (transiti e scali di un giorno), DNS/RDAP/CT/RIPE/MITRE/Shodan InternetDB (rete), INFORM e DefiLlama (registri), Hugging Face (modello AI), YouTube (dirette, solo quando avvii il video), X/LinkedIn/Reddit e N2YO/CelesTrak (solo se tocchi il collegamento)"
+  ],
+  [
+   "Mai",
+   "analisi del traffico, cookie di tracciamento, la tua posizione (se la chiedi per il cielo o la navigazione resta nel browser), il tuo indirizzo IP a servizi di geolocalizzazione"
+  ]
+ ],
+ "card": {
+  "news": "Notizia (GDELT): un evento riportato dai media, codificato automaticamente — non un fatto verificato",
+  "hotspot": "Satellite VIIRS 375 m — un'anomalia termica, non un incendio confermato",
+  "hotspotTitle": "Punto caldo (rilevamento termico)",
+  "ais": "Nave · {k} · posizione AIS trasmessa dalla nave",
+  "aisNoName": "Nave (nome non trasmesso)",
+  "aisKinds": {
+   "tanker": "cisterna",
+   "cargo": "carico",
+   "passenger": "passeggeri",
+   "service": "servizio (rimorchio, pilotaggio, soccorso)"
+  },
+  "cablePower": "Cavo elettrico sottomarino",
+  "cableTelecom": "Cavo di telecomunicazione sottomarino",
+  "cableNoName": "Cavo sottomarino (senza nome in OpenStreetMap)",
+  "imported": "Importato da te — solo in questo browser, non pubblicato",
+  "gdacs": "Allerta GDACS · calcolata automaticamente da Commissione europea e Nazioni Unite",
+  "nws": "Avviso del servizio meteorologico nazionale degli Stati Uniti (NWS)",
+  "alertsNote": "VERIFICATO: misurato o emesso da un'istituzione (USGS, GDACS, NWS) o evento NEXUM con le sue prove. RIPORTATO: ciò che i media hanno scritto, codificato automaticamente da GDELT; più articoli sulla stessa azione nello stesso luogo sono un solo elemento.",
+  "importedArcgis": "Importato da ArcGIS Online — dataset pubblico di {owner}, licenza dichiarata dal proprietario; solo in questo browser",
+  "choke": "Stretto marittimo · conteggi misurati dai segnali AIS (IMF PortWatch); nessun livello di «rischio» editoriale",
+  "naval": "Base navale come mappata in OpenStreetMap — solo nome e gestore",
+  "osmCredit": "© OpenStreetMap contributors (ODbL 1.0) — estratto globale pubblicato da NEXUM",
+  "port": "Porto · scali misurati dai segnali AIS (IMF PortWatch); volumi stimati, non statistiche ufficiali",
+  "geo": "Terremoto · misurato dalla rete sismica (USGS): un fatto osservato da un'istituzione"
+ },
+ "portwatch": {
+  "points": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/PortWatch_chokepoints_database/FeatureServer/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326",
+  "daily": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Chokepoints_Data/FeatureServer/0/query?where=portid%3D%27{id}%27&outFields=date,n_total,capacity,n_tanker,n_container&orderByFields=date%20DESC&resultRecordCount=30&f=json",
+  "credit": "Stretti marittimi: IMF PortWatch (Fondo monetario internazionale), da segnali AIS delle navi — riuso consentito con attribuzione all'IMF (termini IMF); stime, non statistiche ufficiali.",
+  "page": "https://portwatch.imf.org/pages/{page}",
+  "ports": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/PortWatch_ports_database/FeatureServer/0/query?where=1%3D1&outFields=portid,portname,country,vessel_count_total,vessel_count_tanker,vessel_count_container,vessel_count_dry_bulk,vessel_count_general_cargo,vessel_count_RoRo,industry_top1,industry_top2,industry_top3,share_country_maritime_import,share_country_maritime_export,pageid&f=geojson&outSR=4326&resultOffset={offset}&resultRecordCount=1000",
+  "portDaily": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Ports_Data/FeatureServer/0/query?where=portid%3D%27{id}%27&outFields=date,portcalls,import,export&orderByFields=date%20DESC&resultRecordCount=30&f=json",
+  "placeField": "country"
+ },
+ "routes": {
+  "credit": "Rotta marittima tra due porti: calcolata sulla rete Eurostat SeaRoute / MARNET (© Unione europea, EUPL-1.2), basata su ORNL Global Shipping Lane Network 2000 (pubblico dominio); porti: NGA World Port Index (pubblico dominio).",
+  "period": "Base 2000 (ORNL) con aggiunte AIS europee; file Eurostat del 2021-09-08 (commit 0d777c0).",
+  "repo": "https://github.com/eurostat/searoute",
+  "passes": {
+   "suez": "Canale di Suez",
+   "panama": "Canale di Panama",
+   "malacca": "Stretto di Malacca",
+   "gibraltar": "Stretto di Gibilterra",
+   "dover": "Stretto di Dover (Passo di Calais)",
+   "bering": "Stretto di Bering",
+   "magellan": "Stretto di Magellano",
+   "babelmandeb": "Stretto di Bab el-Mandeb",
+   "kiel": "Canale di Kiel",
+   "corinth": "Canale di Corinto",
+   "northwest": "Passaggio a nord-ovest",
+   "northeast": "Passaggio a nord-est (rotta artica)"
+  },
+  "method": "Rete ORNL 2000 (linee di navigazione più frequenti) + linee ricavate da dati AIS intorno all'Europa; generalizzata da Eurostat a 50 km (tratti brevi uniti, tratti simili rimossi). NEXUM la pubblica così com'è, con coordinate arrotondate a ~1 km.",
+  "licence": "Rete derivata da Eurostat SeaRoute (© Unione europea, Eurostat), licenza EUPL-1.2; basata su ORNL «Global Shipping Lane Network» 2000 (pubblico dominio). Pubblicata da NEXUM con coordinate arrotondate e tratti uniti (modificata il 2026-10-07). Porti: NGA World Port Index, pubblico dominio."
+ }
+}

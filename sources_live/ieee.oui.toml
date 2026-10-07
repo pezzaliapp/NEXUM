@@ -1,0 +1,35 @@
+id = "ieee.oui"
+name = "IEEE MA-L registry — organisations of MAC address blocks"
+owner = "IEEE Registration Authority"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "ieee_oui"
+connector = "connectors.registers"
+
+# OSIRIS baseline (2026-10-04): a public register for the passive network tools, published as a table
+# (GET /tables/oui) and looked up in the browser. Network metadata only: no person, no scanning.
+[license]
+id = "ieee-public-listing"
+url = "https://standards.ieee.org/products-programs/regauth/"
+attribution = "MAC vendors: IEEE Registration Authority, public MA-L listing"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["standards-oui.ieee.org"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]
+published_table = "oui"

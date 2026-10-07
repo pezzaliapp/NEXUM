@@ -14,7 +14,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": [],
-    "paths": { "@nexum/web": ["./src/snapshot/client.ts"] }
+    "paths": { "@nexum/web": ["./src/snapshot/client.ts"], "@nexum/sgp4": ["./node_modules/satellite.js/dist/index.d.ts"] }
   },
   "include": ["src"]
 }

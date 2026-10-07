@@ -259,6 +259,11 @@ def _build_raw_shard(args):
 
 # ── builder ──────────────────────────────────────────────────────────────────
 
+# point layers published whole for the map's own clustering (2026-10-05, physical acceptance: the webcams were only an
+# anonymous density at world scale): type → the property whose value the map distinguishes
+POINT_LAYERS = {"camera.public_webcam": "availability"}
+
+
 class Builder:
     def __init__(self, world, out_root, procs):
         self.world = world
@@ -318,6 +323,18 @@ class Builder:
             st, body = self.ls.get(f"/{name}")
             assert st == 200, (name, body)
             write_json(self.stage / "api" / f"{name}.json", body)
+        # the tables sources publish as is (registry option "published_table"), read on demand by the browser
+        for src in self.ls.svc.sources.values():
+            t = (src.options or {}).get("published_table")
+            if t:
+                st, body = self.ls.get(f"/tables/{t}")
+                assert st == 200, (t, body)
+                write_json(self.stage / "api" / "tables" / f"{t}.json", body)
+        # the point layers the map clusters on its own (every element, at every scale): type → the property it tells apart
+        for t, prop in POINT_LAYERS.items():
+            st, body = self.ls.get(f"/types/{t}/points", {"status": prop})
+            assert st == 200, (t, body)
+            write_json(self.stage / "api" / "types" / t / f"points-{prop}.json", body)
         # the indicators of each place: exact service responses, in N_IND shards by place id (packaging per domain)
         st, cat = self.ls.get("/indicators-catalog")
         from nexum.api.server import _indicators_pkg

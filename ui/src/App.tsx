@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazyStale } from "./lib/stale";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { call, lastWorldVersion } from "./lib/api";
 import { setFamilies } from "./lib/palette";
 import { setRuleNames } from "./lib/connections";
@@ -9,11 +10,11 @@ import { CommandBar } from "./components/CommandBar";
 import { TrailBar } from "./components/TrailBar";
 import { Rail } from "./components/Rail";
 import { StatusBar } from "./components/StatusBar";
-import { NewSnapshotBanner } from "./components/WebNotes";
+import { NewSnapshotBanner, UpdateBanner } from "./components/WebNotes";
 import { Inspector } from "./views/Inspector";
 import { MapView } from "./views/MapView";
 // the graph (Sigma) is downloaded when the graph is first shown: the opening map never pays for it (O6)
-const GraphView = lazy(() => import("./views/GraphView").then((m) => ({ default: m.GraphView })));
+const GraphView = lazyStale(() => import("./views/GraphView").then((m) => ({ default: m.GraphView })));
 import { Timeline } from "./views/Timeline";
 import { BottomNav, CardStrip, Overlays, TopBar } from "./components/Mobile";
 import { TimeView } from "./views/TimeView";
@@ -130,6 +131,7 @@ export function App() {
     <div className={cls} data-stage={stage}>
       <CommandBar />
       <NewSnapshotBanner />
+      <UpdateBanner />
       <TrailBar />
       <Rail />
       <main className="stage" aria-label="stage">
@@ -184,6 +186,7 @@ function TouchApp() {
     <div className={cls} data-stage={stage} ref={appRef}>
       <TopBar />
       <NewSnapshotBanner />
+      <UpdateBanner />
       <main className="stage" aria-label="stage">
         {surface === "map" && <div className="view" data-view="map"><MapView /></div>}
         {surface === "graph" && <div className="view" data-view="graph"><Suspense fallback={null}><GraphView /></Suspense></div>}

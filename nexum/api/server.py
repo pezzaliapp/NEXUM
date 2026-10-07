@@ -349,6 +349,69 @@ class Service:
         w.token = None
         self.pool.put(w)
 
+    def type_points(self, type_id, status=None):
+        """Every element of a point type in one compact list — [lon, lat, status value index, source index] — so the map can
+        cluster all of them at every scale (level of detail in the browser) instead of seeing them only as anonymous
+        density. Identity and name are asked when the person points at one (the ordinary map projection of a tiny box):
+        the list stays small. `status`: the name of one property whose value the map distinguishes (optional)."""
+        if status is not None and not re.fullmatch(r"[a-z][a-z0-9_]{0,40}", str(status)):
+            raise ApiError(400, "bad_request", "status: a property name")
+        conn = sqlite3.connect(pathlib.Path(self.cfg.db_path).resolve().as_uri() + "?mode=ro", uri=True)
+        try:
+            return self._type_points(conn, type_id, status)
+        finally:
+            conn.close()
+
+    def _type_points(self, conn, type_id, status):
+        hints = _hints(conn).get(type_id)
+        if hints is None:
+            raise ApiError(404, "not_found", f"no type {type_id!r}")
+        srcs, values, rows = [], [], []
+        cur = conn.execute("SELECT object_id, lon, lat, label, source_id, "
+                           + ("json_extract(props_json, '$.' || ?)" if status else "NULL")
+                           + " FROM object WHERE type = ? AND status != 'retracted' AND merged_into IS NULL AND lon IS NOT NULL "
+                           "AND lat IS NOT NULL ORDER BY object_id", ((status, type_id) if status else (type_id,)))
+        index, vindex = {}, {}
+        for _oid, lon, lat, _label, sid, st in cur:
+            if sid not in index:
+                index[sid] = len(srcs)
+                srcs.append(sid)
+            if st not in vindex:
+                vindex[st] = len(values)
+                values.append(st)
+            rows.append([round(lon, 5), round(lat, 5), vindex[st], index[sid]])
+        data = {"type": type_id, "label": hints[0], "status_property": status, "status_values": values, "sources": srcs,
+                "fields": ["lon", "lat", "status", "source"], "rows": rows}
+        return {"data": data, "lod": "refs", "total": len(rows), "returned": len(rows), "truncated": False, "cursor_next": None,
+                "excluded": {}, "facets": None, "highlight": None, "sources": [], "world_version": None, "as_of": {}, "timing_ms": 0}
+
+    def published_table(self, name):
+        """A TABLE a source publishes as is (its registry option "published_table"): the rows its connector reads
+        from the source's latest payload of every resource (connector function table(payloads) → fields, rows,
+        notes). Generic: what the table holds is the connector's and the vocabulary's business, never this layer's."""
+        import importlib
+        src = next((s for s in self.sources.values() if (s.options or {}).get("published_table") == name), None)
+        if src is None:
+            raise ApiError(404, "not_found", f"no published table {name!r}")
+        conn = sqlite3.connect(pathlib.Path(self.cfg.db_path).resolve().as_uri() + "?mode=ro", uri=True)
+        try:
+            latest = conn.execute(
+                "SELECT r.resource_key, r.sha256, r.fetched_ms, r.url FROM raw_record r JOIN (SELECT resource_key, MAX(fetched_ms) AS f "
+                "FROM raw_record WHERE source_id=? GROUP BY resource_key) l ON l.resource_key=r.resource_key AND l.f=r.fetched_ms "
+                "WHERE r.source_id=? ORDER BY r.resource_key", (src.id, src.id)).fetchall()
+        finally:
+            conn.close()
+        mod = importlib.import_module(src.connector)
+        payloads = [(k, self.raw.store.get(sha), fetched, url) for k, sha, fetched, url in latest]
+        t = mod.table(payloads)
+        data = {"table": name, "source_id": src.id, "fields": t["fields"], "rows": t["rows"], "notes": t.get("notes"),
+                "fetched_ms": max((f for _k, _s, f, _u in latest), default=None),
+                "attribution": src.attribution, "license_id": src.license_id}
+        return {"data": data, "lod": "refs", "total": len(t["rows"]), "returned": len(t["rows"]), "truncated": False,
+                "cursor_next": None, "excluded": {}, "facets": None, "highlight": None,
+                "sources": [{"source_id": src.id, "attribution": src.attribution, "license_id": src.license_id}],
+                "world_version": None, "as_of": {}, "timing_ms": 0}
+
     def close(self):
         for w in self._all:
             if isinstance(w, ProcWorker):
@@ -449,6 +512,14 @@ class Service:
         @route("GET", "/observations", 8000)
         def observations(w, m, p, body):
             return api_op(w, "observations"), {}
+
+        @route("GET", "/tables/(?P<table>[a-z][a-z0-9_]{0,40})", 8000)
+        def table(w, m, p, body):
+            return self.published_table(m["table"]), {}
+
+        @route("GET", "/types/(?P<type>[a-z][a-z0-9_]{0,40}\\.[a-z0-9_.]{1,60})/points", 8000)
+        def type_points(w, m, p, body):
+            return self.type_points(m["type"], p.get("status")), {}
 
         @route("GET", "/places-index", 8000)
         def places_index(w, m, p, body):
@@ -838,11 +909,14 @@ def make_handler(svc: Service, port: int, verbose=False):
             immutable = "/assets/" in path
             return self._send(200, f.read_bytes(), ctype, headers={
                 "Cache-Control": "public, max-age=31536000, immutable" if immutable else "no-cache",
-                "Content-Security-Policy": f"default-src 'self'; img-src 'self' data: blob: {_media_hosts()}; style-src 'self' "
+                "Content-Security-Policy": f"default-src 'self'; img-src 'self' data: blob: {_media_hosts()} {_media_hosts('tiles')}; style-src 'self' "
                                            f"'unsafe-inline'; worker-src 'self' blob:; media-src 'self' blob: {_media_hosts('video')}; "
-                                           f"connect-src 'self' {_media_hosts('connect')} {_media_hosts('video')}"})
+                                           f"connect-src 'self' {_media_hosts('connect')} {_media_hosts('video')} {_media_hosts('tiles')}; frame-src {_media_hosts('frame') or _NONE}"})
 
     return Handler
+
+
+_NONE = "'none'"
 
 
 def _media_hosts(kind: str = "img") -> str:
@@ -1299,10 +1373,25 @@ def _indicators_pkg(q):
                 "SELECT r.to_id, json_extract(o.props_json, '$.' || ?), COUNT(*) FROM relation r JOIN object o ON o.object_id=r.from_id "
                 "WHERE r.type='located_in' AND o.type=? GROUP BY r.to_id, 2 ORDER BY r.to_id, 3 DESC", (st["property"], t)):
             subtypes.setdefault(place, {}).setdefault(t, []).append([val, n])
+    # the place's most populous element of each ranked type (vocabulary hint "place_index.rank_property"), with its own
+    # value and source: what NEXUM knows of the place's largest member — never the identity behind another source's
+    # number (a statistic that names no element is said so by the UI)
+    leaders = {}
+    for t, (_lab, h) in hints.items():
+        rp = (h.get("place_index") or {}).get("rank_property")
+        if not rp:
+            continue
+        for place, oid, label, val, sid in conn.execute(
+                "SELECT r.to_id, o.object_id, o.label, MAX(CAST(json_extract(o.props_json, '$.' || ?) AS REAL)), o.source_id "
+                "FROM relation r JOIN object o ON o.object_id = r.from_id WHERE r.type = 'located_in' AND o.type = ? AND o.status != 'retracted' "
+                "AND json_extract(o.props_json, '$.' || ?) IS NOT NULL GROUP BY r.to_id ORDER BY r.to_id", (rp, t, rp)):
+            leaders.setdefault(place, {})[t] = {"id": oid, "label": label, "property": rp, "value": val, "source_id": sid,
+                                                 "source": q.sources[sid].name if sid in q.sources else sid}
     srcs = {d["source_id"] for d in defs.values()}
     names = {sid: q.sources[sid].name for sid in srcs if sid in q.sources}
     catalog.sort(key=lambda c: (c["props"].get("section") or "", c["props"].get("order") or 0, c["id"]))
-    pkg = {"by_entity": by_entity, "defs": defs, "flows": flows, "catalog": catalog, "source_names": names, "subtypes": subtypes}
+    pkg = {"by_entity": by_entity, "defs": defs, "flows": flows, "catalog": catalog, "source_names": names, "subtypes": subtypes,
+           "leaders": leaders}
     if len(_IND_CACHE) > 4:
         _IND_CACHE.clear()
     _IND_CACHE[key] = pkg
@@ -1316,7 +1405,7 @@ def indicators_of(q, eid):
     series = pkg["by_entity"].get(eid, [])
     used = sorted({s["def"] for s in series})
     data = {"entity": eid, "series": series, "defs": {d: pkg["defs"][d] for d in used}, "flows": pkg["flows"].get(eid, []),
-            "subtypes": pkg["subtypes"].get(eid, {}),
+            "subtypes": pkg["subtypes"].get(eid, {}), "leaders": pkg["leaders"].get(eid, {}),
             "source_names": {k: v for k, v in pkg["source_names"].items() if any(pkg["defs"][d]["source_id"] == k for d in used)}}
     n = len(series)
     return q._envelope(data, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=n, returned=n)

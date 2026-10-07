@@ -1,0 +1,10 @@
+{
+ "_comment": "Indicators whose source gives a value about ONE element of a place without naming it (2026-10-05, physical test: 'Popolazione della città più grande' said no city). The view says plainly that the source names no element, and shows beside it — as a separate fact with its own value and source, never as the identity behind the number — the most populous element of that type NEXUM holds for the place (API: indicators answer, 'leaders'), linked to its card. Generic: any place, any indicator listed here.",
+ "EN.URB.LCTY": {
+  "leader": "place.settlement",
+  "unnamed": "La fonte (ONU, World Urbanization Prospects, tramite Banca Mondiale) indica il valore dell'agglomerato urbano più grande, ma non il suo nome.",
+  "leaderLabel": "Centro abitato più popoloso noto a NEXUM",
+  "leaderUnit": "abitanti",
+  "caveat": "stima di agglomerato di un'altra fonte, con una definizione diversa: può non coincidere con l'agglomerato misurato dall'ONU"
+ }
+}

@@ -1,0 +1,37 @@
+id = "osm.navalbases"
+name = "OpenStreetMap — naval bases (name and operator only)"
+owner = "OpenStreetMap contributors (via FOSSGIS Overpass)"
+verdict = "adopt"
+reliability_tier = "T3"
+verified_at = "2026-10-06"
+independence_group = "openstreetmap"
+connector = "connectors.osm_overpass"
+
+# Master pass (2026-10-06): ports context, as OSIRIS's hard-coded naval bases; only name and operator are kept.
+# One global Overpass query at most once a week (FOSSGIS fair use: one request, identifying User-Agent); published as
+# one table (GET /tables/navalbases) drawn only when the person turns the layer on.
+[license]
+id = "odbl-1.0"
+url = "https://www.openstreetmap.org/copyright"
+attribution = "© OpenStreetMap contributors (ODbL 1.0)"
+redistribution = "allowed_with_attribution_share_alike"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["overpass-api.de"]
+
+[politeness]
+min_interval_s = 604800
+max_rps = 0.05
+conditional_get = false
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 604800
+
+[options]
+published_table = "navalbases"
+query = '[out:json][timeout:120];nwr["military"="naval_base"];out tags center;'

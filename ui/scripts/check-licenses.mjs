@@ -14,7 +14,10 @@ const lock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json"), "u
 // @sqlite.org/sqlite-wasm: Phase 3 decision E4 (approved 2026-09-29), Apache-2.0 — the Core's FTS5 index in the browser
 // hls.js (2026-10-04, Apache-2.0): plays the publishers' live HLS video in browsers without native HLS, loaded only
 // when a person starts a live camera
-const RUNTIME = ["@sqlite.org/sqlite-wasm", "graphology", "hls.js", "maplibre-gl", "react", "react-dom", "sigma"];
+// satellite.js (2026-10-04, MIT): SGP4 propagation of the published orbital elements in the browser (orbits, sky)
+// @mlc-ai/web-llm (2026-10-04, Apache-2.0): the optional local language model of the AI overview, loaded only when the
+// person asks for it (model weights from Hugging Face, Apache-2.0 models only)
+const RUNTIME = ["@mlc-ai/web-llm", "@sqlite.org/sqlite-wasm", "graphology", "hls.js", "maplibre-gl", "react", "react-dom", "satellite.js", "sigma"];
 const DEV = ["@playwright/test", "@types/react", "@types/react-dom", "@vitejs/plugin-react", "typescript", "vite"];
 const problems = [];
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());

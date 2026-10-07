@@ -1,0 +1,35 @@
+id = "noaa.swpc"
+name = "NOAA SWPC — planetary Kp index and 3-day forecast"
+owner = "NOAA Space Weather Prediction Center"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "noaa_swpc"
+connector = "connectors.noaa_swpc"
+
+# OSIRIS baseline (2026-10-04): the header's Kp, published as a table (GET /tables/spaceweather) and read from NEXUM's
+# own origin (O2: no third-party request without the person's action). Value said with its time.
+[license]
+id = "us-government-work"
+url = "https://www.swpc.noaa.gov/disclaimers"
+attribution = "Space weather: NOAA Space Weather Prediction Center (public domain)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["services.swpc.noaa.gov"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 3600
+
+[options]
+published_table = "spaceweather"

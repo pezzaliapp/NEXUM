@@ -109,7 +109,9 @@ export function PlaceView({ id, d, ctxData, conn }: { id: string; d: any; ctxDat
   }, [section, obs, ind, ten]);
   const cur = nav.some(([k]) => k === section) ? section : "overview";
   // a section is read in full: on a phone the card opens completely (the overview may stay half open over the map)
-  const go = (k: string) => store.set({ section: k, sheet: k === "overview" ? (store.get().sheet === "mini" ? "peek" : store.get().sheet) : "full" });
+  // a section keeps the card's height (the map stays in view at half height); from the name line it opens to half —
+  // the whole screen only when the person drags or asks for it (physical test #4)
+  const go = (k: string) => store.set({ section: k, sheet: store.get().sheet === "mini" ? "peek" : store.get().sheet });
   const label = d?.label ?? store.entity(id)?.label ?? "";
   const secList = (k: string) => (bySec.get(k) ?? []).filter((s) => s.kind !== "survey");
   const have = new Set((ind?.list ?? []).map((s) => s.refs[0]));

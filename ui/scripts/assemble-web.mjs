@@ -34,19 +34,30 @@ fs.writeFileSync(path.join(out, "current.json"), JSON.stringify(cur));
 const HOSTS = JSON.parse(fs.readFileSync(path.join(root, "media-hosts.json"), "utf8"));
 // live video (2026-10-04): the origins of the publishers' live streams — HLS playlists and segments (read by the
 // player: connect-src, media-src) and MJPEG streams (shown as an image: img-src)
-const MEDIA = HOSTS.img, CONNECT = HOSTS.connect ?? [], VIDEO = HOSTS.video ?? [];
-if ([...MEDIA, ...CONNECT, ...VIDEO].some((h) => !/^https:\/\/[a-z0-9.-]+(:\d{2,5})?$/.test(h))) throw new Error("media-hosts.json: only explicit https origins");
-const CSP = `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' data: blob: ${MEDIA.join(" ")}; ` +
+const MEDIA = HOSTS.img, CONNECT = HOSTS.connect ?? [], VIDEO = HOSTS.video ?? [], FRAME = HOSTS.frame ?? [], TILES = HOSTS.tiles ?? [];
+if ([...MEDIA, ...CONNECT, ...VIDEO, ...FRAME, ...TILES].some((h) => !/^https:\/\/[a-z0-9.-]+(:\d{2,5})?$/.test(h))) throw new Error("media-hosts.json: only explicit https origins");
+// the full policy travels in the page itself (a <meta> element, the first one of <head>): Cloudflare Pages drops a header
+// value longer than 2,000 characters (2026-10-04: the allowlist of the operational tools is ~3,000), and a dropped
+// policy is no policy. The header keeps what a <meta> policy cannot carry (frame-ancestors) and two hard locks.
+const CSP = `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' data: blob: ${[...MEDIA, ...TILES].join(" ")}; ` +
   `media-src 'self' blob: ${VIDEO.join(" ")}; ` +
-  `style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' ${[...CONNECT, ...VIDEO].join(" ")}; manifest-src 'self'; ` +
-  "object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+  `style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self' ${[...CONNECT, ...VIDEO, ...TILES].join(" ")}; manifest-src 'self'; ` +
+  `frame-src ${FRAME.length ? FRAME.join(" ") : "'none'"}; ` +
+  "object-src 'none'; base-uri 'self'";
+const CSP_HEADER = "frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
+const indexFile = path.join(out, "index.html");
+const html = fs.readFileSync(indexFile, "utf8");
+if (!/<meta charset="UTF-8"\s*\/?>/i.test(html)) throw new Error("index.html: no <meta charset> to anchor the policy");
+fs.writeFileSync(indexFile, html.replace(/(<meta charset="UTF-8"\s*\/?>)/i, `$1\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`));
 fs.writeFileSync(path.join(out, "_headers"), [
   "/*",
   "  X-Content-Type-Options: nosniff",
   "  Referrer-Policy: no-referrer",
-  `  Content-Security-Policy: ${CSP}`,
-  "  Permissions-Policy: geolocation=(), camera=(), microphone=(), interest-cohort=()",
+  `  Content-Security-Policy: ${CSP_HEADER}`,
+  "  Permissions-Policy: geolocation=(self), camera=(), microphone=(), interest-cohort=()",   // geolocation: SKY, only when the person asks
   "/assets/*",
+  "  Cache-Control: public, max-age=31536000, immutable",
+  "/vendor/*",
   "  Cache-Control: public, max-age=31536000, immutable",
   "/s/*",
   "  Cache-Control: public, max-age=31536000, immutable",
@@ -54,8 +65,18 @@ fs.writeFileSync(path.join(out, "_headers"), [
   "  Cache-Control: no-cache",
   "/index.html",
   "  Cache-Control: no-cache",
+  "/",
+  "  Cache-Control: no-cache",
+  "/version.json",
+  "  Cache-Control: no-store",
+  "/sw.js",
+  "  Cache-Control: no-cache",
+  "/manifest.webmanifest",
+  "  Cache-Control: no-cache",
   "",
 ].join("\n"));
+// Cloudflare Pages ignores a header value over 2,000 characters: never let a policy be dropped silently
+for (const l of fs.readFileSync(path.join(out, "_headers"), "utf8").split("\n")) if (l.length > 1900) throw new Error(`_headers: line over Pages' limit (${l.length})`);
 fs.writeFileSync(path.join(out, "404.html"),
   "<!doctype html><meta charset=utf-8><title>NEXUM — non trovato</title><p>Risorsa non trovata. <a href=\"/\">NEXUM</a></p>\n");
 // test deployment: not indexed until the author approves the public address (E3)
@@ -79,6 +100,20 @@ const notices = [
   "DATI (snapshot " + manifest.version + ", mondo " + manifest.world + ")",
   ...Object.entries(manifest.sources).map(([id, s]) => `- ${s.name} (${id}) — ${s.license_id} — ${s.attribution}`),
   "",
+  "RETE MARITTIMA (api/tables/searoutes.json, il motore della «Rotta marittima tra due porti»; non disegnata come livello)",
+  "- Derivata da Eurostat SeaRoute \"MARNET\" (© European Union, Eurostat; https://github.com/eurostat/searoute, commit",
+  "  0d777c05758503361d799dc0c0a23e09be1d82ae, file marnet_plus_50km.gpkg), licenza EUPL-1.2: testo in /licenses/EUPL-1.2.txt.",
+  "- Basata su Oak Ridge National Laboratory, Center for Transportation Analysis, \"Global Shipping Lane Network / global",
+  "  seaways\" (Intermodal Transportation Network, 2000; dichiarata di pubblico dominio da ORNL), tramite l'archivio",
+  "  GeoCommons (geoiq/gc_data, dataset 25).",
+  "- MODIFICATA da NEXUM il 2026-10-07: coordinate arrotondate a 0,01°, tratti contigui uniti — connectors/searoute_marnet.py.",
+  "  Il file derivato è distribuito con licenza EUPL-1.2. Nessuna approvazione di Eurostat o di ORNL è implicata.",
+  "- Porti di partenza e arrivo: NGA World Port Index (pubblico dominio).",
+  "",
+  "SERVIZI CHIESTI DAL BROWSER SOLO SU RICHIESTA (strumenti e livelli operativi; nessuna copia, nessun proxy)",
+  ...(() => { const O = JSON.parse(fs.readFileSync(path.join(root, "src", "config", "ops.json"), "utf8"));
+    return [O.alerts.geoCredit, O.alerts.gdacsCredit, O.alerts.nwsCredit, O.portwatch.credit, O.route.credit, O.cables.credit, O.routes.credit, O.arcgis.credit].map((c) => `- ${c}`); })(),
+  "",
   "IMMAGINI DALL'ORBITA (chieste dal browser solo su richiesta; nessuna copia, nessun archivio, nessun proxy)",
   "- NASA GIBS / ESDIS (Worldview Snapshots), NASA CMR: imagery NASA, attribuzione richiesta; HLS S30: contains modified Copernicus Sentinel data.",
   "- EUMETSAT EUMETView: Contains modified EUMETSAT Meteosat data (Core data, CC BY 4.0).",
@@ -95,6 +130,9 @@ const notices = [
   apache,
 ].join("\n");
 fs.writeFileSync(path.join(out, "THIRD-PARTY-NOTICES.txt"), notices);
+// the licence of the derived maritime network (EUPL-1.2, its text as Eurostat publishes it at the pinned commit)
+fs.mkdirSync(path.join(out, "licenses"), { recursive: true });
+fs.copyFileSync(path.join(root, "licenses", "EUPL-1.2.txt"), path.join(out, "licenses", "EUPL-1.2.txt"));
 
 // limits of the host
 let files = 0, biggest = ["", 0];

@@ -23,7 +23,9 @@ const p = (xs: number[], q: number) => { const s = [...xs].sort((a, b) => a - b)
 const st = (xs: number[]) => ({ n: xs.length, p50: +p(xs, 0.5).toFixed(1), p95: +p(xs, 0.95).toFixed(1), max: +Math.max(...xs).toFixed(1) });
 
 async function fresh(browser: Browser, url = BASE, throttle = true, vp = { width: 1440, height: 900 }) {
-  const ctx = await browser.newContext({ viewport: vp, isMobile: vp.width < 768, hasTouch: vp.width < 768 });
+  // service workers blocked (2026-10-06): a controlling worker fetches outside the page's throttling and disabled cache,
+  // which would measure an unthrottled network; the benches measure a first visit on Fast 4G, as defined
+  const ctx = await browser.newContext({ viewport: vp, isMobile: vp.width < 768, hasTouch: vp.width < 768, serviceWorkers: "block" });
   const page = await ctx.newPage();
   const cdp = await ctx.newCDPSession(page);
   await cdp.send("Network.enable");

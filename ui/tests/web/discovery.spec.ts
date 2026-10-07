@@ -90,7 +90,7 @@ for (const [dev, vp, touch] of DEVICES) {
     await ctx.close();
   });
 
-  test(`${dev}: WORLD → United States → webcams → a camera; its image is requested only after the tap`, async ({ browser }) => {
+  test(`${dev}: WORLD → United States → webcams → a camera; its image is requested only by the camera's tap`, async ({ browser }) => {
     const { ctx, page, errors } = await world(browser, vp, touch);
     const hosts = (JSON.parse(fs.readFileSync(new URL("../../media-hosts.json", import.meta.url), "utf8")).img as string[]);
     const asked: string[] = [];
@@ -102,13 +102,10 @@ for (const [dev, vp, touch] of DEVICES) {
     await expect(media).toBeVisible({ timeout: 30_000 });
     const cam = media.locator(".ov-some [data-ref]").first();
     await cam.scrollIntoViewIfNeeded();
+    expect(asked, "no image before the tap").toEqual([]);
+    // declared change (2026-10-06): the camera's tap is the request — its image comes at once
     await tap(page, cam, touch);
     await expect(page.getByTestId("media")).toBeVisible({ timeout: 30_000 });
-    await page.waitForTimeout(1500);
-    expect(asked, "no image before the tap").toEqual([]);
-    const openBtn = page.getByTestId("media-open");
-    await openBtn.scrollIntoViewIfNeeded();
-    await tap(page, openBtn, touch);
     await expect(page.getByTestId("media-img").or(page.getByTestId("media-error"))).toBeVisible({ timeout: 30_000 });
     expect(asked.length, "the image is asked to its source after the tap").toBeGreaterThan(0);
     expect(errors).toEqual([]);

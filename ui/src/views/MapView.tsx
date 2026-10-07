@@ -2,10 +2,10 @@
 // NEXUM's own layers on top (ids `nexum-*`). Below z 10 the Core returns aggregate cells when the scope exceeds
 // the budget; from z 10 individual elements. The browser never holds more than 5,000 map features.
 
+import { lazyStale } from "../lib/stale";
 import { DESK_W } from "../lib/layers";
-import { Map as MLMap, NavigationControl, setWorkerUrl, type GeoJSONSource, type MapLayerMouseEvent } from "maplibre-gl";
-import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import { useEffect, useRef, useState } from "react";
+import { LngLat, Map as MLMap, NavigationControl, setWorkerUrl, type GeoJSONSource, type MapLayerMouseEvent } from "maplibre-gl";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { call, isSuperseded, plain, SNAPSHOT } from "../lib/api";
 import { band } from "../lib/confidence";
 import { bandOpacity, colorOf, SHAPE, TOKENS } from "../lib/palette";
@@ -19,8 +19,43 @@ import { store, useStore } from "../store";
 import { mapScope } from "../store/store";
 import { installIllumination } from "../map/illumination";
 import { insightKind } from "../lib/connections";
+import POINTS_CFG from "../config/points.json";
+import type { PointLayer } from "../map/points";
 
-setWorkerUrl(mapWorkerUrl);   // MapLibre's worker is bundled locally by Vite (no CDN)
+// POINT LAYERS OF THEIR OWN (2026-10-05): types drawn whole and clustered by their own layer (src/map/points.ts, loaded
+// when one is shown) instead of as the anonymous density and small marks of the other elements
+const OWN_POINT_TYPES = Object.keys(POINTS_CFG).filter((k) => !k.startsWith("_"));
+/** The own-layer types the map draws now (the person's categories and type filter). */
+function ownDrawn(st: ReturnType<typeof store.get>): string[] {
+  const ms = mapScope(st);
+  return OWN_POINT_TYPES.filter((t) => st.types.has(t) && (!Array.isArray(ms.types) || ms.types.includes(t)));
+}
+
+setWorkerUrl(`${__MAP_VENDOR__}/maplibre-gl-worker.js`);   // MapLibre's own worker, served by NEXUM (no CDN), sharing the main thread's engine file
+// THE OPERATIONAL SURFACE (2026-10-04): header, tools, basemap modes, globe, orbits… — its own download, fetched once
+// the world is on screen (the first view never waits for it)
+const OpsShell = lazyStale(() => import("../ops/OpsShell").then((m) => ({ default: m.OpsShell })));
+/** The map's own answers to a tap (an element, a line, a zone, an operational feature): the groups and the land yield. */
+const TAKEN = /^(nexum-(items|hl|pts|links|zones)|ops-(orbits|channels|news|ais|hotspots$|cables|searoute|imported|quakes|gdacs|nws|naval|choke|ports))/;
+const drawing = () => !!((window as any).__nexumDrawing || (window as any).__nexumPicking);   // a tool owns the map's taps
+// the address as the page opened (the workspace rewrites it with the focus right after): a permalink's projection
+const START_HASH = location.hash;
+// the opening view: Europe–Africa (where the world's data are densest), unless the device's time zone is on another
+// side of the Earth — then the globe faces it (the time zone only: no address, no IP lookup)
+const TZ_LNG = Math.max(-150, Math.min(150, Math.round(-new Date().getTimezoneOffset() / 4)));
+const START_CENTER: [number, number] = [Math.abs(TZ_LNG - 20) > 45 ? TZ_LNG : 20, 22];
+(window as any).__nexumStartHash = START_HASH;
+/** A point hidden behind the globe is not labelled (the flat map hides nothing). */
+const occluded = (m: MLMap, p: [number, number]) => {
+  if (m.getProjection()?.type !== "globe") return false;
+  // the far hemisphere: more than 90° of arc from the centre of the view (also while the globe turns into the flat
+  // map at high zoom, when the renderer's own test may not apply)
+  const c = m.getCenter(), r = Math.PI / 180;
+  const cos = Math.sin(c.lat * r) * Math.sin(p[1] * r) + Math.cos(c.lat * r) * Math.cos(p[1] * r) * Math.cos((p[0] - c.lng) * r);
+  if (cos < 0.05) return true;
+  const t: any = (m as any).transform;
+  return !!t?.isLocationOccluded?.(new LngLat(p[0], p[1]));
+};
 
 const MAX_FEATURES = 5000;
 // aggregates and unrelated elements recede; with a focus they recede further (hierarchy of the addendum 2026-09-30)
@@ -30,6 +65,7 @@ const MAX_FEATURES = 5000;
 const WORLD_Z = 3;          // MapLibre zoom below which the Core's aggregates are asked directly (world scale)
 const LOCAL_Z = 5.5;        // MapLibre zoom from which the elements themselves are shown (lod "refs", screen budget)
 const DENSITY_OPACITY = { idle: 1, focus: 0.55 };
+export const DENSITY_INTENSITY = { flat: 0.42, globe: 0.3 };
 const DENSITY_SPREAD = 1.45;   // heatmap radius in cell spacings (cells are regular in longitude, wider apart in Mercator rows near the poles)   // multiplies the zoom fade of the density layer
 // elements without a date (places, infrastructure: always visible, already named by the backdrop) recede; the
 // period's events and insights stand out
@@ -96,6 +132,8 @@ export function MapView() {
   const tipEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const stopIllumination = useRef<(() => void) | null>(null);
+  const stopOps = useRef<(() => void) | null>(null);
+  const [opsReady, setOpsReady] = useState(false);
   const framed = useRef<string | null>(null);
   const idsRef = useRef<string[]>([]);
   const [ready, setReady] = useState(false);
@@ -121,8 +159,13 @@ export function MapView() {
     let cancelled = false;
     plain<any>("/basemap/style.json").then((style) => {
       if (cancelled || !el.current) return;
+      // the projection the person last chose (globe by default, as the operational surface opens), from the first frame
+      let flat = false;
+      try { flat = (JSON.parse(localStorage.getItem("nexum.ops.v1") ?? "{}").projection === "flat") || /[#&]p=flat/.test(START_HASH); } catch { /* defaults */ }
+      if (/[#&]p=globe/.test(START_HASH)) flat = false;
+      if (!flat) style = { ...style, projection: { type: "globe" } };
       const created = new MLMap({
-        container: el.current, style, center: [20, 22], zoom: 1.2, minZoom: 0, maxZoom: 15,
+        container: el.current, style, center: START_CENTER, zoom: 1.2, minZoom: 0, maxZoom: 15,
         renderWorldCopies: false, dragRotate: false, pitchWithRotate: false, attributionControl: false,
         fadeDuration: 0, maxPitch: 0,
       });
@@ -159,7 +202,9 @@ export function MapView() {
         // density of the aggregate cells (weight = share of the densest cell); fades out before the elements appear
         m.addLayer({ id: "nexum-density", type: "heatmap", source: "nexum-cells", maxzoom: LOCAL_Z + 0.5, paint: {
           "heatmap-weight": ["get", "w"],
-          "heatmap-intensity": 0.42,                          // overlapping blobs (radius ≈ 1.45 spacings, set per answer)
+          // overlapping blobs (radius ≈ 1.45 spacings, set per answer); on the globe the same cells cover a smaller disc
+          // and add up brighter: a lower intensity keeps the density as quiet as on the flat map (the night stays night)
+          "heatmap-intensity": style.projection?.type === "globe" ? DENSITY_INTENSITY.globe : DENSITY_INTENSITY.flat,
           "heatmap-radius": 24,
           "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(159,179,191,0)", 0.2, "rgba(159,179,191,0.14)",
             0.5, "rgba(159,179,191,0.26)", 1, "rgba(196,210,218,0.42)"],
@@ -192,6 +237,7 @@ export function MapView() {
           "icon-allow-overlap": true, "icon-ignore-placement": true },
           paint: { "icon-color": ["match", ["get", "role"], "focus", TOKENS.accent, TOKENS.link] } });
         const pick = (e: MapLayerMouseEvent) => {
+          if (drawing()) return;
           const id = e.features?.[0]?.properties?.id as string | undefined;
           if (!id) return;
           if (e.originalEvent.shiftKey) store.setSecondary(id); else store.select(id, "map");
@@ -202,10 +248,27 @@ export function MapView() {
         // land → density → night → lights → borders → focus area → links → elements → selection
         m.moveLayer("nexum-density", "nexum-illumination");
         if (m.getLayer("basemap-borders")) m.moveLayer("basemap-borders", "nexum-focus-fill");
+        const near = (e: MapLayerMouseEvent | { point: { x: number; y: number } }) => {
+          const r = innerWidth < DESK_W ? 12 : 5, { x, y } = e.point;
+          return m.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]]);
+        };
+        // a connection line opens the element it leads to; a security zone, the place's security section
+        m.on("click", (e) => {
+          // (a thin line, near the finger; anything more specific there — an element, a news point — answers instead)
+          const fs = near(e).filter((f) => TAKEN.test(f.layer.id)), p = fs.every((f) => /^nexum-(links|zones)$/.test(f.layer.id)) && fs[0]?.properties;
+          if (drawing() || !p) return;
+          if (p.r) store.select(p.r, "map"); else if (p.place) store.select(p.place, "map", "sicurezza");
+        });
+        for (const l of ["nexum-links", "nexum-zones"]) {
+          m.on("mouseenter", l, () => { m.getCanvas().style.cursor = "pointer"; });
+          m.on("mouseleave", l, () => { m.getCanvas().style.cursor = ""; });
+        }
+        // (registered first: an element on a line or in a zone answers the tap last, so it wins)
         m.on("click", "nexum-items", pick);
         m.on("click", "nexum-hl", pick);
         for (const layer of ["nexum-cells"]) m.on("click", layer, (e) => {
-          if (m.queryRenderedFeatures(e.point, { layers: ["nexum-items"] }).length) return;   // an element was touched
+          if (drawing()) return;
+          if (near(e).some((f) => TAKEN.test(f.layer.id))) return;   // something else answers
           const bb = JSON.parse(e.features?.[0]?.properties?.bb ?? "null");
           if (bb) m.fitBounds([[bb[0], bb[2]], [bb[1], bb[3]]], { padding: 24, duration: 300, maxZoom: 11 });
         });
@@ -235,7 +298,9 @@ export function MapView() {
           });
         }
         m.on("click", (e) => {
-          if (m.queryRenderedFeatures(e.point, { layers: ["nexum-items", "nexum-hl", "nexum-cells"] }).length) return;
+          if (drawing()) return;
+          // an element, a group or an operational feature under (or, with a finger, near) the tap answers it instead
+          if (near(e).some((f) => TAKEN.test(f.layer.id) || f.layer.id === "nexum-cells")) return;
           const land = m.queryRenderedFeatures(e.point, { layers: ["basemap-land"] })[0];
           if (!land || !exploreTypes().length) return;
           const inside = (placeNames.current ?? []).filter((n) => inGeometry([n.x, n.y], land.geometry));
@@ -247,9 +312,15 @@ export function MapView() {
         mapRef.current = m;
         (window.__nexum ??= {}).map = m;
         setReady(true);
+        // the operational layers, after the first frame of the world (their code is a separate download)
+        m.once("idle", () => import("../ops/OpsShell").then((ops) => {
+          if (mapRef.current !== m || !ops) return;   // (an old build's part gone from the host: the update notice says so)
+          stopOps.current = ops.installOps(m);
+          setOpsReady(true);
+        }).catch(() => {}));
       });
     });
-    return () => { cancelled = true; stopIllumination.current?.(); map?.remove(); mapRef.current = null; setReady(false); };
+    return () => { cancelled = true; stopIllumination.current?.(); stopOps.current?.(); stopOps.current = null; map?.remove(); mapRef.current = null; setReady(false); setOpsReady(false); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasGeo]);
 
@@ -273,7 +344,14 @@ export function MapView() {
     const st = store.get();
     const { vp, z } = viewportOf(map);
     store.set({ viewport: vp });
-    const ms = mapScope(st);   // the person's scope narrowed to the categories the map draws (display only)
+    let ms = mapScope(st);   // the person's scope narrowed to the categories the map draws (display only)
+    // the types drawn by their own clustered layer are not asked again here (never twice on the map)
+    const own = ownDrawn(st);
+    if (own.length) {
+      const all = Array.isArray(ms.types) ? ms.types : [...[...st.types.values()].filter((t) => t.kind !== "relation").map((t) => t.id),
+        ...Object.keys(st.status?.by_type ?? {}).filter((k) => !st.types.has(k))];
+      ms = { ...ms, types: all.filter((t) => !own.includes(t)) };
+    }
     if (emptyTypes(ms)) {
       (map.getSource("nexum-cells") as GeoJSONSource).setData(EMPTY);
       (map.getSource("nexum-items") as GeoJSONSource).setData(EMPTY);
@@ -388,6 +466,24 @@ export function MapView() {
   const mapTypes = useStore((s) => s.mapTypes);
   useEffect(() => { if (ready) schedule(); /* eslint-disable-next-line */ }, [ready, JSON.stringify(scope), wv, focus, floor, JSON.stringify(mapTypes)]);
 
+  // the own point layers: installed the first time their type is shown, then simply turned on and off
+  const ownLayers = useRef<Map<string, Promise<PointLayer>>>(new Map());
+  const types = useStore((s) => s.types);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const drawn = ownDrawn(store.get());
+    for (const t of OWN_POINT_TYPES) {
+      const on = drawn.includes(t);
+      let l = ownLayers.current.get(t);
+      if (!l && !on) continue;
+      if (!l) { l = import("../map/points").then((mod) => mod.installPoints(m, t, "nexum-sel")); l.catch(() => ownLayers.current.delete(t)); ownLayers.current.set(t, l); }
+      l.then((x) => { if (mapRef.current === m) x.setActive(ownDrawn(store.get()).includes(t)); });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, JSON.stringify(scope.types), JSON.stringify(mapTypes), types]);
+  useEffect(() => () => { ownLayers.current.forEach((l) => l.then((x) => x.destroy())); ownLayers.current.clear(); }, [hasGeo]);
+
   const mapFit = useStore((s) => s.mapFit);
   useEffect(() => {
     const m = mapRef.current;
@@ -426,7 +522,7 @@ export function MapView() {
         for (const it of context.data?.[sec]?.items ?? []) {
           if (String(it.reason ?? "").startsWith("shares_participant")) continue;   // context, not a connection
           const p = store.entity(it.$ref)?.point;
-          if (p && it.$ref !== focus) lines.push({ type: "Feature", geometry: { type: "LineString", coordinates: [fp, p] }, properties: {} });
+          if (p && it.$ref !== focus) lines.push({ type: "Feature", geometry: { type: "LineString", coordinates: [fp, p] }, properties: { r: it.$ref } });
         }
       }
     }
@@ -461,7 +557,7 @@ export function MapView() {
     if (!mapZones) { src.setData(EMPTY); return; }
     import("../components/Security").then((mod) => mod.loadSecurity(store.get().worldVersion)).then((d) => {
       src.setData({ type: "FeatureCollection", features: d.zones.flatMap((z) => z.cells.map(([x, y]) => ({ type: "Feature" as const,
-        properties: { color: z.color, zone: z.id },
+        properties: { color: z.color, zone: z.id, place: z.place },
         geometry: { type: "Polygon" as const, coordinates: [[[x, y], [x + 0.5, y], [x + 0.5, y + 0.5], [x, y + 0.5], [x, y]]] } }))) });
     }).catch(() => {});
   }, [ready, mapZones, wv]);
@@ -511,7 +607,7 @@ export function MapView() {
     const m = mapRef.current;
     if (!ready || !m || !homeTick) return;
     lastMoved.current = null;
-    m.easeTo({ center: [20, 22], zoom: 1.2, duration: 400 });
+    m.easeTo({ center: START_CENTER, zoom: 1.2, duration: 400 });
   }, [homeTick, ready]);
   const lastMoved = useRef<string | null>(null);
   useEffect(() => {
@@ -571,7 +667,7 @@ export function MapView() {
       const w = host.clientWidth, h = host.clientHeight;
       // the map's own controls (chips, legend, zoom, the strip) are taken first: a label never slips under them
       const hb = host.getBoundingClientRect();
-      const boxes: [number, number, number, number][] = [...document.querySelectorAll(".view-toolbar > *, .map-legend, .maplibregl-ctrl-group, .card-strip, .map-appears")]
+      const boxes: [number, number, number, number][] = [...document.querySelectorAll(".view-toolbar > *, .map-legend, .maplibregl-ctrl-group, .card-strip, .map-appears, .ops-hud, .ops-rail, .ops-rail-toggle, .ops-panel, .ops-card, .ops-foot, .pts-legend, .pts-pop")]
         .map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0)
         .map((r) => [r.left - hb.left, r.top - hb.top, r.right - hb.left, r.bottom - hb.top] as [number, number, number, number]);
       const out: string[] = [];
@@ -592,12 +688,13 @@ export function MapView() {
       };
       const place = (id: string, cls: string, force = false) => {
         const e = store.entity(id), pt = pointOf(id);
-        if (!e || !pt) return;
+        if (!e || !pt || occluded(m, pt)) return;
         const p = m.project(pt);
         put(p.x, p.y, e.label, cls, false, force);
       };
       const zWeb = m.getZoom() + 1;                          // the source's zoom scale (256 px tiles)
       const names = (placeNames.current ?? []).filter((n) => {
+        if (occluded(m, [n.x, n.y])) return false;
         const p = m.project([n.x, n.y]);
         return p.x >= 0 && p.y >= 0 && p.x <= w && p.y <= h;
       });
@@ -634,7 +731,7 @@ export function MapView() {
       for (const id of hlIds.current) {
         if (out.length >= max) break;
         const pt = pointOf(id), text = hlLabels.current.get(id);
-        if (!pt || !text) continue;
+        if (!pt || !text || occluded(m, pt)) continue;
         const p = m.project(pt);
         put(p.x, p.y, text, id.startsWith("ins_") ? "hl ins" : "hl", false);
       }
@@ -670,6 +767,7 @@ export function MapView() {
       </div>
       {!touch && !focus && status && <Legend />}
       {note && <div className="overlay-note" data-testid="map-note">{note}</div>}
+      {opsReady && mapRef.current && <Suspense fallback={null}><OpsShell map={mapRef.current} /></Suspense>}
       <div className="phone-attr" data-testid="map-attr"><Freshness /> · <SnapshotAge compact />{SNAPSHOT ? " · " : ""}{S.status.data}: {[...new Set([...(status?.sources ?? []).map((s) => s.attribution),
         status?.basemap?.["nexum:attribution"]].filter(Boolean))].join(" · ")}</div>
     </>

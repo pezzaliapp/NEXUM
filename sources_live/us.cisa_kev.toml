@@ -1,0 +1,35 @@
+id = "us.cisa_kev"
+name = "CISA Known Exploited Vulnerabilities catalogue"
+owner = "U.S. Cybersecurity and Infrastructure Security Agency (CISA)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "us_cisa"
+connector = "connectors.registers"
+
+# OSIRIS baseline (2026-10-04): the catalogue of software flaws exploited in the wild, published as a table
+# (GET /tables/kev). Defensive information only: no exploit, no scanning.
+[license]
+id = "us-government-work"
+url = "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+attribution = "Known exploited vulnerabilities: CISA KEV catalogue (U.S. Government work)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.cisa.gov"]
+
+[politeness]
+min_interval_s = 43200
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 43200
+
+[options]
+published_table = "kev"

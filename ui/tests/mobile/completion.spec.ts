@@ -44,7 +44,6 @@ test("country view, sections bar, Osserva coverage, a webcam from a city, search
   const cam = page.getByTestId("place-webcams").locator('[data-availability="current_snapshot"]').first();
   await cam.scrollIntoViewIfNeeded();
   await cam.locator("button").click();
-  await page.getByTestId("media-open").click();
   const img = page.getByTestId("media-img");
   await expect(img).toBeVisible({ timeout: 30_000 });
   await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0), { timeout: 30_000 }).toBeTruthy();

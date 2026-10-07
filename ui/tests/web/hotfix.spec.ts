@@ -27,7 +27,7 @@ async function open(page: Page, q: string, label?: RegExp) {
 }
 async function playLive(page: Page) {
   await expect(page.getByTestId("media-status")).toHaveText("● LIVE", { timeout: 30_000 });
-  await page.getByTestId("live-start").click();
+  // declared change (2026-10-06): the camera's tap starts its video (muted) — no second button
   await expect(page.getByTestId("live-player")).toHaveAttribute("data-state", "playing", { timeout: 45_000 });
   await expect(page.getByTestId("live-state")).toContainText("IN ONDA");
 }
@@ -51,9 +51,9 @@ test("LIVE 2 · Caltrans HLS from a city's card (Los Angeles)", async ({ page })
     const live = page.getByTestId("place-webcams").locator('[data-availability="live_stream"]');
     await expect(live.first()).toContainText("● LIVE", { timeout: 30_000 });
     await live.nth(k).locator("button").click();
-    await page.getByTestId("live-start").click();
-    await expect(page.getByTestId("live-player")).not.toHaveAttribute("data-state", "loading", { timeout: 45_000 });
-    ok = (await page.getByTestId("live-player").getAttribute("data-state")) === "playing";
+    // (2026-10-06: a stream that does not answer gives way to the camera's still, said as an image: the viewer keeps the state)
+    await expect(page.getByTestId("media")).not.toHaveAttribute("data-live-state", "loading", { timeout: 45_000 });
+    ok = (await page.getByTestId("media").getAttribute("data-live-state")) === "playing";
   }
   expect(ok).toBeTruthy();
   expect(errors).toEqual([]);

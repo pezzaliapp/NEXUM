@@ -1,10 +1,21 @@
-import { useRef } from "react";
+import { lazyStale } from "../lib/stale";
+import { Suspense } from "react";
 import { S } from "../lib/strings";
 import { isSheet, isTouch } from "../lib/layers";
 import { store, useStore } from "../store";
-import { ObjectMode } from "./ObjectMode";
-import { WhyView } from "./WhyView";
 import { WorldSummary } from "./WorldSummary";
+import { sheetDrag, sheetRoom } from "../lib/sheetdrag";
+
+// the element's card and its explanation are their own download (2026-10-04): the opening world view never pays for
+// them (O6); they are fetched at the person's first gesture (press, touch or key), before any element can be chosen
+const loadObject = () => import("./ObjectMode");
+const loadWhy = () => import("./WhyView");
+const ObjectMode = lazyStale(() => loadObject().then((m) => ({ default: m.ObjectMode })));
+const WhyView = lazyStale(() => loadWhy().then((m) => ({ default: m.WhyView })));
+if (typeof window !== "undefined") {
+  const warm = () => { loadObject().catch(() => {}); loadWhy().catch(() => {}); for (const ev of ["pointerdown", "touchstart", "keydown"]) removeEventListener(ev, warm, true); };
+  for (const ev of ["pointerdown", "touchstart", "keydown"]) addEventListener(ev, warm, { capture: true, passive: true });   // an intent, not a passing cursor
+}
 
 // Desktop: the inspector column (Phase 2). Touch: THE FOCUS CARD — a bottom sheet under 700 px (name line · first
 // connections · everything), a side panel from 700 px; same content, same order, same behaviour.
@@ -14,7 +25,8 @@ export function Inspector() {
   const whyId = useStore((s) => s.whyId);
   const sheet = useStore((s) => s.sheet);
   const touch = isTouch(), asSheet = isSheet();
-  const body = panel === "why" && whyId ? <WhyView id={whyId} /> : focus ? <ObjectMode id={focus} /> : (
+  const body = panel === "why" && whyId ? <Suspense fallback={<p className="note" style={{ padding: 12 }}>{S.loading}</p>}><WhyView id={whyId} /></Suspense>
+    : focus ? <Suspense fallback={<p className="note" style={{ padding: 12 }}>{S.loading}</p>}><ObjectMode id={focus} /></Suspense> : (
     <>
       <div className="phead"><h2>{S.worldSummary}</h2><span className="grow" />
         <button type="button" className="tab-only" onClick={() => store.set({ inspectorOpen: false, sheet: "peek" })}>{S.closePanel}</button></div>
@@ -35,28 +47,19 @@ export function Inspector() {
 
 /** Drag or tap: mini ⇄ peek ⇄ full. The name line (mini) never disappears while there is a focus. */
 function SheetHandle() {
-  const start = useRef<{ y: number; id: number } | null>(null);
   const focus = useStore((s) => s.focus);
   const sheet = useStore((s) => s.sheet);
   const order = ["mini", "peek", "full"] as const;
-  const step = (d: 1 | -1) => {
-    const i = order.indexOf(store.get().sheet);
-    const next = order[Math.max(0, Math.min(2, i + d))];
+  const go = (next: (typeof order)[number]) =>
     store.set({ sheet: next, ...(next !== "full" && store.get().panel === "why" ? { panel: focus ? "object" : "world", whyId: null } : {}) });
-  };
+  const step = (d: 1 | -1) => go(order[Math.max(0, Math.min(2, order.indexOf(store.get().sheet) + d))]);
+  // the card follows the finger and settles on the nearest height: name line · half (the map above) · whole screen
+  const drag = sheetDrag(() => document.querySelector<HTMLElement>(".touch.as-sheet .insp"),
+    () => [{ name: "mini", px: 96 }, { name: "peek", px: Math.min(420, Math.max(250, innerHeight * 0.52)) }, { name: "full", px: sheetRoom() }],
+    () => store.get().sheet, (n) => go(n as (typeof order)[number]), () => step(store.get().sheet === "full" ? -1 : 1));
   return (
     <div className="sheet-handle" data-testid="sheet-handle" role="button" tabIndex={0} aria-label={S.m.sheetHandle}
-      aria-expanded={sheet === "full"}
-      onPointerDown={(e) => { start.current = { y: e.clientY, id: e.pointerId }; (e.target as Element).setPointerCapture?.(e.pointerId); }}
-      onPointerUp={(e) => {
-        const s = start.current;
-        start.current = null;
-        if (!s) return;
-        const dy = e.clientY - s.y;
-        if (dy < -30) step(1);
-        else if (dy > 30) step(-1);
-        else step(sheet === "full" ? -1 : 1);
-      }}
+      aria-expanded={sheet === "full"} {...drag}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); step(sheet === "full" ? -1 : 1); } }}>
       <span className="grip" aria-hidden />
     </div>

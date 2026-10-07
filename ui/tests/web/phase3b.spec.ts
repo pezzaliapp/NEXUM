@@ -36,19 +36,20 @@ async function italy(page: Page): Promise<string> {
   return ents.find((e) => obs.data.by_entity[e])!;
 }
 
-test("webcams: described first; the image is requested from its source only after the click", async ({ page }) => {
+// declared change (2026-10-06, physical acceptance): tapping the camera IS the request — its image comes at once (no
+// second button); nothing is asked to a publisher before the camera is opened
+test("webcams: nothing asked before the camera is opened; opening it asks its image from its source at once", async ({ page }) => {
   const asked: string[] = [];
   page.on("request", (r) => asked.push(r.url()));
   await open(page);
   // declared change (2026-10-04): Caltrans "Donner" now has its live video; a camera with a current still is used
   const cam = await search(page, "Kelikamera Helsinki", "camera.public_webcam");
-  await select(page, cam);
-  await expect(page.getByTestId("media")).toBeVisible();
-  await expect(page.getByTestId("media-what")).toContainText("non un video");
   const hosts = (JSON.parse(fs.readFileSync(new URL("../../media-hosts.json", import.meta.url), "utf8")).img as string[]);
   const isImg = (u: string) => hosts.some((h) => u.startsWith(h));
-  expect(asked.filter(isImg), "no image before the click").toEqual([]);
-  await page.getByTestId("media-open").click();
+  expect(asked.filter(isImg), "no image before the camera is opened").toEqual([]);
+  await select(page, cam);
+  await expect(page.getByTestId("media")).toBeVisible();
+  await expect(page.getByTestId("cam-state-text")).toContainText("non un video");
   await expect(page.getByTestId("media-img").or(page.getByTestId("media-error"))).toBeVisible({ timeout: 30_000 });
   expect(asked.filter(isImg).length, "the image is asked to its source").toBeGreaterThan(0);
   const img = page.getByTestId("media-img");
@@ -56,8 +57,12 @@ test("webcams: described first; the image is requested from its source only afte
 });
 
 test("webcams: the published CSP lists the camera hosts explicitly, never img-src *", () => {
+  // declared change (2026-10-04): the policy is published in the page (<meta http-equiv>), because Cloudflare Pages drops
+  // a header value over 2,000 characters; the header keeps frame-ancestors (a <meta> policy cannot carry it)
   const headers = fs.readFileSync(new URL("_headers", DEPLOY), "utf8");
-  const csp = headers.split("\n").find((l) => /Content-Security-Policy/.test(l))!;
+  expect(headers).toMatch(/Content-Security-Policy: frame-ancestors 'none'/);
+  const page = fs.readFileSync(new URL("index.html", DEPLOY), "utf8");
+  const csp = page.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)![1];
   const img = csp.match(/img-src ([^;]+)/)![1];
   expect(img).not.toMatch(/(^|\s)\*(\s|$)/);
   expect(img).not.toMatch(/https:(\s|$)/);

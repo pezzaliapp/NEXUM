@@ -16,17 +16,53 @@ const cancelled = new Set<number>();
 const tileDownloads = new Set<AbortController>();
 class TileCancelled extends Error { name = "Superseded"; }
 
+/** OFFLINE (2026-10-06): this worker's requests are not routed through the service worker in every engine (WebKit), so
+ *  the files it reads are kept in the same data store (the snapshot's files are versioned and immutable) and read from it
+ *  when the network cannot be reached. The pointer (current.json) is always asked to the network first. */
+const DATA = "nexum-data";
+async function kept(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    const r = await fetch(url, init);
+    if (r.ok && typeof caches !== "undefined") { const c = r.clone(); caches.open(DATA).then((s) => s.put(url, c)).catch(() => {}); }
+    return r;
+  } catch (e) {
+    const hit = typeof caches !== "undefined" && !init?.signal?.aborted ? await caches.match(url).catch(() => undefined) : undefined;
+    if (hit) return hit;
+    throw e;
+  }
+}
+
+/** The pointer from the page when this worker cannot reach it (offline in an engine that does not route this worker's
+ *  requests through the service worker): the page's own requests always go through it, and it keeps the pointer. */
+let askId = 0;
+const asks = new Map<number, (v: any) => void>();
+function askPage(): Promise<Current | null> {
+  return new Promise((done) => {
+    const rid = ++askId;
+    asks.set(rid, done);
+    (self as unknown as DedicatedWorkerGlobalScope).postMessage({ needCurrent: true, rid });
+    setTimeout(() => { if (asks.delete(rid)) done(null); }, 8000);
+  });
+}
+
 async function init() {
-  const res = await fetch("/current.json", { cache: "no-cache" });
-  if (!res.ok) throw new Error(`current.json: HTTP ${res.status}`);
-  const cur: Current = await res.json();
+  let cur: Current;
+  try {
+    const res = await kept("/current.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error(`current.json: HTTP ${res.status}`);
+    cur = await res.json();
+  } catch (e) {
+    const c = await askPage();
+    if (!c) throw e;
+    cur = c;
+  }
   const d = new SnapshotData(async (p) => {
     const tile = p.startsWith("otiles/");
     const ctl = tile ? new AbortController() : null;
     if (ctl) tileDownloads.add(ctl);
     let r: Response;
     try {
-      r = await fetch(cur.base + p, ctl ? { signal: ctl.signal } : undefined);
+      r = await kept(cur.base + p, ctl ? { signal: ctl.signal } : undefined);
     } catch (e) {
       if (ctl?.signal.aborted) throw new TileCancelled(p);
       throw e;
@@ -52,6 +88,7 @@ async function init() {
 }
 
 self.onmessage = async (e: MessageEvent) => {
+  if (e.data?.rid && "current" in e.data) { asks.get(e.data.rid)?.(e.data.current); asks.delete(e.data.rid); return; }
   const m = e.data;
   if (m.cancel !== undefined) { cancelled.add(m.cancel); return; }
   const { id, method, url, body, channel, seq } = m;

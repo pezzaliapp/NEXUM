@@ -68,7 +68,6 @@ test("an open webcam (Hong Kong): marker, open, current image on request, status
   await expect(res.first()).toBeVisible({ timeout: 30_000 });
   await res.first().click();
   await expect(page.getByTestId("media-status")).toContainText("IMMAGINE CORRENTE", { timeout: 30_000 });
-  await page.getByTestId("media-open").click();
   await expect(page.getByTestId("media-img").or(page.getByTestId("media-error"))).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("media")).toContainText("Transport Department");
   expect(errors).toEqual([]);

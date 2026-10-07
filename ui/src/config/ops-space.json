@@ -1,0 +1,12 @@
+{
+ "_comment": "Space weather of the operational header (NOAA SWPC, public domain, CORS open): read by the header and the space panel.",
+ "spaceWeather": {
+  "kp": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
+  "kp3day": "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json",
+  "aurora": "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json",
+  "scales": "https://services.swpc.noaa.gov/products/noaa-scales.json",
+  "credit": "Meteo spaziale: NOAA Space Weather Prediction Center (dominio pubblico)",
+  "flares": "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json",
+  "alerts": "https://services.swpc.noaa.gov/products/alerts.json"
+ }
+}

@@ -1,0 +1,36 @@
+id = "nasa.firms"
+name = "NASA FIRMS — active fire hotspots, last 24 hours (VIIRS 375 m)"
+owner = "NASA LANCE / FIRMS"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-04"
+independence_group = "nasa_firms"
+connector = "connectors.firms_hotspots"
+
+# OSIRIS baseline (2026-10-04): thermal anomalies of the last 24 hours, published as one table (GET /tables/hotspots)
+# drawn on request; never stored as NEXUM events (a hotspot is a detection, not a confirmed fire). The open global
+# 24-hour CSV files of the FIRMS site need no key; the files are refreshed several times a day.
+[license]
+id = "nasa-open-data"
+url = "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance"
+attribution = "Hotspots: NASA FIRMS (LANCE), VIIRS 375 m (Suomi NPP, NOAA-21)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["firms.modaps.eosdis.nasa.gov"]
+
+[politeness]
+min_interval_s = 10800
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 10800
+
+[options]
+published_table = "hotspots"

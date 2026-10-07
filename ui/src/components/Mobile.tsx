@@ -120,6 +120,7 @@ function Menu() {
       {(ch.period || ch.filters) ? <li><ResetChip /></li> : null}
       <li><button type="button" role="menuitem" onClick={() => openOverlay("trail")}>{S.m.path}</button></li>
       <li><button type="button" role="menuitem" onClick={() => openOverlay("info")}>{S.m.info}</button></li>
+      {SNAPSHOT && <li className="menu-build dim" data-testid="menu-build">NEXUM · versione in uso: build {__NEXUM_BUILD__}</li>}
     </ul>);
 }
 
@@ -132,6 +133,7 @@ function Info() {
       <p>{S.motto}</p>
       <p><Freshness /></p>
       {SNAPSHOT && <p className="dim"><SnapshotAge /></p>}
+      {SNAPSHOT && <p className="dim" data-testid="info-build">Versione in uso: build {__NEXUM_BUILD__}</p>}
       <p className="dim">{S.status.data}: {attrs.join(" · ")}</p>
       <p className="dim">{S.web.trailLocal}</p>
     </div>);
@@ -166,7 +168,7 @@ function HomeStrip() {
     <div className="card-strip home-strip" data-testid="card-strip">
       <div className="hs-head"><strong>{S.hl.found}</strong>
         <button type="button" className="primary hs-all" data-testid="strip-found"
-          onClick={() => store.set({ inspectorOpen: true, panel: "world", sheet: isSheet() ? "full" : "peek" })}>{S.hl.feed} ▴</button>
+          onClick={() => store.set({ inspectorOpen: true, panel: "world", sheet: "peek" })}>{S.hl.feed} ▴</button>
         {hint && short && <button type="button" className="chip hs-ex hs-ex-head" data-testid="home-explore-head"
           onClick={() => store.set({ inspectorOpen: true, panel: "world", sheet: isSheet() ? "full" : "peek" })}>{hint.label} ▴</button>}</div>
       {conns.length > 0 && <ul className="hl-list" data-testid="home-discoveries">

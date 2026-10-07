@@ -76,7 +76,6 @@ for (const [city, want] of CITIES) {
     let ok = false;
     for (let k = 0; k < Math.min(3, await current.count()) && !ok; k++) {
       await current.nth(k).locator("button").click();
-      await page.getByTestId("media-open").click();
       await expect(page.getByTestId("media-img").or(page.getByTestId("media-error"))).toBeVisible({ timeout: 30_000 });
       const state = () => page.evaluate(() => {
         const i = document.querySelector('[data-testid="media-img"]') as HTMLImageElement | null;

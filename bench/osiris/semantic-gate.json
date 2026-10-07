@@ -1,0 +1,201 @@
+{
+ "checks": [
+  {
+   "chain": "Country",
+   "check": "energy relations",
+   "pass": true,
+   "detail": {
+    "exports_electricity_to": 7,
+    "imports_crude_from": 35,
+    "imports_electricity_from": 7,
+    "imports_gas_from": 27
+   }
+  },
+  {
+   "chain": "Country",
+   "check": "infrastructure (ports, aviation… in the first 500 objects)",
+   "pass": true,
+   "detail": {
+    "geo.volcano": 3,
+    "place.settlement": 32,
+    "observation.indicator": 45,
+    "place.country": 26,
+    "transport.port": 33,
+    "observation.official_series": 2,
+    "observation.opinion_series": 3,
+    "observation.fuel_price": 1,
+    "observation.survey_wave": 1
+   }
+  },
+  {
+   "chain": "Country",
+   "check": "webcams",
+   "pass": true,
+   "detail": 354
+  },
+  {
+   "chain": "Country",
+   "check": "indicators (economy, wages, prices, energy, population…)",
+   "pass": true,
+   "detail": {
+    "observation.indicator": 45,
+    "observation.official_series": 2,
+    "observation.opinion_series": 3,
+    "observation.fuel_price": 1,
+    "observation.survey_wave": 1
+   }
+  },
+  {
+   "chain": "Country",
+   "check": "events",
+   "pass": true,
+   "detail": 176
+  },
+  {
+   "chain": "Country",
+   "check": "government (offices and holders of the country)",
+   "pass": true,
+   "detail": [
+    "obj_k5jnejv3zzn6v7qb73uvausapq",
+    "obj_zwi5j5oqmnnr45rubewbbluzcu"
+   ]
+  },
+  {
+   "chain": "Country",
+   "check": "security zones published",
+   "pass": true,
+   "detail": 201
+  },
+  {
+   "chain": "Event",
+   "check": "place (located_in / near)",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "chain": "Event",
+   "check": "place",
+   "pass": true,
+   "detail": {
+    "place.country": 1
+   }
+  },
+  {
+   "chain": "Event",
+   "check": "infrastructure and population (exposure insights exist)",
+   "pass": true,
+   "detail": 200
+  },
+  {
+   "chain": "Event",
+   "check": "webcams near events (published index)",
+   "pass": true,
+   "detail": "357267 bytes"
+  },
+  {
+   "chain": "Event",
+   "check": "imagery products (satellite observation) as before",
+   "pass": true,
+   "detail": [
+    "daily",
+    "fine",
+    "geo"
+   ]
+  },
+  {
+   "chain": "Event",
+   "check": "evidence",
+   "pass": true,
+   "detail": 1
+  },
+  {
+   "chain": "Infra",
+   "check": "country (located_in)",
+   "pass": true,
+   "detail": {
+    "plant": "NOVEL",
+    "relations": {
+     "located_in": 1
+    }
+   }
+  },
+  {
+   "chain": "Infra",
+   "check": "energy (fuel / capacity facts)",
+   "pass": true,
+   "detail": [
+    "capacity_mw",
+    "commissioning_year",
+    "country_code3",
+    "data_year",
+    "primary_fuel"
+   ]
+  },
+  {
+   "chain": "Infra",
+   "check": "events (timeline of the plant reachable)",
+   "pass": true,
+   "detail": 4
+  },
+  {
+   "chain": "Webcam",
+   "check": "place (point and place note)",
+   "pass": true,
+   "detail": "Webcam di Piazza Garibaldi · Palazzo del Governatore (Parma)"
+  },
+  {
+   "chain": "Webcam",
+   "check": "country (located_in)",
+   "pass": true,
+   "detail": {
+    "located_in": 1
+   }
+  },
+  {
+   "chain": "Webcam",
+   "check": "availability LINK_ONLY kept",
+   "pass": true,
+   "detail": "link_only"
+  },
+  {
+   "chain": "Webcam",
+   "check": "events (timeline/neighbourhood reachable)",
+   "pass": true,
+   "detail": 7
+  },
+  {
+   "chain": "Relation",
+   "check": "evidence",
+   "pass": true,
+   "detail": {
+    "relation": "rel_5oazlwjjve745xrf5xgfeej4qe",
+    "evidence": 1
+   }
+  },
+  {
+   "chain": "Timeline",
+   "check": "object timeline",
+   "pass": true,
+   "detail": 186
+  },
+  {
+   "chain": "Timeline",
+   "check": "event timeline",
+   "pass": true,
+   "detail": 184
+  },
+  {
+   "chain": "Space",
+   "check": "orbital catalogue published",
+   "pass": true,
+   "detail": 15969
+  },
+  {
+   "chain": "Space",
+   "check": "notable spacecraft are NEXUM objects (searchable)",
+   "pass": true,
+   "detail": "ISS (ZARYA)"
+  }
+ ],
+ "failed": 0
+}

@@ -12,7 +12,15 @@ const pending = new Map<number, (m: any) => void>();
 function getWorker(): Worker {
   if (!worker) {
     worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-    worker.onmessage = (e) => { const f = pending.get(e.data.id); if (f) { pending.delete(e.data.id); f(e.data); } };
+    worker.onmessage = (e) => {
+      // the worker cannot reach the pointer (offline, outside the service worker): the page answers it (through the worker)
+      if (e.data?.needCurrent) {
+        fetch("/current.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+          .then((c) => worker!.postMessage({ rid: e.data.rid, current: c }));
+        return;
+      }
+      const f = pending.get(e.data.id); if (f) { pending.delete(e.data.id); f(e.data); }
+    };
   }
   return worker;
 }

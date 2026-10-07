@@ -7,6 +7,7 @@ import { Fragment, useEffect, useState } from "react";
 import { call } from "../lib/api";
 import { direction, marginOfError, pairsByTopic, periodLabel, type Point, type Series } from "../lib/observations";
 import { S } from "../lib/strings";
+import { IndContext } from "./IndContext";
 import { store, useStore } from "../store";
 import { Section } from "./common";
 
@@ -215,6 +216,7 @@ export function SeriesRow({ s, src, attr }: { s: Series; src: string; attr: stri
           {stale(s) && <span className="tag stale" data-testid="obs-stale"> {S.obs.staleTag}</span>}
         </span>
         {p.unit_note && <span className="xs faint obs-unitnote" data-testid="obs-unit-note">{p.unit_note}</span>}
+        <IndContext c={p._context} />
         <span className="xs dim obs-dir" data-testid="obs-direction">{dirText}</span>
       </summary>
       {/* the fact first: what was measured, the result, its period, its change (only when valid) */}

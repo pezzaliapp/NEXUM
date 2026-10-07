@@ -276,6 +276,11 @@ export class SnapshotApi {
         path === "/api/v1/indicators-catalog" || path === "/api/v1/security" ||
         path === "/api/v1/event-webcams" || path === "/api/v1/places-index"))
         return { status: 200, body: await this.static(`api/${path.slice(8)}.json`) };
+      const tm = path.match(/^\/api\/v1\/tables\/([a-z][a-z0-9_]{0,40})$/);
+      if (tm && method === "GET") return { status: 200, body: await this.static(`api/tables/${tm[1]}.json`) };
+      const pm = path.match(/^\/api\/v1\/types\/([a-z][a-z0-9_]{0,40}\.[a-z0-9_.]{1,60})\/points$/);
+      if (pm && method === "GET" && /^[a-z][a-z0-9_]{0,40}$/.test(String(p.status ?? "")))
+        return { status: 200, body: await this.static(`api/types/${pm[1]}/points-${p.status}.json`) };
       const im = path.match(/^\/api\/v1\/indicators\/((?:obj|evt|rel|ins)_[a-z0-9]{1,40})$/);
       if (im && method === "GET") {
         // a place without indicators answers as the service does: an empty list (a data gap, not an error)

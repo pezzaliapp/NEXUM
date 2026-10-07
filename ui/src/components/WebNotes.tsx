@@ -1,7 +1,8 @@
 // Online workspace only (web build): published snapshot and its age (O14), a newer published snapshot (reload),
 // where the trail lives and whether the browser keeps it (E6). The local build renders none of this.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { applyNow, updateState } from "../lib/update";
 import { SNAPSHOT } from "../lib/api";
 import * as web from "@nexum/web";
 import { S } from "../lib/strings";
@@ -38,6 +39,28 @@ export function SnapshotAge({ compact = false }: { compact?: boolean }) {
       {compact ? `${S.web.snapshot} · ${age}` : `${S.web.snapshot} · ${S.web.builtAt(utcMinute(info.built_utc), age)}`}
     </span>
   );
+}
+
+/** A newer BUILD of NEXUM is announced: a clear notice with AGGIORNA ORA (the automatic update stays); after any update,
+ *  a short confirmation of the build now running. Shown builds are the ones executing, never only the announced one. */
+export function UpdateBanner() {
+  const u = useSyncExternalStore(updateState.subscribe, updateState.get);
+  useEffect(() => { if (!u.justUpdated) return; const t = setTimeout(updateState.dismiss, 12_000); return () => clearTimeout(t); }, [u.justUpdated]);
+  if (!SNAPSHOT) return null;
+  if (u.pending && u.pending !== u.running) return (
+    <div className="web-banner upd" role="status" data-testid="update-banner">
+      <b>Nuova versione disponibile</b> <span className="dim">· in uso: {u.running}</span>
+      {/^\d{12}-/.test(u.pending) && <span className="dim" data-testid="update-available"> · disponibile: {u.pending}</span>}
+      {u.needed && <span> · serve per aprire questa funzione</span>}
+      {u.retrying && <span className="dim" data-testid="update-retrying"> · il server la sta ancora distribuendo: riprovo da solo tra pochi secondi</span>}
+      <button type="button" className="primary" data-testid="update-now" onClick={() => applyNow()}>AGGIORNA ORA</button>
+    </div>);
+  if (u.justUpdated) return (
+    <div className="web-banner upd ok" role="status" data-testid="update-done">
+      NEXUM aggiornato · build <b>{u.running}</b> <span className="dim">(prima {u.justUpdated})</span>
+      <button type="button" aria-label="Chiudi" onClick={updateState.dismiss}>×</button>
+    </div>);
+  return null;
 }
 
 /** A newer snapshot was published: the session keeps its own version (never mixed) and offers a reload. */

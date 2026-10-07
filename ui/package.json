@@ -19,12 +19,14 @@
     "test:parity": "node tests/parity/run.ts"
   },
   "dependencies": {
+    "@mlc-ai/web-llm": "0.2.85",
     "@sqlite.org/sqlite-wasm": "3.53.4-build1",
     "graphology": "0.26.0",
     "hls.js": "^1.7.3",
     "maplibre-gl": "6.11.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "satellite.js": "7.1.0",
     "sigma": "3.0.3"
   },
   "devDependencies": {

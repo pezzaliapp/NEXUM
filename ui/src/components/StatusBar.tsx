@@ -14,7 +14,7 @@ export function StatusBar() {
   if (status.has_geometry) attrs.push(S.legend.lightsCredit);   // the map's reference night lights (not a NEXUM source)
   return (
     <footer className="statusbar" data-testid="statusbar">
-      <span className="mono" title={S.status.version}>v {wv}</span>
+      <span className="mono" title={`${S.status.version} · build ${__NEXUM_BUILD__}`} data-testid="status-build" data-build={__NEXUM_BUILD__}>v {wv}</span>
       <SnapshotAge />
       <span title={status.sources.map((s) => `${s.name}: ${S.health[s.health] ?? s.health}`).join("\n")}>
         <span style={{ color: ok === status.sources.length ? "#86A07A" : "var(--accent)" }}>●</span>{" "}
