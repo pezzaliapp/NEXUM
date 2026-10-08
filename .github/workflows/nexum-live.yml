@@ -9,9 +9,11 @@
 # Without the secrets the workflow still builds and checks the snapshot; the deploy step is skipped.
 name: nexum-live
 
+# SCHEDULE OFF (2026-10-08, the author's maintenance decision): from 2026-10-04 every scheduled run failed at the fetch
+# (seven connectors read spreadsheets with openpyxl, which this job did not install); no run ever deployed (no secrets);
+# the published world is built on the author's machine; a scheduled job is not approved (decision D7). The job stays
+# runnable by hand (Actions → nexum-live → Run workflow): a full polite fetch of every source, then the checks.
 on:
-  schedule:
-    - cron: "17 */6 * * *"        # every 6 h (E5: USGS, CEMS, EONET); weekly/daily sources respect their own interval
   workflow_dispatch: {}
 
 concurrency:
@@ -37,6 +39,10 @@ jobs:
           path: data/live
           key: nexum-live-${{ github.run_id }}
           restore-keys: nexum-live-
+      # the spreadsheet reader of seven connectors (fuel prices, commodities, tolls, Eurobarometer, consumer surveys):
+      # MIT, the version used on the author's machine
+      - name: Python dependencies
+        run: python3 -m pip install --disable-pip-version-check "openpyxl==3.1.3"
       - name: Registry check (licences, hosts, auth = none)
         run: python3 -m nexum.cli live registry-check
       - name: Fetch (polite; full history on the first run, then incremental)

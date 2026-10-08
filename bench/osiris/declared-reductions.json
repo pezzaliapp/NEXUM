@@ -5,6 +5,32 @@
   "to": 51,
   "what": "https://api.certspotter.com removed from the Content-Security-Policy connect-src: NEXUM no longer asks SSLMate Cert Spotter; Certificate Transparency lookups open crt.sh or Cert Spotter on their own sites (links).",
   "why": "SSLMate's API documentation: unauthenticated queries are 'for personal or evaluation purposes'; production use requires an account and a key (legal item L62, NEXUM-OSIRIS audit). A public site may not use it keyless.",
-  "approved": "2026-10-08, Alessandro Pezzali (Wave 1 approval: 'approvo la rimozione dell'host api.certspotter.com dalla CSP … documentare esplicitamente la riduzione autorizzata a 51')"
+  "approved": "2026-10-08, Alessandro Pezzali (Wave 1 approval: 'approvo la rimozione dell'host api.certspotter.com dalla CSP … documentare esplicitamente la riduzione autorizzata a 51')",
+  "reduction": 1,
+  "hosts": [
+   "https://api.certspotter.com"
+  ],
+  "list": "connect",
+  "reference": "e2b17d0 (the approved PRE baseline's tree: 52 connect hosts)"
+ },
+ {
+  "key": "media.hosts.connect",
+  "from": 52,
+  "reduction": 7,
+  "to": 44,
+  "what": "The seven download hosts of the former local language model removed from the CSP connect-src: https://huggingface.co, https://us.aws.cdn.hf.co, https://cas-bridge.xethub.hf.co, https://cdn-lfs.hf.co, https://cdn-lfs-us-1.hf.co, https://cdn-lfs-eu-1.hf.co (model files) and https://raw.githubusercontent.com (the model's WebGPU library). With them the @mlc-ai/web-llm dependency (and its loglevel) left package.json, the lockfile and the licence report.",
+  "why": "Decision B (2026-10-08): the AI overview is NEXUM's deterministic summary of the facts; no code requests these hosts (the production bundle of build 202610081123-ksgy contains none of them).",
+  "approved": "2026-10-08, Alessandro Pezzali (maintenance GO: 'Se effettivamente inutilizzati: rimuovi la dipendenza e i riferimenti obsoleti; rimuovi huggingface.co dalla CSP; registra la riduzione CSP come modifica intenzionale e autorizzata')",
+  "hosts": [
+   "https://huggingface.co",
+   "https://us.aws.cdn.hf.co",
+   "https://cas-bridge.xethub.hf.co",
+   "https://cdn-lfs.hf.co",
+   "https://cdn-lfs-us-1.hf.co",
+   "https://cdn-lfs-eu-1.hf.co",
+   "https://raw.githubusercontent.com"
+  ],
+  "list": "connect",
+  "reference": "e2b17d0 (the approved PRE baseline's tree: 52 connect hosts)"
  }
 ]

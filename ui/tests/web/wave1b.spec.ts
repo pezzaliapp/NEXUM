@@ -98,7 +98,8 @@ test("navigation: said before it starts; GPS and voice shown; an Italian voice s
   await expect.poll(() => page.evaluate(() => (window as any).__sp.length), { timeout: 20_000 }).toBeGreaterThan(0);
   const said = await page.evaluate(() => (window as any).__sp[0]);
   expect(said.lang).toBe("it-IT");
-  expect(said.text).toMatch(/^Tra \d+ metri, /);
+  expect(said.text, "the departure, said as an instruction").toMatch(/^(Tra \d+ metri, )?\S/);
+  expect(said.text).not.toMatch(/^Tra 0 metri/);
   const voices = await page.evaluate(() => speechSynthesis.getVoices().filter((v) => /^it/i.test(v.lang)).length);
   if (voices) expect(said.voice, "an Italian voice of the device").toMatch(/^it/i);
   await page.getByTestId("ops-nav-voice").click();

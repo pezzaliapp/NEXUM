@@ -112,12 +112,26 @@ def compare(base="PRE"):
     # its key, its value in the baseline and the lowest value allowed — and is printed as such; anything else, or a
     # value below the declared one, stays a LOSS. The baseline itself is never rewritten.
     declared = json.loads((ROOT / "bench/osiris/declared-reductions.json").read_text()) if (ROOT / "bench/osiris/declared-reductions.json").exists() else []
+    # media hosts are checked by identity, not only by count: against the approved baseline's own list (git e2b17d0),
+    # the hosts missing now must be exactly the declared ones; then the count may go down by them, never further
+    import subprocess
+    def missing_hosts(lst):
+        ref = json.loads(subprocess.run(["git", "show", "e2b17d0:ui/media-hosts.json"], cwd=ROOT, capture_output=True, text=True, check=True).stdout)
+        now = json.loads((ROOT / "ui" / "media-hosts.json").read_text())
+        return set(ref.get(lst, [])) - set(now.get(lst, []))
     def ok(x):
-        return any(d["key"] == x[0] and d["from"] == x[1] and x[2] is not None and x[2] >= d["to"] for d in declared)
+        ds = [d for d in declared if d["key"] == x[0]]
+        if not ds or x[2] is None:
+            return False
+        hosts = {h for d in ds for h in d.get("hosts", [])}
+        if hosts and missing_hosts(ds[0]["list"]) != hosts:
+            return False                       # a host gone that nobody declared (or a declared one back): a LOSS
+        return x[2] >= x[1] - sum(d.get("reduction", d["from"] - d["to"]) for d in ds)
     for x in losses:
         if ok(x):
-            d = next(d for d in declared if d["key"] == x[0])
-            print("DECLARED", *x, "·", d["what"][:60] + "…", "· approved", d["approved"].split(" (")[0])
+            for d in (d for d in declared if d["key"] == x[0]):
+                print("DECLARED", x[0], f"−{d.get('reduction', d['from'] - d['to'])}", "·", ", ".join(d.get("hosts", [])), "· approved", d["approved"].split(" (")[0])
+            print("DECLARED", *x, "(the missing hosts are exactly the declared ones)")
     losses = [x for x in losses if not ok(x)]
     for x in losses:
         print("LOSS", *x)

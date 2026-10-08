@@ -395,7 +395,7 @@ daily, fine, geo
 | Key | Value |
 |---|---|
 | img | 33 |
-| connect | 51 |
+| connect | 44 |
 | video | 5 |
 | frame | 1 |
 | tiles | 4 |

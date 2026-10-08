@@ -19,7 +19,6 @@
     "test:parity": "node tests/parity/run.ts"
   },
   "dependencies": {
-    "@mlc-ai/web-llm": "0.2.85",
     "@sqlite.org/sqlite-wasm": "3.53.4-build1",
     "graphology": "0.26.0",
     "hls.js": "^1.7.3",

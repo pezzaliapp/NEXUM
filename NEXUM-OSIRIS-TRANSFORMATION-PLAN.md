@@ -338,12 +338,15 @@ Each new map element follows VEDO → TOCCO → CAPISCO → VERIFICO LA FONTE �
 **Declared reductions of the data gate (never hidden, the PRE baseline unchanged):**
 - `media.hosts.connect` 52 → 51: `api.certspotter.com` removed from the CSP (keyless Cert Spotter is for personal or evaluation use only, L62). Approved by the author on 2026-10-08. Declared in `bench/osiris/declared-reductions.json`; `data_baseline.py compare` prints it as DECLARED, and any other reduction, or a lower value, stays a LOSS.
 
+**Maintenance after Wave 1 (2026-10-08, the author's GO "punti 1 e 2"; not yet committed):**
+- Navigation, tested with a simulated GPS (desktop, phone, iPhone/WebKit, Fold/Chrome; Parma → Reggio Emilia and Parma → Modena): fixed the next manoeuvre shown going back to one already passed after every turn (it was the nearest manoeuvre, not the next one along the route), off-route measured to the segments (it used every other vertex), each manoeuvre said once in order (also after a reroute), the departure said without "Tra 0 metri". The real road test stays open.
+- `@mlc-ai/web-llm` (and its `loglevel`) removed: `package.json`, lock, licence report. The seven download hosts of the former model removed from the CSP. Declared reduction `media.hosts.connect` −7 (see `declared-reductions.json`, checked by host identity against `e2b17d0`).
+- Workflow `nexum-live`: the schedule is off (decision recorded in the file); the job stays runnable by hand and installs `openpyxl`, the cause of every failure since 2026-10-04.
+
 **Open after Wave 1:**
-- The real road test of routing and GPS navigation (the author's own test, later); the interface is approved, the field test is not done.
+- The real road test of routing and GPS navigation (the author's own test, later).
 - D6 (GDACS suspension): implemented and set aside as a patch, not in Wave 1.
 - D7 option A and D5 headlines: approved, for Wave 3.
-- No longer used since decision B, kept until their removal is approved: the CSP host `https://huggingface.co` (a further reduction of the gate) and the `@mlc-ai/web-llm` dependency (`package.json`, lock and licence notices).
-- The scheduled workflow `nexum-live` (every 6 h, no secrets: it never deploys) fails at every run; to be looked at separately.
 
 **Tests that depend on an external source (flaky, recorded, never hidden):**
 - `tests/web/hotfix.spec.ts` › LIVE 3 (Taiwan Highway Bureau MJPEG). It failed inside the full web suite on z68u (final8) and on Wave 1 (final9, 47.6 s), and passed when run alone (5.0 s). A failure is re-run alone first; it is not a NEXUM regression unless the failure repeats.

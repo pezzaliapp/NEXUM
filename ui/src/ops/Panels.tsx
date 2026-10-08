@@ -1,6 +1,7 @@
 // THE OPERATIONAL TOOLS' PANELS (downloaded the first time a tool is opened). Each panel says where its information
 // comes from, asks the provider only when the person opens it or acts, and keeps nothing outside this browser.
 
+import { cumulative, nextStep, project, stepVertices, type LL } from "./navmath";
 import { S } from "../lib/strings";
 import { polite } from "./pace";
 import { licenceVerdict } from "./licence";
@@ -854,24 +855,28 @@ function Navigate({ steps, line, onReroute, start }: { steps: any[]; line?: LngL
     };
     const text = (s: any) => s.instruction ?? `${MANEUVER[s.maneuver.type] ?? s.maneuver.type}${s.maneuver.modifier ? ` ${MOD[s.maneuver.modifier] ?? s.maneuver.modifier}` : ""}${s.name ? `, ${s.name}` : ""}`;
     const geo = navigator.geolocation;
+    // progress ALONG the route (navmath): the next manoeuvre always ahead, off-route measured to the segments
+    const L = (line?.length ? line : steps.map((s) => s.maneuver.location)) as LL[];
+    const cum = cumulative(L), vtx = stepVertices(L, steps);
+    let progress = 0;
+    spoken.current = -1; offSince.current = 0;   // a new route (a reroute): its own manoeuvres, from the start
     const id = geo.watchPosition((p) => {
       const here: LngLat = [p.coords.longitude, p.coords.latitude];
-      // the next manoeuvre: the first one after the nearest, from where the person is
-      let best = 0, bd = Infinity;
-      steps.forEach((s, i) => { const d = haversine(here, s.maneuver.location); if (d < bd) { bd = d; best = i; } });
-      const i = bd < 0.03 && best < steps.length - 1 ? best + 1 : best;
-      const d = haversine(here, steps[i].maneuver.location);
+      const f = project(L, cum, here, progress);
+      if (f.dist <= Math.max(0.06, p.coords.accuracy / 1000)) progress = f.seg;   // where the person is on the route
+      const { i, d } = nextStep(vtx, cum, f);
       setSt({ i, d, acc: p.coords.accuracy }); setErr(null); setGps("fix");
       // off the route for more than 6 s (beyond 60 m and the fix's own accuracy): a new route from here, at most every 20 s
       if (line?.length && onReroute) {
-        const off = Math.min(...line.filter((_, k) => k % 2 === 0).map((q) => haversine(here, q))) > Math.max(0.06, p.coords.accuracy / 1000);
+        const off = f.dist > Math.max(0.06, p.coords.accuracy / 1000);
         if (!off) { offSince.current = 0; setOffRoute(false); }
         else if (!offSince.current) offSince.current = Date.now();
         else if (Date.now() - offSince.current > 6000 && Date.now() - lastReroute.current > 20000) {
           lastReroute.current = Date.now(); offSince.current = 0; setOffRoute(true); say("Ricalcolo del percorso"); onReroute(here);
         }
       }
-      if (spoken.current !== i && d < 0.25) { spoken.current = i; say(`Tra ${Math.round(d * 1000)} metri, ${text(steps[i])}`); }
+      // each manoeuvre said once, in the route's order, when it is less than 250 m ahead
+      if (i > spoken.current && d < 0.25) { spoken.current = i; say(i === 0 ? text(steps[i]) : `Tra ${Math.round(d * 1000)} metri, ${text(steps[i])}`); }
     }, (e) => {
       // only a refused permission ends the navigation; a weak or missing signal (tunnel, indoors) is said and waited out
       if (e.code === 1) { setErr("permesso di posizione negato dal browser"); setGps("denied"); setOn(false); } else { setGps("weak"); setErr("segnale di posizione debole: attendo il prossimo rilevamento…"); }
@@ -882,7 +887,7 @@ function Navigate({ steps, line, onReroute, start }: { steps: any[]; line?: LngL
   const gpsText = gps === "fix" && st ? `GPS attivo · precisione ±${Math.round(st.acc)} m` : gps === "weak" ? "GPS: segnale debole" : gps === "denied" ? "GPS: permesso negato" : gps === "none" ? "GPS non disponibile" : "GPS: in attesa della prima posizione…";
   const voiceText = voice === null ? "Voce: nessuna voce italiana su questo dispositivo — istruzioni solo scritte" : !voiceOn ? "Voce: disattivata" : voice ? `Voce: attiva (${voice})` : "Voce: attiva";
   return (
-    <div className="ops-nav" data-testid="ops-nav" data-on={on}>
+    <div className="ops-nav" data-testid="ops-nav" data-on={on} data-step={on && st ? st.i : undefined} data-spoken={spoken.current}>
       <div className="hl-h">Navigazione stradale (facoltativa)</div>
       {!on && <p className="xs" data-testid="ops-nav-before">«Naviga» usa la <b>posizione del dispositivo</b> (GPS del browser, con il tuo permesso) e legge le istruzioni ad alta voce.
         Se esci dal percorso per più di 6 secondi, NEXUM ricalcola dalla tua posizione: la partenza {start ? <>«{start}» </> : ""}viene sostituita da «La tua posizione».
