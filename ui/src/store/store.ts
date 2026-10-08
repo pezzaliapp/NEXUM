@@ -42,6 +42,8 @@ export interface State {
   rev: number;
   mapInfo: { lod: string; level: number | null; returned: number; total: number; truncated: boolean;
     noGeometry: number; ms: number } | null;
+  /** the credits of the third-party map tiles shown right now (basemap modes and optional layers) */
+  mapCredits: string[];
   viewport: [number, number, number, number] | null;
   context: { id: string; data: any } | null;
   path: { a: string; b: string; ids: string[] | null } | null;
@@ -105,7 +107,7 @@ export function createStore() {
     status: null, types: new Map(), focus: null, secondary: null, origin: null, scope: {},
     stage: "map", panel: "world", whyId: null,
     trail: { id: newTrailId(), name: "Indagine", steps: [], index: -1, savedAt: null, dirty: false },
-    section: "overview", mapFit: null, mapLinks: null, placeCtx: null, mobileTab: "map", railOpen: false, inspectorOpen: false, worldVersion: 0, rev: 0, mapInfo: null, viewport: null, context: null, path: null,
+    section: "overview", mapFit: null, mapLinks: null, placeCtx: null, mobileTab: "map", railOpen: false, inspectorOpen: false, worldVersion: 0, rev: 0, mapInfo: null, mapCredits: [], viewport: null, context: null, path: null,
     overlay: null, sheet: "peek", mapFloor: 0, graphUnfiltered: null,
     period: DEFAULT_PERIOD, clock: null, defaults: { mapFloor: 0, mapTypes: DEFAULT_MAP_TYPES }, homeTick: 0,
     mapTypes: DEFAULT_MAP_TYPES, mapZones: false,

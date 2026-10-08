@@ -69,6 +69,8 @@ fs.writeFileSync(path.join(out, "_headers"), [
   "  Cache-Control: no-cache",
   "/version.json",
   "  Cache-Control: no-store",
+  "/providers.json",
+  "  Cache-Control: no-cache",
   "/sw.js",
   "  Cache-Control: no-cache",
   "/manifest.webmanifest",
@@ -79,6 +81,8 @@ fs.writeFileSync(path.join(out, "_headers"), [
 for (const l of fs.readFileSync(path.join(out, "_headers"), "utf8").split("\n")) if (l.length > 1900) throw new Error(`_headers: line over Pages' limit (${l.length})`);
 fs.writeFileSync(path.join(out, "404.html"),
   "<!doctype html><meta charset=utf-8><title>NEXUM — non trovato</title><p>Risorsa non trovata. <a href=\"/\">NEXUM</a></p>\n");
+// the routing services, read by the app at run time (FOSSGIS: service addresses not fixed in the app; switched here)
+fs.writeFileSync(path.join(out, "providers.json"), JSON.stringify({ note: "NEXUM routing providers, in order of use; set \"on\": false to switch one off", route: JSON.parse(fs.readFileSync(path.join(root, "src", "config", "ops.json"), "utf8")).route.providers }, null, 1) + "\n");
 // test deployment: not indexed until the author approves the public address (E3)
 fs.writeFileSync(path.join(out, "robots.txt"), "User-agent: *\nDisallow: /\n");
 

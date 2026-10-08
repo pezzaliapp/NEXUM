@@ -59,7 +59,12 @@ test("LIVE 2 · Caltrans HLS from a city's card (Los Angeles)", async ({ page })
   expect(errors).toEqual([]);
 });
 
+// EXTERNAL SOURCE — FLAKY (recorded 2026-10-07 at the Wave 1 closure): this test depends on the Taiwan Highway Bureau's
+// MJPEG stream. It failed inside the full web suite on the z68u baseline (final8) and on Wave 1 (final9, 47.6 s), and
+// passed when run alone (5.0 s). A failure here is first re-run alone; it is never hidden and never counted as a NEXUM
+// regression without a failure that repeats.
 test("LIVE 3 · Taiwan Highway Bureau MJPEG near Taipei; LIVE counts apart in Taiwan's Osserva", async ({ page }) => {
+  test.info().annotations.push({ type: "external-source", description: "Taiwan Highway Bureau MJPEG stream — flaky, see the note above" });
   const errors = await world(page);
   await open(page, "Taipei", /^Taipei$/);
   await page.getByTestId("place-webcams").locator('[data-availability="live_stream"]').first().locator("button").click();

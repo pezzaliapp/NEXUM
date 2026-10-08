@@ -143,14 +143,32 @@ test("dataset discovery: a category in the map's area, licensed results, import 
   const items = page.getByTestId("ops-arcgis-item");
   expect(await items.count()).toBeGreaterThan(0);
   for (const t of await items.allTextContents()) expect(t).toContain("Licenza:");
-  // an importable (licensed) dataset, imported in the area; a dataset that fails (offline, private) says why and the next is tried
+  // the licence gate (X-11): every result says whether its licence is recognised as open; only those can be imported
+  expect(await page.getByTestId("ops-arcgis-licence").count()).toBe(await items.count());
+  expect(await page.getByTestId("ops-arcgis-import").count()).toBe(await page.locator('[data-testid="ops-arcgis-licence"][data-open="true"]').count());
+  // an importable (openly licensed, hosted on ArcGIS Online) dataset, imported; a dataset that fails (offline, private,
+  // hosted elsewhere) says why and the next is tried; when none in this area can be imported, a category worldwide
+  // (Infrastrutture: national open registers such as levees and dams)
   const imp = page.getByTestId("ops-arcgis-import");
-  expect(await imp.count(), "at least one dataset with a declared licence").toBeGreaterThan(0);
-  let ok = false;
-  for (let i = 0; i < Math.min(await imp.count(), 5) && !ok; i++) {
-    await imp.nth(i).click();
-    await expect(page.getByTestId("ops-import-msg")).toBeVisible({ timeout: 30_000 });
-    ok = /elementi da/.test((await page.getByTestId("ops-import-msg").textContent()) ?? "") && (await page.getByTestId("ops-import-layer").count()) > 0;
+  const tryImport = async () => {
+    for (let i = 0; i < Math.min(await imp.count(), 6); i++) {
+      await imp.nth(i).click();
+      // this import's own answer (never the previous one's): the button leaves "Importo…" when it is done
+      await expect(imp.nth(i)).not.toHaveText("Importo…", { timeout: 40_000 });
+      await expect(page.getByTestId("ops-import-msg")).toBeVisible();
+      if (/elementi da/.test((await page.getByTestId("ops-import-msg").textContent()) ?? "") && (await page.getByTestId("ops-import-layer").count()) > 0) return true;
+    }
+    return false;
+  };
+  let ok = await tryImport();
+  if (!ok) {
+    await page.getByTestId("ops-arcgis-inview").uncheck();
+    await page.getByTestId("ops-arcgis-cats").getByRole("button", { name: "Infrastrutture" }).click();
+    await expect(page.getByTestId("ops-arcgis-go")).toHaveText("…", { timeout: 5_000 }).catch(() => {});
+    await expect(page.getByTestId("ops-arcgis-go")).toHaveText("Cerca", { timeout: 30_000 });
+    await expect(page.getByTestId("ops-arcgis-count")).toContainText("critical infrastructure");
+    await expect.poll(() => imp.count(), { message: "at least one dataset with an open licence", timeout: 30_000 }).toBeGreaterThan(0);
+    ok = await tryImport();
   }
   expect(ok, "a dataset imported").toBeTruthy();
   await expect(page.getByTestId("ops-import-layer")).toHaveCount(1);

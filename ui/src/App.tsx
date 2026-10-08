@@ -10,6 +10,7 @@ import { CommandBar } from "./components/CommandBar";
 import { TrailBar } from "./components/TrailBar";
 import { Rail } from "./components/Rail";
 import { StatusBar } from "./components/StatusBar";
+import { Boundary } from "./components/Boundary";
 import { NewSnapshotBanner, UpdateBanner } from "./components/WebNotes";
 import { Inspector } from "./views/Inspector";
 import { MapView } from "./views/MapView";
@@ -133,14 +134,14 @@ export function App() {
       <NewSnapshotBanner />
       <UpdateBanner />
       <TrailBar />
-      <Rail />
+      <Boundary name="rail"><Rail /></Boundary>
       <main className="stage" aria-label="stage">
-        {showMap && <div className="view" data-view="map"><MapView /></div>}
-        {showGraph && <div className="view" data-view="graph"><Suspense fallback={null}><GraphView /></Suspense></div>}
+        {showMap && <div className="view" data-view="map"><Boundary name="map"><MapView /></Boundary></div>}
+        {showGraph && <div className="view" data-view="graph"><Boundary name="graph"><Suspense fallback={null}><GraphView /></Suspense></Boundary></div>}
       </main>
-      <Inspector />
-      <Timeline />
-      <StatusBar />
+      <Boundary name="card"><Inspector /></Boundary>
+      <Boundary name="timeline"><Timeline /></Boundary>
+      <Boundary name="status"><StatusBar /></Boundary>
       <Overlays />
     </div>
   );
@@ -188,11 +189,11 @@ function TouchApp() {
       <NewSnapshotBanner />
       <UpdateBanner />
       <main className="stage" aria-label="stage">
-        {surface === "map" && <div className="view" data-view="map"><MapView /></div>}
-        {surface === "graph" && <div className="view" data-view="graph"><Suspense fallback={null}><GraphView /></Suspense></div>}
-        {surface === "time" && <div className="view" data-view="time"><TimeView /></div>}
+        {surface === "map" && <div className="view" data-view="map"><Boundary name="map"><MapView /></Boundary></div>}
+        {surface === "graph" && <div className="view" data-view="graph"><Boundary name="graph"><Suspense fallback={null}><GraphView /></Suspense></Boundary></div>}
+        {surface === "time" && <div className="view" data-view="time"><Boundary name="time"><TimeView /></Boundary></div>}
       </main>
-      {cardOpen ? <Inspector /> : <CardStrip />}
+      <Boundary name="card">{cardOpen ? <Inspector /> : <CardStrip />}</Boundary>
       <BottomNav />
       <Overlays />
     </div>

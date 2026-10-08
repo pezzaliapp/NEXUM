@@ -11,6 +11,7 @@
 
 import type { LayerSpecification, Map as MLMap, StyleSpecification } from "maplibre-gl";
 import OPS from "../config/ops.json";
+import { store } from "../store";
 import { ops, type OpsState } from "./state";
 
 const B = OPS.basemap;
@@ -26,6 +27,23 @@ const major = (id: string) => /motorway|major|trunk|primary/.test(id);
 const LINE_ON_IMAGE: [string, any][] = [["line-color", (id: string) => (major(id) ? "#FFE9A8" : "#FFFFFF")],
   ["line-opacity", (id: string) => (major(id) ? 0.85 : 0.6)]];
 const TEXT_ON_IMAGE: [string, any][] = [["text-color", "#FFFFFF"], ["text-halo-color", "rgba(0,0,0,0.85)"], ["text-halo-width", 1.6]];
+
+/** The credits of the third-party tiles drawn now: every visible layer on a basemap source (SAT, OGGI, relief, clouds,
+ *  precipitation, OpenFreeMap) and the 3D terrain — each provider's own attribution, as its terms ask (S33). */
+export function visibleCredits(map: MLMap): string[] {
+  const st = map.getStyle();
+  if (!st) return [];
+  const out = new Set<string>();
+  const add = (id?: string | null) => { const a = id ? (st.sources[id] as any)?.attribution : null; if (a) out.add(a); };
+  for (const l of st.layers) {
+    const src = (l as any).source;
+    if (typeof src !== "string" || !(src.startsWith("ops-") || src === "openmaptiles")) continue;
+    if ((l.layout as any)?.visibility === "none") continue;
+    add(src);
+  }
+  add(map.getTerrain()?.source);
+  return [...out];
+}
 
 /** Install the basemap modes and optional layers; follows the operational state. Returns a stop function. */
 export function installBasemaps(map: MLMap): () => void {
@@ -143,7 +161,10 @@ export function installBasemaps(map: MLMap): () => void {
       map.setSky({ "sky-color": "#0B0E10", "horizon-color": "#1B2A36", "fog-color": "#0D1012", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.9,
         "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 0.8, 5, 0.4, 7, 0] as any });
     } catch { /* older style spec */ }
+    credits();
   };
+  // the credits of what is drawn now, said on screen (status bar, phone strip, Info)
+  const credits = () => { const c = visibleCredits(map); if (c.join("\n") !== store.get().mapCredits.join("\n")) store.set({ mapCredits: c }); };
   apply(ops.get(), true);
   const unsub = ops.subscribe(() => apply(ops.get()));
   // the daily imagery and precipitation follow the date (checked hourly)
@@ -156,5 +177,5 @@ export function installBasemaps(map: MLMap): () => void {
       src?.setTiles?.(mk(d).tiles);
     }
   }, 3600_000);
-  return () => { unsub(); window.clearInterval(t); };
+  return () => { unsub(); window.clearInterval(t); store.set({ mapCredits: [] }); };
 }

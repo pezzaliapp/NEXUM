@@ -4,7 +4,7 @@ and compared. Any loss that is not declared is a FAIL.
 
     python3 bench/osiris/data_baseline.py write PRE   → bench/osiris/baseline-PRE.json + NEXUM-PRE-OSIRIS-DATA-BASELINE.md
     python3 bench/osiris/data_baseline.py write POST  → bench/osiris/baseline-POST.json + NEXUM-POST-OSIRIS-DATA-BASELINE.md
-    python3 bench/osiris/data_baseline.py compare     → exit 1 on any loss"""
+    python3 bench/osiris/data_baseline.py compare     → exit 1 on any loss (approved reductions: declared-reductions.json)"""
 
 import json
 import pathlib
@@ -108,6 +108,17 @@ def compare(base="PRE"):
                     losses.append((f"{k}.{a}", b, (w or {}).get(a)))
         elif isinstance(v, list) and not set(v) <= set(w or []):
             losses.append((k, v, w))
+    # a reduction the author approved is DECLARED (bench/osiris/declared-reductions.json): it matches one item exactly —
+    # its key, its value in the baseline and the lowest value allowed — and is printed as such; anything else, or a
+    # value below the declared one, stays a LOSS. The baseline itself is never rewritten.
+    declared = json.loads((ROOT / "bench/osiris/declared-reductions.json").read_text()) if (ROOT / "bench/osiris/declared-reductions.json").exists() else []
+    def ok(x):
+        return any(d["key"] == x[0] and d["from"] == x[1] and x[2] is not None and x[2] >= d["to"] for d in declared)
+    for x in losses:
+        if ok(x):
+            d = next(d for d in declared if d["key"] == x[0])
+            print("DECLARED", *x, "·", d["what"][:60] + "…", "· approved", d["approved"].split(" (")[0])
+    losses = [x for x in losses if not ok(x)]
     for x in losses:
         print("LOSS", *x)
     print("losses:", len(losses))

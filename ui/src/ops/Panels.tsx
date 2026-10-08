@@ -1,6 +1,9 @@
 // THE OPERATIONAL TOOLS' PANELS (downloaded the first time a tool is opened). Each panel says where its information
 // comes from, asks the provider only when the person opens it or acts, and keeps nothing outside this browser.
 
+import { S } from "../lib/strings";
+import { polite } from "./pace";
+import { licenceVerdict } from "./licence";
 import { lazyStale } from "../lib/stale";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
@@ -112,16 +115,9 @@ async function getJSON(url: string, init?: RequestInit, ms = 20000): Promise<any
   const fossgis = /^https:\/\/(valhalla1|routing)\.openstreetmap\.de\//.test(url);
   try {
     const r = await fetch(url, { ...init, signal: c.signal, referrerPolicy: fossgis ? "origin" : "no-referrer" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!r.ok) { const body = await r.json().catch(() => null); throw new Error(body?.error ?? body?.message ?? body?.messages?.[0]?.[1] ?? `HTTP ${r.status}`); }
     return await r.json();
   } finally { clearTimeout(t); }
-}
-/** One request a second at most per provider (OSM community services' rule). */
-const gates = new Map<string, number>();
-async function polite(host: string) {
-  const wait = (gates.get(host) ?? 0) + 1100 - Date.now();
-  gates.set(host, Date.now() + Math.max(0, wait));
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 }
 function useRemote<T>(key: string | null, fn: () => Promise<T>) {
   const [st, set] = useState<{ data?: T; error?: string; loading: boolean }>({ loading: !!key });
@@ -157,6 +153,12 @@ function ensureLine(map: MLMap, id: string, color: string) {
     map.addLayer({ id, type: "line", source: id, paint: { "line-color": color, "line-width": 3, "line-opacity": 0.9 } }, "nexum-focus-fill");
   }
   return map.getSource(id) as GeoJSONSource;
+}
+/** The line's layers and source taken off the map (nothing left behind when its tool closes). */
+function dropLine(map: MLMap, id: string) {
+  if (!map.getStyle()) return;
+  for (const l of [id, `${id}-fill`]) if (map.getLayer(l)) map.removeLayer(l);
+  if (map.getSource(id)) map.removeSource(id);
 }
 
 /** NEXUM's own elements in a box (the Core's map projection, individual elements). */
@@ -410,32 +412,81 @@ function AlertsPanel({ map }: { map: MLMap }) {
 }
 
 // ── PUBLIC REGISTERS (sanctions, exploited flaws) ─────────────────────────
+// REGISTERS (2026-10-08, physical test: rows could not be opened). Every row opens its detail, built only from the
+// fields the register publishes, with the link to the register's own entry or page. A NEXUM element is linked only when
+// the identification is certain (a nation by its exact official name); names alone never make two things the same.
+type RegTab = "sanctions" | "kev" | "inform" | "hacks";
+const RR = OPS.registers as any;
+const enName = (() => { try { const dn = new Intl.DisplayNames(["en"], { type: "region" }); return (a2: string) => dn.of(a2) ?? null; } catch { return () => null; } })();
+function RegDetail({ tab, r, onClose }: { tab: RegTab; r: Record<string, any>; onClose: () => void }) {
+  const [nexum, setNexum] = useState<{ id: string; label: string } | null | undefined>(tab === "inform" ? undefined : null);
+  useEffect(() => {
+    if (tab !== "inform") return;
+    const a2 = (N.a3a2 as Record<string, string>)[r.iso3], name = a2 ? enName(a2) : null;
+    if (!name) { setNexum(null); return; }
+    call<any>("/search", { q: name, b: { max_items: 5 } }).then((x) => {
+      const hit = ((x.data.groups ?? []) as any[]).find((g) => g.type === RR.placeType)?.items?.find((i: any) => i.label === name);
+      setNexum(hit ? { id: hit.id, label: hit.label } : null);
+    }).catch(() => setNexum(null));
+  }, [tab, r]);
+  const rows: [string, ReactNode][] = tab === "sanctions" ? [["Numero OFAC", r.ent_num], ["Nome", r.name], ["Tipo", r.kind], ["Programmi di sanzione", r.programs], ["Tipo di nave", r.vessel_type], ["Bandiera", r.flag], ["Note del registro", r.remarks]]
+    : tab === "kev" ? [[RR.kevIdLabel, r.id], ["Produttore", r.vendor], ["Prodotto", r.product], ["Nome", r.name], ["Aggiunta al catalogo", r.added], ["Scadenza per le agenzie federali USA", r.due],
+      ["Uso noto in campagne ransomware", r.ransomware === "Known" ? "sì (noto)" : r.ransomware === "Unknown" ? "non noto" : r.ransomware], ["Descrizione (CISA)", r.description]]
+    : tab === "inform" ? [["Paese (ISO 3166 alfa-3)", `${r.iso3}${countryOf(r.iso3) ? ` · ${countryOf(r.iso3)}` : ""}`], ["Indice INFORM Risk", `${Number(r.score).toFixed(1)} su 10`]]
+    : [["Protocollo", r.name], ["Data", r.date], ["Importo", r.amount ? `${Math.round(r.amount).toLocaleString("it-IT")} US$` : null], ["Classificazione", r.classification], ["Tecnica", r.technique],
+      ["Catene", r.chain], ["Ponte tra catene", r.bridgeHack ? "sì" : null], ["Tipo di obiettivo", r.targetType], ["Fondi restituiti", r.returnedFunds != null ? `${Math.round(r.returnedFunds).toLocaleString("it-IT")} US$` : null], ["Linguaggio", r.language]];
+  const links: [string, string][] = tab === "sanctions" ? [[`https://sanctionssearch.ofac.treas.gov/Details.aspx?id=${r.ent_num}`, "Voce nel registro OFAC"]]
+    : tab === "kev" ? (RR.kevLinks as [string, string][]).map(([u, l]) => [u.replace("{id}", encodeURIComponent(r.id)), l] as [string, string])
+    : tab === "inform" ? [["https://drmkc.jrc.ec.europa.eu/inform-index", "INFORM (JRC) — metodologia e profili dei paesi"]]
+    : [...(r.source ? [[String(r.source), "Fonte citata da DefiLlama"] as [string, string]] : []), ["https://defillama.com/hacks", "Elenco DefiLlama"]];
+  const shown = rows.filter(([, v]) => v != null && v !== "");
+  return (
+    <aside className="ops-reg-detail" data-testid="ops-reg-detail" data-tab={tab}>
+      <header className="ops-ph"><b className="grow ellipsis" data-testid="ops-reg-detail-title">{tab === "kev" ? `${r.id} · ${r.product ?? ""}` : tab === "inform" ? `${countryOf(r.iso3) ?? r.iso3} · INFORM ${Number(r.score).toFixed(1)}` : r.name}</b>
+        <button type="button" className="ops-close" aria-label="Chiudi la scheda" data-testid="ops-reg-detail-close" onClick={onClose}>×</button></header>
+      <dl className="xs" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "2px 10px", margin: "6px 0" }}>
+        {shown.map(([k, v]) => [<dt key={`t${k}`} className="dim">{k}</dt>, <dd key={k} style={{ margin: 0, overflowWrap: "anywhere" }}>{v}</dd>])}</dl>
+      {tab === "inform" && <p className="xs dim">Scala 0–10: più alto è il valore, più alto il rischio di crisi umanitarie e disastri secondo il modello INFORM (pericoli ed esposizione, vulnerabilità, capacità di risposta). È un indice composito, non un fatto osservato.</p>}
+      {shown.length < 3 && <p className="xs dim" data-testid="ops-reg-few">Il registro pubblica pochi campi per questa voce: i dettagli sono alla fonte.</p>}
+      <p className="xs">{links.map(([u, l], i) => <span key={u}>{i ? " · " : ""}<a href={u} target="_blank" rel="noopener noreferrer" data-testid="ops-reg-link">{l} ↗</a></span>)}</p>
+      <p className="xs dim" data-testid="ops-reg-nexum">{tab === "inform"
+        ? nexum === undefined ? "Ricerca del paese in NEXUM…" : nexum ? <>In NEXUM: <button type="button" className="linklike xs" onClick={() => store.select(nexum.id, "ops-registers")}>{nexum.label}</button> (stesso nome ufficiale del paese)</> : "Nessun paese NEXUM con lo stesso nome ufficiale: nessun collegamento."
+        : "Nessun collegamento automatico a elementi NEXUM: il registro non condivide identificativi con NEXUM e i nomi uguali non bastano a dire che sono la stessa cosa."}</p>
+      <p className="xs faint">Fonte: {tab === "sanctions" ? RR.sanctionsCredit : tab === "kev" ? RR.kevCredit : tab === "inform" ? RR.informCredit : RR.hacksCredit}</p>
+    </aside>);
+}
 function RegistersPanel() {
-  const [tab, setTab] = useState<"sanctions" | "kev" | "inform" | "hacks">("sanctions");
+  const [tab, setTab] = useState<RegTab>("sanctions");
   const [q, setQ] = useState("");
+  const [open, setOpen] = useState<number | null>(null);
+  useEffect(() => setOpen(null), [tab, q]);
   const t = useRemote<any>(`reg-${tab}`, () => tab === "inform"
-    ? getJSON(OPS.registers.inform).then((rows: any[]) => ({ data: { rows: rows.map((r) => [r.Iso3, r.IndicatorScore]).sort((a, b) => b[1] - a[1]) } }))
-    : tab === "hacks" ? getJSON(OPS.registers.hacks).then((rows: any[]) => ({ data: { rows: rows.sort((a, b) => b.date - a.date)
-      .map((h) => [h.name, new Date(h.date * 1000).toISOString().slice(0, 10), h.amount, h.classification, h.technique, h.chain?.join?.(", ") ?? ""]) } }))
-    : call<any>(`/tables/${tab}`, undefined, { channel: `reg-${tab}` }));
-  const d: any = (t.data as any)?.data;
+    ? getJSON(RR.inform).then((rows: any[]) => ({ data: { tab: "inform", rows: rows.map((r) => ({ iso3: r.Iso3, score: r.IndicatorScore })).sort((a, b) => b.score - a.score) } }))
+    : tab === "hacks" ? getJSON(RR.hacks).then((rows: any[]) => ({ data: { tab: "hacks", rows: rows.sort((a, b) => b.date - a.date)
+      .map((h) => ({ ...h, date: new Date(h.date * 1000).toISOString().slice(0, 10), chain: h.chain?.join?.(", ") ?? "" })) } }))
+    : call<any>(`/tables/${tab}`, undefined, { channel: `reg-${tab}` }).then((r) => {
+      const f: string[] = r.data.fields ?? [];
+      return { ...r, data: { ...r.data, tab, rows: (r.data.rows as any[]).map((row) => Object.fromEntries(f.map((k, i) => [k, row[i]]))) } }; }));
+  // the rows of the register on screen only (while another one loads, the previous one's rows are not shown)
+  const d: any = (t.data as any)?.data?.tab === tab ? (t.data as any).data : null;
   const low = q.trim().toLowerCase();
-  const rows = ((d?.rows ?? []) as any[]).filter((r) => !low || r.some((v: any) => typeof v === "string" && v.toLowerCase().includes(low))).slice(0, 80);
+  const rows = ((d?.rows ?? []) as Record<string, any>[]).filter((r) => !low || Object.values(r).some((v) => typeof v === "string" && v.toLowerCase().includes(low))).slice(0, 80);
+  const line = (r: Record<string, any>) => tab === "hacks"
+    ? <><b>{r.name}</b><span className="dim"> · {r.date} · {r.amount ? `${Math.round(r.amount / 1e6).toLocaleString("it-IT")} M$` : "importo n.d."}{r.classification ? ` · ${r.classification}` : ""}{r.chain ? ` · ${r.chain}` : ""}</span></>
+    : tab === "inform" ? <><span className="mono">{r.iso3}</span> {countryOf(r.iso3) ?? ""} <b className="mono">{Number(r.score).toFixed(1)}</b><span className="ops-bar" style={{ width: `${r.score * 10}%` }} /></>
+    : tab === "sanctions" ? <><b>{r.name}</b><span className="dim"> · {r.kind} · {r.programs}{r.flag ? ` · bandiera ${r.flag}` : ""}</span></>
+    : <><b className="mono">{r.id}</b> · {r.vendor} {r.product}<span className="dim"> · aggiunta {r.added}</span></>;
   return (
     <>
-      <div className="seg">{(["sanctions", "kev", "inform", "hacks"] as const).map((k) => <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)}>
-        {k === "sanctions" ? OPS.registers.sanctionsTitle : k === "kev" ? OPS.registers.kevTitle : k === "inform" ? OPS.registers.informTitle : OPS.registers.hacksTitle}</button>)}</div>
+      <div className="seg">{(["sanctions", "kev", "inform", "hacks"] as const).map((k) => <button key={k} type="button" aria-pressed={tab === k} data-testid={`ops-reg-tab-${k}`} onClick={() => setTab(k)}>
+        {k === "sanctions" ? RR.sanctionsTitle : k === "kev" ? RR.kevTitle : k === "inform" ? RR.informTitle : RR.hacksTitle}</button>)}</div>
       <input type="search" value={q} placeholder="Cerca nome, programma, prodotto…" onChange={(e) => setQ(e.target.value)} data-testid="ops-reg-q" />
       <Err e={t.error} />
-      {d && <p className="xs dim">{(d.rows?.length ?? 0).toLocaleString("it-IT")} voci{d.fetched_ms ? ` · aggiornato ${fmtTime(d.fetched_ms)}` : ""}{d.notes?.catalog_version ? ` · catalogo ${d.notes.catalog_version}` : ""}</p>}
-      <ul className="ops-list" data-testid="ops-reg-list">{rows.map((r, i) => tab === "hacks"
-        ? <li key={i} className="xs"><b>{r[0]}</b><span className="dim"> · {r[1]} · {r[2] ? `${Math.round(r[2] / 1e6).toLocaleString("it-IT")} M$` : "importo n.d."} · {r[3]}{r[5] ? ` · ${r[5]}` : ""}</span></li>
-        : tab === "inform"
-        ? <li key={i} className="xs"><span className="mono">{r[0]}</span> <b className="mono">{Number(r[1]).toFixed(1)}</b><span className="ops-bar" style={{ width: `${r[1] * 10}%` }} /></li>
-        : tab === "sanctions"
-        ? <li key={i} className="xs"><b>{r[1]}</b><span className="dim"> · {r[2]} · {r[3]}{r[5] ? ` · bandiera ${r[5]}` : ""}</span></li>
-        : <li key={i} className="xs"><b className="mono">{r[0]}</b> · {r[1]} {r[2]}<span className="dim"> · aggiunta {r[4]} · {r[3]}</span></li>)}</ul>
-      <Credit>{tab === "sanctions" ? OPS.registers.sanctionsCredit : tab === "kev" ? OPS.registers.kevCredit : tab === "inform" ? OPS.registers.informCredit : OPS.registers.hacksCredit}</Credit>
+      {d && <p className="xs dim">{(d.rows?.length ?? 0).toLocaleString("it-IT")} voci{d.fetched_ms ? ` · aggiornato ${fmtTime(d.fetched_ms)}` : ""}{d.notes?.catalog_version ? ` · catalogo ${d.notes.catalog_version}` : ""} · tocca una voce per il dettaglio</p>}
+      {open != null && rows[open] && <RegDetail tab={tab} r={rows[open]} onClose={() => setOpen(null)} />}
+      <ul className="ops-list" data-testid="ops-reg-list">{rows.map((r, i) => (
+        <li key={i} className="xs"><button type="button" className="ops-reg-row" aria-pressed={open === i} data-testid="ops-reg-row" onClick={() => setOpen(open === i ? null : i)}>{line(r)}</button></li>))}</ul>
+      <Credit>{tab === "sanctions" ? RR.sanctionsCredit : tab === "kev" ? RR.kevCredit : tab === "inform" ? RR.informCredit : RR.hacksCredit}</Credit>
     </>);
 }
 
@@ -570,7 +621,7 @@ function decode6(str: string): LngLat[] {
   while (i < str.length) { lat += next(); lng += next(); out.push([lng / 1e6, lat / 1e6]); }
   return out;
 }
-type Route = { km: number; s: number; toll: boolean; motorway: boolean; ferry: boolean; line: LngLat[]; steps: any[]; provider: string };
+type Route = { km: number; s: number; toll: boolean; motorway: boolean; ferry: boolean; line: LngLat[]; steps: any[]; provider: string; mode?: string };
 const fmtDur = (s: number) => `${Math.floor(s / 3600) ? `${Math.floor(s / 3600)} h ` : ""}${Math.round((s % 3600) / 60)} min`;
 function fromValhalla(trip: any): Route {
   const line: LngLat[] = [], steps: any[] = [];
@@ -587,11 +638,15 @@ function Elevation({ line }: { line: LngLat[] }) {
   useEffect(() => {
     let live = true;
     const step = Math.max(1, Math.ceil(line.length / 180)), shape = line.filter((_, i) => i % step === 0).map(([lon, lat]) => ({ lat, lon }));
-    polite("valhalla").then(() => getJSON(`${OPS.route.valhalla}/height?json=${encodeURIComponent(JSON.stringify({ range: false, shape }))}`)).then((d) => {
+    (async () => {
+      const vh = (await ROUTERS()).find((p) => p.kind === "valhalla");   // the elevation of the Valhalla service
+      if (!vh) return;
+      await polite(vh.id);
+      const d = await getJSON(`${vh.base}/height?json=${encodeURIComponent(JSON.stringify({ range: false, shape }))}`);
       const pts = (d.height as (number | null)[]).filter((x): x is number => x != null);
       let up = 0, down = 0; for (let i = 1; i < pts.length; i++) { const dd = pts[i] - pts[i - 1]; if (dd > 0) up += dd; else down -= dd; }
       if (live && pts.length > 1) setH({ up, down, pts });
-    }).catch(() => {});
+    })().catch(() => {});
     return () => { live = false; };
   }, [line]);
   if (!h) return null;
@@ -600,44 +655,92 @@ function Elevation({ line }: { line: LngLat[] }) {
   return (<div className="xs" data-testid="ops-route-elev"><svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="profilo altimetrico"><polyline points={d} fill="none" stroke="#86C5A0" strokeWidth="1.5" /></svg>
     <span className="mono">↑ {Math.round(h.up)} m · ↓ {Math.round(h.down)} m · {Math.round(lo)}–{Math.round(hi)} m</span> <span className="dim">(modello del terreno del servizio)</span></div>);
 }
+/** The routing providers, in their order of use (config: route.providers; a provider is switched off with "on": false). */
+// FOSSGIS asks that its service addresses not be fixed in the app: the list is read at run time from the site's own
+// /providers.json (changed there, no new version of NEXUM needed); the copy built in is used when it cannot be read.
+type Router = { id: string; kind: string; on: boolean; name: string; base?: string; url?: string };
+const usable = (l: Router[]) => l.filter((p) => p.on && (p.kind === "valhalla" ? /^https:\/\//.test(p.base ?? "") : p.kind === "osrm" ? /^https:\/\//.test(p.url ?? "") : false));
+let routers: Promise<Router[]> | null = null;
+const ROUTERS = () => (routers ??= fetch("/providers.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null))
+  .then((j) => (Array.isArray(j?.route) ? usable(j.route) : usable(OPS.route.providers as Router[])))
+  .catch(() => usable(OPS.route.providers as Router[])));
+type Mode = keyof typeof OPS.route.modes;
+type Avoid = Record<"tolls" | "highways" | "ferries", boolean>;
+/** A provider's refusal in words (Valhalla's distance limits per mode: car 5,000 km, bicycle 150 km, on foot 100 km). */
+const whyNot = (e: any) => { const m = String(e?.message ?? e); const lim = m.match(/max distance limit: (\d+) meters/i);
+  return lim ? `distanza oltre il limite del servizio per questa modalità (${Math.round(+lim[1] / 1000)} km)` : m; };
+async function viaValhalla(base: string, pts: Place[], prof: Mode, avoid: Record<"tolls" | "highways" | "ferries", boolean>): Promise<Route[]> {
+  const costing = OPS.route.modes[prof][0];
+  const req: any = { locations: pts.map((p) => ({ lon: p.c[0], lat: p.c[1] })), costing, alternates: pts.length === 2 ? 2 : 0, language: "it-IT", units: "kilometers" };
+  // avoid = the person's choice, as a hard exclusion (the service's preference alone may still use them)
+  if (costing === "auto") req.costing_options = { auto: { ...(avoid.tolls ? { use_tolls: 0, exclude_tolls: true } : {}),
+    ...(avoid.highways ? { use_highways: 0, exclude_highways: true } : {}), ...(avoid.ferries ? { use_ferry: 0, exclude_ferries: true } : {}) } };
+  const d = await getJSON(`${base}/route?json=${encodeURIComponent(JSON.stringify(req))}`);
+  if (!d.trip) throw new Error(d.error ?? "nessun percorso");
+  return [fromValhalla(d.trip), ...((d.alternates ?? []) as any[]).map((x) => fromValhalla(x.trip))];
+}
+async function viaOsrm(tpl: string, pts: Place[], prof: Mode): Promise<Route[]> {
+  const url = tpl.replace("{profile}", OPS.route.profiles[prof][0]).replace("{coords}", pts.map((p) => `${p.c[0]},${p.c[1]}`).join(";"));
+  const d = await getJSON(url);
+  const r = d.routes?.[0];
+  if (!r) throw new Error(d.message ?? "nessun percorso");
+  const steps = (r.legs as any[]).flatMap((l) => l.steps).map((x: any) => ({ ...x, instruction: `${MANEUVER[x.maneuver.type] ?? x.maneuver.type}${x.maneuver.modifier ? ` ${MOD[x.maneuver.modifier] ?? x.maneuver.modifier}` : ""}${x.name ? ` · ${x.name}` : ""}` }));
+  return [{ km: r.distance / 1000, s: r.duration, toll: false, motorway: false, ferry: false, line: r.geometry.coordinates, steps, provider: "OSRM" }];
+}
 function RoutePanel({ map }: { map: MLMap }) {
   const [a, setA] = useState<Place | null>(null);
   const [b, setB] = useState<Place | null>(null);
   const [via, setVia] = useState<(Place | null)[]>([]);
-  const [prof, setProf] = useState<keyof typeof OPS.route.modes>("car");
-  const [avoid, setAvoid] = useState<Record<"tolls" | "highways" | "ferries", boolean>>(() => ({ tolls: false, highways: false, ferries: false }));
-  const [routes, setRoutes] = useState<Route[]>([]);
+  const [prof, setProf] = useState<Mode>("car");
+  const [avoid, setAvoid] = useState<Avoid>(() => ({ tolls: false, highways: false, ferries: false }));
+  // A RESULT BELONGS TO ITS REQUEST (2026-10-07, physical test: Bici and A piedi showed the car's 351 km, 3 h 47 and
+  // motorway steps). Every result and every error is kept with the request it answers (the points, the mode, the
+  // constraints); any change hides it at once — a change of mode or constraints computes again by itself.
+  const keyOf = (pts: (Place | null)[], m: Mode, av: Avoid) => JSON.stringify([pts.map((p) => p?.c ?? null), m, m === "car" ? av : null]);
+  const key = keyOf([a, ...via, b], prof, avoid);
+  const [res, setRes] = useState<{ key: string; routes: Route[]; note: string | null } | null>(null);
+  const [fail, setFail] = useState<{ key: string; text: string } | null>(null);
+  const routes = res?.key === key ? res.routes : [];
+  const note = res?.key === key ? res.note : null;
+  const err = fail?.key === key ? fail.text : null;
+  const stale = !!(res || fail) && res?.key !== key && fail?.key !== key;
   const [sel, setSel] = useState(0);
-  const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const seq = useRef(0);
   const go = async (start?: Place) => {
     const a0 = start ?? a;
     if (!a0 || !b) return;
-    setBusy(true); setErr(null);
-    const pts = [a0, ...via.filter((v): v is Place => !!v), b];
+    const pts = [a0, ...via.filter((v): v is Place => !!v), b], m = prof, av = avoid, k = keyOf([a0, ...via, b], m, av), my = ++seq.current;
+    const anyAvoid = m === "car" && (av.tolls || av.highways || av.ferries);
+    setBusy(true);
     try {
-      await polite("valhalla");
-      const costing = OPS.route.modes[prof][0];
-      const req: any = { locations: pts.map((p) => ({ lon: p.c[0], lat: p.c[1] })), costing, alternates: pts.length === 2 ? 2 : 0, language: "it-IT", units: "kilometers" };
-      // avoid = the person's choice, as a hard exclusion (the service's preference alone may still use them)
-      if (costing === "auto") req.costing_options = { auto: { ...(avoid.tolls ? { use_tolls: 0, exclude_tolls: true } : {}),
-        ...(avoid.highways ? { use_highways: 0, exclude_highways: true } : {}), ...(avoid.ferries ? { use_ferry: 0, exclude_ferries: true } : {}) } };
-      const d = await getJSON(`${OPS.route.valhalla}/route?json=${encodeURIComponent(JSON.stringify(req))}`);
-      if (!d.trip) throw new Error(d.error ?? "nessun percorso");
-      setRoutes([fromValhalla(d.trip), ...((d.alternates ?? []) as any[]).map((x) => fromValhalla(x.trip))]); setSel(0);
-    } catch (e: any) {
-      // the other FOSSGIS service (OSRM): one route, same rules
-      try {
-        await polite("osrm");
-        const url = OPS.route.osrm.replace("{profile}", OPS.route.profiles[prof][0]).replace("{coords}", pts.map((p) => `${p.c[0]},${p.c[1]}`).join(";"));
-        const d = await getJSON(url);
-        const r = d.routes?.[0];
-        if (!r) throw new Error(d.message ?? "nessun percorso");
-        const steps = (r.legs as any[]).flatMap((l) => l.steps).map((x: any) => ({ ...x, instruction: `${MANEUVER[x.maneuver.type] ?? x.maneuver.type}${x.maneuver.modifier ? ` ${MOD[x.maneuver.modifier] ?? x.maneuver.modifier}` : ""}${x.name ? ` · ${x.name}` : ""}` }));
-        setRoutes([{ km: r.distance / 1000, s: r.duration, toll: false, motorway: false, ferry: false, line: r.geometry.coordinates, steps, provider: "OSRM" }]); setSel(0);
-      } catch { setErr(String(e?.message ?? e)); setRoutes([]); }
-    } finally { setBusy(false); }
+      // the providers in their order (config: route.providers, each switchable): the first that answers draws the route;
+      // each refusal is said, and a provider that cannot honour the person's constraints is not asked
+      const fails: string[] = [];
+      for (const p of await ROUTERS()) {
+        if (p.kind === "osrm" && anyAvoid) { fails.push(`${p.name}: non sa evitare pedaggi, autostrade o traghetti`); continue; }
+        try {
+          await polite(p.id);
+          const rs = (p.kind === "valhalla" ? await viaValhalla(p.base!, pts, m, av) : await viaOsrm(p.url!, pts, m)).map((x) => ({ ...x, mode: m }));
+          if (my !== seq.current) return;
+          const n = fails.length || p.kind === "osrm" ? [...fails, `percorso da ${p.name}${p.kind === "osrm" ? ": senza alternative; pedaggi, autostrade e traghetti non indicati da questo servizio" : ""}`].join(" · ") : null;
+          // a reroute from the device's position: the new start is set with its own answer, so the route being followed
+          // stays on screen (and the navigation running) while the new one is asked
+          if (start) setA(start);
+          setRes({ key: k, routes: rs, note: n }); setFail(null); setSel(0);
+          return;
+        } catch (e) { fails.push(`${p.name}: ${whyNot(e)}`); }
+      }
+      if (my === seq.current) { setFail({ key: k, text: fails.join(" · ") || "nessun servizio di percorso attivo" }); setRes(null); }
+    } finally { if (my === seq.current) setBusy(false); }
   };
+  // a new mode or new constraints: computed again at once (the previous answer was for another request)
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (a && b && (res || fail)) go();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prof, JSON.stringify(avoid)]);
   // the routes on the map: the chosen one bright, the alternatives dim; framed once
   const r = routes[sel];
   useEffect(() => {
@@ -646,7 +749,8 @@ function RoutePanel({ map }: { map: MLMap }) {
     ensureLine(map, "ops-route-step", "#FFFFFF").setData({ type: "FeatureCollection", features: [] });
     if (r) fit(map, bboxOf(r.line), { padding: 60, duration: 700 });
   }, [routes, sel]);
-  useEffect(() => () => { for (const id of ["ops-route", "ops-route-alt", "ops-route-step"]) (map.getSource(id) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: [] }); }, [map]);
+  // closed: the route's layers and sources removed, not just emptied (R-01)
+  useEffect(() => () => { for (const id of ["ops-route", "ops-route-alt", "ops-route-step"]) dropLine(map, id); }, [map]);
   const showStep = (st: any) => {
     if (!r) return;
     const seg = st.a != null ? r.line.slice(st.a, Math.max(st.a + 2, st.b + 1)) : [st.maneuver.location, st.maneuver.location];
@@ -679,28 +783,57 @@ function RoutePanel({ map }: { map: MLMap }) {
       </div>
       {prof === "car" && <div className="row xs" data-testid="ops-route-avoid">Evita: {(["tolls", "highways", "ferries"] as const).map((k) => (
         <label key={k} className="ops-qrow"><input type="checkbox" checked={avoid[k]} onChange={() => setAvoid({ ...avoid, [k]: !avoid[k] })} data-testid={`ops-route-avoid-${k}`} /> {{ tolls: "pedaggi", highways: "autostrade", ferries: "traghetti" }[k]}</label>))}</div>}
-      {err && <p className="xs warn">Percorso non disponibile ora ({err}).</p>}
+      {err && <p className="xs warn" data-testid="ops-route-error">Percorso {OPS.route.modes[prof][1].toLowerCase()} non disponibile: {err}.</p>}
+      {stale && !busy && a && b && <p className="xs" data-testid="ops-route-stale">Il risultato precedente era per un'altra richiesta. <button type="button" className="xs primary" onClick={() => go()}>Ricalcola</button></p>}
+      {busy && <p className="xs dim" data-testid="ops-route-busy">Calcolo del percorso {OPS.route.modes[prof][1].toLowerCase()}…</p>}
       {routes.length > 1 && <div className="seg" data-testid="ops-route-alts">{routes.map((x, i) => (
         <button key={i} type="button" aria-pressed={sel === i} onClick={() => setSel(i)}>{i === 0 ? "Più rapido" : `Alternativa ${i}${x.s > routes[0].s ? ` · +${Math.round((x.s - routes[0].s) / 60)} min` : ""}`}</button>))}</div>}
-      {r && <p data-testid="ops-route-result"><b className="mono">{fmtKm(r.km)}</b> · <b className="mono">{fmtDur(r.s)}</b> · arrivo ≈ {arrive}
+      {r && <p data-testid="ops-route-result" data-mode={r.mode}><b>{OPS.route.modes[r.mode as Mode][1]}</b> · <b className="mono">{fmtKm(r.km)}</b> · <b className="mono">{fmtDur(r.s)}</b> · arrivo ≈ {arrive}
         <span className="xs dim"> (stima del servizio {r.provider}, senza traffico)</span>
         {(r.toll || r.motorway || r.ferry) && <span className="xs" data-testid="ops-route-flags"> {r.toll ? "· pedaggio " : ""}{r.motorway ? "· autostrada " : ""}{r.ferry ? "· traghetto" : ""}</span>}</p>}
-      {r && prof !== "car" && <Elevation line={r.line} />}
-      {r && r.steps.length > 0 && <Navigate steps={r.steps} line={r.line} onReroute={(here) => { const p = { label: "La tua posizione", c: here }; setA(p); go(p); }} />}
+      {r && note && <p className="xs dim" data-testid="ops-route-note">{note}.</p>}
+      {r && r.mode !== "car" && <Elevation line={r.line} />}
+      {r && r.steps.length > 0 && <Navigate steps={r.steps} line={r.line} start={a?.label} onReroute={(here) => go({ label: "La tua posizione", c: here })} />}
       {r && r.steps.length > 0 && <ol className="ops-steps xs" data-testid="ops-route-steps">{r.steps.slice(0, 80).map((st, i) => (
         <li key={i}><button type="button" className="linklike xs" onClick={() => showStep(st)}>{st.instruction}</button><span className="dim"> · {fmtKm(st.distance / 1000)}</span></li>))}</ol>}
-      <Credit>{OPS.route.credit} <a href={OPS.route.fixthemap} target="_blank" rel="noopener noreferrer">segnala un errore della mappa</a> · {OPS.geocode.credit}</Credit>
+      <Credit>{OPS.route.credit} <a href={OPS.route.fixthemap} target="_blank" rel="noopener noreferrer">segnala un errore della mappa</a> · {OPS.geocode.credit}
+        {" "}· <span data-testid="ops-route-operator">{S.web.operatorLabel} di NEXUM: <a href={`mailto:${S.web.operatorEmail}`}>{S.web.operatorEmail}</a></span></Credit>
     </>);
 }
 
 /** TURN-BY-TURN (on request): the device's own position (watchPosition) against the route's manoeuvres; the next
- *  instruction is shown and spoken (speechSynthesis). The position never leaves this page and is not stored. */
-function Navigate({ steps, line, onReroute }: { steps: any[]; line?: LngLat[]; onReroute?: (here: LngLat) => void }) {
+ *  instruction is shown and spoken (speechSynthesis, an Italian voice of the device when it has one). The position never
+ *  leaves this page and is not stored. Said before it starts: what it uses, and that leaving the route makes the
+ *  device's position the new start. While it runs: the GPS fix and its accuracy, the voice (on, off, none), and the
+ *  stop — here and in the indicator shown wherever the person is. Stopping keeps the route on the map. */
+function Navigate({ steps, line, onReroute, start }: { steps: any[]; line?: LngLat[]; onReroute?: (here: LngLat) => void; start?: string }) {
   const [on, setOn] = useState(false);
   const [st, setSt] = useState<{ i: number; d: number; acc: number } | null>(null);
+  const [gps, setGps] = useState<"waiting" | "fix" | "weak" | "denied" | "none">("waiting");
   const [err, setErr] = useState<string | null>(null);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const voiceRef = useRef(true);
+  voiceRef.current = voiceOn;
+  const [voice, setVoice] = useState<string | null | undefined>(undefined);   // undefined: not known yet; null: none
   const spoken = useRef(-1), offSince = useRef(0), lastReroute = useRef(0);
   const [offRoute, setOffRoute] = useState<boolean>(false);   // a new route from here is being computed
+  // the device's voices (they may arrive after the page): an Italian one, said by name, or none
+  useEffect(() => {
+    const synth = (globalThis as any).speechSynthesis as SpeechSynthesis | undefined;
+    if (!synth) { setVoice(null); return; }
+    const pick = () => { const vs = synth.getVoices(); if (!vs.length) return; setVoice(vs.find((v) => /^it\b|^it-/i.test(v.lang))?.name ?? null); };
+    pick();
+    synth.addEventListener?.("voiceschanged", pick);
+    return () => synth.removeEventListener?.("voiceschanged", pick);
+  }, []);
+  // running navigation is said everywhere (OpsShell's indicator, with its stop): set while on, cleared when it ends —
+  // stopped here, from the indicator, or by this panel closing (2026-10-07, physical test: a voice over a webcam)
+  useEffect(() => {
+    if (!on) return;
+    ops.set({ navigating: true });
+    const unsub = ops.subscribe(() => { if (!ops.get().navigating) setOn(false); });
+    return () => { unsub(); if (ops.get().navigating) ops.set({ navigating: false }); };
+  }, [on]);
   // the screen stays on while navigating (where the browser allows it)
   useEffect(() => {
     if (!on) return;
@@ -708,10 +841,17 @@ function Navigate({ steps, line, onReroute }: { steps: any[]; line?: LngLat[]; o
     (navigator as any).wakeLock?.request("screen").then((l: any) => { lock = l; }).catch(() => {});
     return () => { lock?.release?.().catch?.(() => {}); };
   }, [on]);
+  // the voice turned off: what is being said stops at once
+  useEffect(() => { if (!voiceOn) try { speechSynthesis.cancel(); } catch { /* no voice */ } }, [voiceOn]);
   useEffect(() => {
     if (!on) return;
-    if (!navigator.geolocation) { setErr("posizione del dispositivo non disponibile"); setOn(false); return; }
-    const say = (t: string) => { try { const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch { /* no voice */ } };
+    if (!navigator.geolocation) { setErr("posizione del dispositivo non disponibile"); setGps("none"); setOn(false); return; }
+    setGps("waiting");
+    const say = (t: string) => {
+      if (!voiceRef.current) return;
+      try { const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; const v = speechSynthesis.getVoices().find((x) => /^it\b|^it-/i.test(x.lang)); if (v) u.voice = v;
+        speechSynthesis.cancel(); speechSynthesis.speak(u); } catch { /* no voice */ }
+    };
     const text = (s: any) => s.instruction ?? `${MANEUVER[s.maneuver.type] ?? s.maneuver.type}${s.maneuver.modifier ? ` ${MOD[s.maneuver.modifier] ?? s.maneuver.modifier}` : ""}${s.name ? `, ${s.name}` : ""}`;
     const geo = navigator.geolocation;
     const id = geo.watchPosition((p) => {
@@ -721,7 +861,7 @@ function Navigate({ steps, line, onReroute }: { steps: any[]; line?: LngLat[]; o
       steps.forEach((s, i) => { const d = haversine(here, s.maneuver.location); if (d < bd) { bd = d; best = i; } });
       const i = bd < 0.03 && best < steps.length - 1 ? best + 1 : best;
       const d = haversine(here, steps[i].maneuver.location);
-      setSt({ i, d, acc: p.coords.accuracy }); setErr(null);
+      setSt({ i, d, acc: p.coords.accuracy }); setErr(null); setGps("fix");
       // off the route for more than 6 s (beyond 60 m and the fix's own accuracy): a new route from here, at most every 20 s
       if (line?.length && onReroute) {
         const off = Math.min(...line.filter((_, k) => k % 2 === 0).map((q) => haversine(here, q))) > Math.max(0.06, p.coords.accuracy / 1000);
@@ -734,20 +874,30 @@ function Navigate({ steps, line, onReroute }: { steps: any[]; line?: LngLat[]; o
       if (spoken.current !== i && d < 0.25) { spoken.current = i; say(`Tra ${Math.round(d * 1000)} metri, ${text(steps[i])}`); }
     }, (e) => {
       // only a refused permission ends the navigation; a weak or missing signal (tunnel, indoors) is said and waited out
-      if (e.code === 1) { setErr("permesso negato"); setOn(false); } else setErr("segnale di posizione debole: attendo il prossimo rilevamento…");
+      if (e.code === 1) { setErr("permesso di posizione negato dal browser"); setGps("denied"); setOn(false); } else { setGps("weak"); setErr("segnale di posizione debole: attendo il prossimo rilevamento…"); }
     }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
     return () => { geo.clearWatch(id); try { speechSynthesis.cancel(); } catch { /* none */ } };
   }, [on, steps]);
   const cur = st ? steps[st.i] : null;
+  const gpsText = gps === "fix" && st ? `GPS attivo · precisione ±${Math.round(st.acc)} m` : gps === "weak" ? "GPS: segnale debole" : gps === "denied" ? "GPS: permesso negato" : gps === "none" ? "GPS non disponibile" : "GPS: in attesa della prima posizione…";
+  const voiceText = voice === null ? "Voce: nessuna voce italiana su questo dispositivo — istruzioni solo scritte" : !voiceOn ? "Voce: disattivata" : voice ? `Voce: attiva (${voice})` : "Voce: attiva";
   return (
-    <div className="ops-nav" data-testid="ops-nav">
-      <button type="button" className={on ? "" : "primary"} onClick={() => { setErr(null); spoken.current = -1; setOn(!on); }} data-testid="ops-nav-toggle">
-        {on ? "Ferma la navigazione" : "▶ Naviga con la posizione del dispositivo"}</button>
+    <div className="ops-nav" data-testid="ops-nav" data-on={on}>
+      <div className="hl-h">Navigazione stradale (facoltativa)</div>
+      {!on && <p className="xs" data-testid="ops-nav-before">«Naviga» usa la <b>posizione del dispositivo</b> (GPS del browser, con il tuo permesso) e legge le istruzioni ad alta voce.
+        Se esci dal percorso per più di 6 secondi, NEXUM ricalcola dalla tua posizione: la partenza {start ? <>«{start}» </> : ""}viene sostituita da «La tua posizione».
+        Il percorso disegnato resta sulla mappa quando fermi la navigazione.</p>}
+      <div className="row xs">
+        <button type="button" className={on ? "" : "primary"} onClick={() => { setErr(null); spoken.current = -1; setOn(!on); }} data-testid="ops-nav-toggle">
+          {on ? "Ferma la navigazione" : "▶ Naviga con la posizione del dispositivo"}</button>
+        <button type="button" className="xs" aria-pressed={voiceOn} onClick={() => setVoiceOn(!voiceOn)} data-testid="ops-nav-voice" disabled={voice === null}>{voiceOn ? "🔊 Voce sì" : "🔇 Voce no"}</button></div>
+      {on && <p className="xs" data-testid="ops-nav-status"><b>Navigazione attiva</b> · <span data-testid="ops-nav-gps" data-gps={gps}>{gpsText}</span> · <span data-testid="ops-nav-voice-state">{voiceText}</span></p>}
+      {!on && <p className="xs faint" data-testid="ops-nav-voice-avail">{voiceText}</p>}
       {on && cur && <p><b>{cur.instruction ?? `${MANEUVER[cur.maneuver.type] ?? cur.maneuver.type}${cur.maneuver.modifier ? ` ${MOD[cur.maneuver.modifier] ?? cur.maneuver.modifier}` : ""}`}</b>
-        {!cur.instruction && cur.name ? ` · ${cur.name}` : ""} <span className="mono">tra {fmtKm(st!.d)}</span><span className="xs dim"> (precisione ±{Math.round(st!.acc)} m)</span></p>}
+        {!cur.instruction && cur.name ? ` · ${cur.name}` : ""} <span className="mono">tra {fmtKm(st!.d)}</span></p>}
       {on && offRoute && <p className="xs" data-testid="ops-nav-reroute">Fuori percorso: nuovo percorso dalla tua posizione…</p>}
       {err && <p className="xs warn">{err}</p>}
-      <p className="xs faint">La posizione resta in questa pagina: non è salvata né inviata. Le istruzioni sono anche lette ad alta voce.</p>
+      <p className="xs faint">La posizione resta in questa pagina: non è salvata né inviata.</p>
     </div>);
 }
 
@@ -966,7 +1116,7 @@ function PointBody({ map, lng, lat }: { map: MLMap; lng: number; lat: number }) 
       {lt && <p className="xs">Ora locale <b className="mono">{lt.time}</b> · {lt.date} · {lt.abbr ? `${lt.abbr} · ` : ""}{lt.utc} <span className="dim">({tz})</span></p>}
       <div className="row xs">
         <button type="button" className="xs primary" data-testid="ops-point-sky" onClick={() => ops.set({ tool: "sky" })}>✦ Cielo da qui</button>
-        <button type="button" className="xs" onClick={() => ops.set({ tool: "route" })}>⇢ Percorso</button>
+        <button type="button" className="xs" onClick={() => ops.set({ tool: "route" })}>⇢ Percorso stradale</button>
         <button type="button" className="xs" onClick={() => navigator.clipboard?.writeText(`${lat.toFixed(5)}, ${lng.toFixed(5)}`)}>Copia coordinate</button>
       </div>
       <div className="hl-h">Adesso</div>
@@ -1066,6 +1216,8 @@ function ImportPanel({ map }: { map: MLMap }) {
   const importService = async (it: any) => {
     setBusy(it.id);
     try {
+      const v = licenceVerdict(strip(it.licenseInfo));
+      if (!v.open) throw new Error(`${v.why}: importazione non consentita`);
       const base = String(it.url).replace(/\/$/, "");
       if (!/^https:\/\/services\d?\.arcgis\.com\//.test(base)) throw new Error("solo i servizi ospitati su ArcGIS Online (services*.arcgis.com) sono importabili da qui");
       let layer = base;
@@ -1104,7 +1256,8 @@ function ImportPanel({ map }: { map: MLMap }) {
           {it.snippet && <p className="xs">{strip(it.snippet).slice(0, 220)}</p>}
           {it.tags?.length > 0 && <p className="xs dim">{(it.tags as string[]).slice(0, 6).join(" · ")}</p>}
           <p className="xs faint">Licenza: {strip(it.licenseInfo).slice(0, 240) || "non dichiarata dal proprietario (uso non consentito senza permesso)"} · <a href={OPS.arcgis.item.replace("{id}", it.id)} target="_blank" rel="noopener noreferrer">scheda ↗</a></p>
-          {strip(it.licenseInfo) && <button type="button" className="xs" disabled={busy === it.id} data-testid="ops-arcgis-import" onClick={() => importService(it)}>{busy === it.id ? "Importo…" : `Importa${inView ? " nell'area" : ""} (max 2.000)`}</button>}</li>))}
+          {(() => { const v = licenceVerdict(strip(it.licenseInfo)); return <p className="xs" data-testid="ops-arcgis-licence" data-open={v.open}>{v.open ? `Licenza aperta riconosciuta: ${v.name}` : `Non importabile da qui: ${v.why}`}</p>; })()}
+          {licenceVerdict(strip(it.licenseInfo)).open && <button type="button" className="xs" disabled={busy === it.id} data-testid="ops-arcgis-import" onClick={() => importService(it)}>{busy === it.id ? "Importo…" : `Importa${inView ? " nell'area" : ""} (max 2.000)`}</button>}</li>))}
         {res && !res.length && <li className="xs dim">Nessun servizio pubblico trovato.</li>}</ul>
       <p className="xs faint">{OPS.arcgis.gate}</p>
       <Credit>{OPS.arcgis.credit}</Credit>
@@ -1112,46 +1265,99 @@ function ImportPanel({ map }: { map: MLMap }) {
 }
 
 // ── NETWORK (passive) ─────────────────────────────────────────────────────
+// PASSIVE NETWORK LOOKUPS (2026-10-08, physical test: unclear inputs, raw output). Each lookup says what it accepts,
+// with a harmless example; the input is checked before any request; the answer is shown as fields, with its source,
+// the time it was asked and the service's limits. Public, keyless, free services only, asked from this browser.
+// Certificate Transparency: the keyless Cert Spotter API is for personal or evaluation use only and crt.sh does not
+// answer reliably from a browser — so the search is opened on those services' own pages (a link), never automated.
+const DOMAIN = /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const IPV6 = /^[0-9a-f:]+$/i;
+const isIp = (v: string) => IPV4.test(v) || (v.includes(":") && IPV6.test(v));
+const PREFIX = /^[0-9a-f.:]+\/\d{1,3}$/i, ASN = /^as\d{1,10}$/i;
+type NetKind = "dns" | "rdap" | "ct" | "ripe" | "flaw" | "mac" | "tor" | "internetdb";
+const NET_SPEC: Record<NetKind, { label: string; accepts: string; example: string; ok: (v: string) => boolean; source: string; limits: string }> = {
+  dns: { label: "DNS (record pubblici)", accepts: "un nome di dominio", example: "example.com", ok: (v) => DOMAIN.test(v), source: "Google Public DNS (DNS over HTTPS)",
+    limits: "record A, AAAA, MX, NS, TXT come li vede il resolver pubblico ora; nessuna enumerazione di sottodomini" },
+  rdap: { label: "RDAP (registrazione)", accepts: "un dominio o un indirizzo IP", example: "example.com · 193.0.6.139", ok: (v) => DOMAIN.test(v) || isIp(v), source: "rdap.org → il registro competente (RDAP, standard IETF)",
+    limits: "dati di registrazione pubblici; i dati personali dei titolari sono oscurati dai registri" },
+  ct: { label: "Certificati (Certificate Transparency)", accepts: "un nome di dominio", example: "example.com", ok: (v) => DOMAIN.test(v), source: "crt.sh · SSLMate Cert Spotter (sui loro siti)",
+    limits: "la ricerca si apre sul sito del servizio: l'API senza chiave di Cert Spotter è solo per uso personale o di prova e crt.sh non risponde in modo affidabile alle richieste dal browser" },
+  ripe: { label: "Instradamento (RIPEstat)", accepts: "un indirizzo IP, un prefisso (es. 193.0.0.0/21) o un numero AS (es. AS3333) — non un dominio", example: "193.0.6.139 · AS3333",
+    ok: (v) => isIp(v) || PREFIX.test(v) || ASN.test(v), source: "RIPE NCC — RIPEstat Data API", limits: "dati di instradamento pubblici (BGP) e registro regionale" },
+  flaw: { label: OPS.net.flawLabel, accepts: OPS.net.flawSpec.accepts, example: OPS.net.flawSpec.example, ok: (v) => new RegExp(OPS.net.flawSpec.pattern, "i").test(v), source: OPS.net.flawSpec.source,
+    limits: OPS.net.flawSpec.limits },
+  mac: { label: "Produttore MAC (IEEE)", accepts: "un indirizzo MAC o i primi 6 caratteri esadecimali", example: "00:1A:2B · 001A2B", ok: (v) => v.replace(/[^0-9a-f]/gi, "").length >= 6,
+    source: "registro IEEE MA-L (tabella pubblicata da NEXUM)", limits: "solo il produttore del blocco di indirizzi; nessun dispositivo, nessuna persona" },
+  tor: { label: "Uscita Tor?", accepts: "un indirizzo IPv4", example: "185.220.101.1", ok: (v) => IPV4.test(v), source: "elenco pubblico delle uscite Tor (tabella pubblicata da NEXUM)",
+    limits: "dice solo se l'indirizzo è un nodo d'uscita noto alla data dell'elenco" },
+  internetdb: { label: "Porte note (Shodan InternetDB, facoltativo)", accepts: "un indirizzo IP", example: "1.1.1.1", ok: (v) => isIp(v), source: "Shodan InternetDB (gratuito, uso non commerciale)",
+    limits: "porte e servizi già osservati pubblicamente da Shodan; NEXUM non effettua alcuna scansione" },
+};
+function NetOut({ v }: { v: any }) {
+  if (v == null || v === "" || (Array.isArray(v) && !v.length)) return <span className="dim">—</span>;
+  if (Array.isArray(v)) return <ul className="ops-net-list">{v.map((x, i) => <li key={i}><NetOut v={x} /></li>)}</ul>;
+  if (typeof v === "object") return <dl className="ops-net-dl">{Object.entries(v).map(([k, x]) => [<dt key={`t${k}`} className="dim">{k}</dt>, <dd key={k}><NetOut v={x} /></dd>])}</dl>;
+  return <span className="mono">{String(v)}</span>;
+}
 function NetPanel() {
   const [q, setQ] = useState("");
-  const [kind, setKind] = useState("dns");
-  const [out, setOut] = useState<any>(null);
+  const [kind, setKind] = useState<NetKind>("dns");
+  const [out, setOut] = useState<{ kind: NetKind; q: string; at: number; data?: any; error?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const N = OPS.net;
+  const spec = NET_SPEC[kind];
+  const v = q.trim().toLowerCase();
+  const valid = !v || spec.ok(v);
   const run = async () => {
-    const v = q.trim().toLowerCase();
-    if (!v) return;
+    if (!v || !spec.ok(v) || kind === "ct") return;
     setBusy(true); setOut(null);
-    const ip = /^[\d.]+$|:/.test(v);
+    const at = Date.now();
     try {
-      if (kind === "dns") setOut(Object.fromEntries(await Promise.all(["A", "AAAA", "MX", "NS", "TXT"].map(async (t) => [t, ((await getJSON(N.doh.replace("{q}", encodeURIComponent(v)).replace("{t}", t))).Answer ?? []).map((a: any) => a.data)]))));
-      else if (kind === "rdap") { const d = await getJSON(N.rdap.replace("{kind}", ip ? "ip" : "domain").replace("{q}", encodeURIComponent(v)));
-        setOut({ handle: d.handle, name: d.name ?? d.ldhName, status: d.status, events: (d.events ?? []).map((e: any) => `${e.eventAction}: ${String(e.eventDate).slice(0, 10)}`), nameservers: (d.nameservers ?? []).map((n: any) => n.ldhName), range: d.startAddress ? `${d.startAddress} – ${d.endAddress}` : undefined }); }
-      else if (kind === "ct") { const d = await getJSON(N.ct.replace("{q}", encodeURIComponent(v)));
-        setOut((d as any[]).slice(0, 40).map((c) => ({ dal: String(c.not_before).slice(0, 10), al: String(c.not_after).slice(0, 10), nomi: (c.dns_names ?? []).slice(0, 6).join(" ") }))); }
-      else if (kind === "ripe") { const [w, p] = await Promise.all(["prefix-overview", "rir"].map((x) => getJSON(N.ripe.replace("{what}", x).replace("{q}", encodeURIComponent(v)))));
-        setOut({ prefisso: w.data?.resource, annunciato: w.data?.announced, asn: (w.data?.asns ?? []).map((a: any) => `AS${a.asn} ${a.holder}`), registro: (p.data?.rirs ?? []).map((r: any) => r.rir) }); }
+      let data: any;
+      if (kind === "dns") data = Object.fromEntries(await Promise.all(["A", "AAAA", "MX", "NS", "TXT"].map(async (t) => [t, ((await getJSON(N.doh.replace("{q}", encodeURIComponent(v)).replace("{t}", t))).Answer ?? []).map((a: any) => a.data)])));
+      else if (kind === "rdap") { const d = await getJSON(N.rdap.replace("{kind}", isIp(v) ? "ip" : "domain").replace("{q}", encodeURIComponent(v)));
+        data = { handle: d.handle, nome: d.name ?? d.ldhName, stato: d.status, eventi: (d.events ?? []).map((e: any) => `${e.eventAction}: ${String(e.eventDate).slice(0, 10)}`),
+          "server dei nomi": (d.nameservers ?? []).map((n: any) => n.ldhName), intervallo: d.startAddress ? `${d.startAddress} – ${d.endAddress}` : undefined, paese: d[OPS.net.rdapPlaceKey] }; }
+      else if (kind === "ripe" && ASN.test(v)) { const w = await getJSON(N.ripe.replace("{what}", "as-overview").replace("{q}", encodeURIComponent(v.toUpperCase())));
+        data = { "sistema autonomo": w.data?.resource ? `AS${w.data.resource}` : v.toUpperCase(), titolare: w.data?.holder, annunciato: w.data?.announced, avvisi: (w.messages ?? []).map((m: any) => m[1]) }; }
+      else if (kind === "ripe") { const [w, p] = await Promise.all(["prefix-overview", "rir"].map((x) => getJSON(N.ripe.replace("{what}", x).replace("{q}", encodeURIComponent(v.toUpperCase())))));
+        data = { prefisso: w.data?.resource, annunciato: w.data?.announced, "sistemi autonomi": (w.data?.asns ?? []).map((a: any) => `AS${a.asn} ${a.holder}`), registro: (p.data?.rirs ?? []).map((r: any) => r.rir),
+          avvisi: (w.messages ?? []).map((m: any) => m[1]) }; }
       else if (kind === "flaw") { const d = await getJSON(N.flaw.replace("{q}", encodeURIComponent(v.toUpperCase())));
         const c = d.containers?.cna ?? {};
-        setOut({ id: d.cveMetadata?.cveId, stato: d.cveMetadata?.state, pubblicata: String(d.cveMetadata?.datePublished ?? "").slice(0, 10), titolo: c.title,
-          descrizione: c.descriptions?.[0]?.value, prodotti: (c.affected ?? []).slice(0, 6).map((a: any) => `${a.vendor} ${a.product}`) }); }
+        data = { id: d.cveMetadata?.cveId, stato: d.cveMetadata?.state, pubblicata: String(d.cveMetadata?.datePublished ?? "").slice(0, 10), titolo: c.title,
+          descrizione: c.descriptions?.[0]?.value, prodotti: (c.affected ?? []).slice(0, 6).map((a: any) => `${a.vendor} ${a.product}`) }; }
       else if (kind === "mac") { const pre = v.replace(/[^0-9a-f]/g, "").slice(0, 6).toUpperCase();
         const t = await call<any>("/tables/oui", undefined, { channel: "oui" });
         const hit = (t.data.rows as [string, string][]).find((r) => r[0] === pre);
-        setOut({ prefisso: pre, organizzazione: hit?.[1] ?? "non assegnato nel registro MA-L" }); }
+        data = { prefisso: pre, organizzazione: hit?.[1] ?? "non assegnato nel registro MA-L" }; }
       else if (kind === "tor") { const t = await call<any>("/tables/torexits", undefined, { channel: "tor" });
-        setOut({ indirizzo: v, uscita_tor: (t.data.rows as [string][]).some((r) => r[0] === v), elenco: `${t.data.rows.length} uscite note` }); }
-      else if (kind === "internetdb") setOut(await getJSON(N.internetdb.replace("{q}", encodeURIComponent(v))));
-    } catch (e: any) { setOut({ errore: String(e?.message ?? e) }); } finally { setBusy(false); }
+        data = { indirizzo: v, "uscita Tor nota": (t.data.rows as [string][]).some((r) => r[0] === v) ? "sì" : "no", elenco: `${t.data.rows.length} uscite note` }; }
+      else if (kind === "internetdb") { const d = await getJSON(N.internetdb.replace("{q}", encodeURIComponent(v)));
+        data = { indirizzo: d.ip, porte: d.ports, "nomi host": d.hostnames, CPE: d.cpes, etichette: d.tags, [OPS.net.internetdbVulnsLabel]: d.vulns }; }
+      setOut({ kind, q: v, at, data });
+    } catch (e: any) {
+      const m = String(e?.message ?? e);
+      setOut({ kind, q: v, at, error: /404|not found/i.test(m) ? "nessun risultato per questo input" : /abort/i.test(m) ? "il servizio non ha risposto in tempo" : m });
+    } finally { setBusy(false); }
   };
   return (
     <>
-      <div className="row"><input type="search" className="grow" value={q} placeholder="dominio o indirizzo IP" onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} data-testid="ops-net-q" />
-        <select value={kind} onChange={(e) => setKind(e.target.value)}><option value="dns">DNS</option><option value="rdap">RDAP</option><option value="ct">Certificati (CT)</option><option value="ripe">Instradamento (RIPE)</option><option value="flaw">{N.flawLabel}</option>
-          <option value="mac">Produttore MAC (IEEE)</option><option value="tor">Uscita Tor?</option><option value="internetdb">Porte note (Shodan InternetDB, facoltativo)</option></select>
-        <button type="button" className="xs primary" disabled={busy} onClick={run}>Vai</button></div>
+      <div className="row"><select value={kind} onChange={(e) => { setKind(e.target.value as NetKind); setOut(null); }} data-testid="ops-net-kind">
+        {(Object.keys(NET_SPEC) as NetKind[]).map((k) => <option key={k} value={k}>{NET_SPEC[k].label}</option>)}</select></div>
+      <p className="xs" data-testid="ops-net-accepts">Accetta: <b>{spec.accepts}</b> · esempio: <button type="button" className="linklike xs mono" onClick={() => setQ(spec.example.split(" · ")[0])}>{spec.example}</button></p>
+      <div className="row"><input type="search" className="grow" value={q} placeholder={spec.accepts} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} data-testid="ops-net-q" aria-invalid={!valid} />
+        {kind !== "ct" && <button type="button" className="xs primary" disabled={busy || !v || !valid} onClick={run} data-testid="ops-net-go">{busy ? "…" : "Cerca"}</button>}</div>
+      {!valid && <p className="xs warn" data-testid="ops-net-invalid">Input non valido per questo strumento: serve {spec.accepts}.</p>}
+      {kind === "ct" && valid && v && <p className="xs" data-testid="ops-net-ct">Apri la ricerca sul sito del servizio:{" "}
+        <a href={`https://crt.sh/?q=${encodeURIComponent(v)}`} target="_blank" rel="noopener noreferrer">crt.sh ↗</a> ·{" "}
+        <a href="https://sslmate.com/certspotter/" target="_blank" rel="noopener noreferrer">Cert Spotter ↗</a> (inserisci lì il dominio)</p>}
       {kind === "internetdb" && <p className="xs faint">{N.internetdbNote}</p>}
-      {out && <pre className="ops-pre xs" data-testid="ops-net-out">{JSON.stringify(out, null, 1)}</pre>}
+      {out && out.kind === kind && <div className="ops-net-res" data-testid="ops-net-out" data-error={!!out.error}>
+        <p className="xs dim">{NET_SPEC[out.kind].label} · <span className="mono">{out.q}</span> · chiesto alle {new Date(out.at).toLocaleTimeString("it-IT")} · fonte: {NET_SPEC[out.kind].source}</p>
+        {out.error ? <p className="xs warn">Nessuna risposta utile: {out.error}.</p> : <NetOut v={out.data} />}</div>}
+      <p className="xs faint" data-testid="ops-net-limits">Limiti: {spec.limits}.</p>
       <Credit>{N.credit}</Credit>
       <p className="xs warn">{N.impossible}</p>
     </>);
@@ -1198,6 +1404,7 @@ function HelpPanel() {
   ];
   return (
     <>
+      <p className="xs" data-testid="help-operator">{S.web.operatorLabel}: <a href={`mailto:${S.web.operatorEmail}`}>{S.web.operatorEmail}</a></p>
       <p className="xs" data-testid="help-build">Versione in uso: <b className="mono">build {__NEXUM_BUILD__}</b> · si aggiorna da sola; quando ne arriva una nuova compare «Nuova versione disponibile · AGGIORNA ORA».</p>
       <table className="ops-table" data-testid="ops-help"><tbody>{rows.map(([k, v]) => <tr key={k + v}><td className="mono">{k}</td><td>{v}</td></tr>)}</tbody></table>
       <div className="hl-h">Chi contatta il tuo browser, e quando</div>

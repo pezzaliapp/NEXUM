@@ -2,6 +2,7 @@
 // NEXUM's own layers on top (ids `nexum-*`). Below z 10 the Core returns aggregate cells when the scope exceeds
 // the budget; from z 10 individual elements. The browser never holds more than 5,000 map features.
 
+import { Boundary } from "../components/Boundary";
 import { lazyStale } from "../lib/stale";
 import { DESK_W } from "../lib/layers";
 import { LngLat, Map as MLMap, NavigationControl, setWorkerUrl, type GeoJSONSource, type MapLayerMouseEvent } from "maplibre-gl";
@@ -15,7 +16,7 @@ import { FiltersChip, Freshness, PeriodChip, ResetChip, usePeriodName } from "..
 import { typeLabelOf } from "../components/Highlights";
 import { head, register, shortLabel, summaryOf } from "../lib/summary";
 import type { Scope } from "../lib/types";
-import { store, useStore } from "../store";
+import { useEntity, store, useStore } from "../store";
 import { mapScope } from "../store/store";
 import { installIllumination } from "../map/illumination";
 import { insightKind } from "../lib/connections";
@@ -198,6 +199,7 @@ export function MapView() {
   // how the focus appears, with the focus it describes (a new focus never shows the previous one's message)
   const [appearsOf, setAppearsOf] = useState<{ id: string | null; v: string | null }>({ id: null, v: null });
   const status = useStore((s) => s.status);
+  const credits = useStore((s) => s.mapCredits);
   const scope = useStore((s) => s.scope);
   const focus = useStore((s) => s.focus);
   const secondary = useStore((s) => s.secondary);
@@ -321,6 +323,24 @@ export function MapView() {
           m.on("mouseleave", l, () => { m.getCanvas().style.cursor = ""; });
         }
         // (registered first: an element on a line or in a zone answers the tap last, so it wins)
+        // THE SELECTION'S RING ANSWERS (2026-10-08, physical test: an orange circle that did nothing): a tap on it opens
+        // the card of what it marks — also when the element's own mark is hidden by the filters, or the card is closed
+        m.on("click", "nexum-sel", (e) => {
+          if (drawing()) return;
+          if (near(e).some((f) => TAKEN.test(f.layer.id))) return;   // an element or a feature there answers instead
+          const id = e.features?.[0]?.properties?.id as string | undefined;
+          if (!id) return;
+          if (id === store.get().focus) store.set({ inspectorOpen: true, panel: "object", overlay: null, sheet: "peek" }); else store.select(id, "map");
+        });
+        m.on("mouseenter", "nexum-sel", () => { m.getCanvas().style.cursor = "pointer"; });
+        m.on("mouseleave", "nexum-sel", () => { m.getCanvas().style.cursor = ""; if (tipEl.current) tipEl.current.style.display = "none"; });
+        m.on("mousemove", "nexum-sel", (e) => {
+          const f = e.features?.[0], t = tipEl.current;
+          if (!f || !t || near(e).some((x) => TAKEN.test(x.layer.id))) return;
+          const ent = store.entity((f.properties as any).id);
+          t.textContent = `${(f.properties as any).role === "focus" ? S.sel.active : S.sel.second}: ${ent?.label ?? ""} — ${S.sel.tapCard}`;
+          t.style.left = `${e.point.x + 12}px`; t.style.top = `${e.point.y + 12}px`; t.style.display = "block";
+        });
         m.on("click", "nexum-items", pick);
         m.on("click", "nexum-hl", pick);
         for (const layer of ["nexum-cells"]) m.on("click", layer, (e) => {
@@ -556,7 +576,7 @@ export function MapView() {
     const feats: GeoJSON.Feature[] = [];
     for (const [id, role] of [[focus, "focus"], [secondary, "secondary"]] as const) {
       const p = pointOf(id);
-      if (id && p) feats.push({ type: "Feature", geometry: { type: "Point", coordinates: p }, properties: { role } });
+      if (id && p) feats.push({ type: "Feature", geometry: { type: "Point", coordinates: p }, properties: { role, id } });
     }
     (m.getSource("nexum-sel") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats });
     // ONE indicator per selection (2026-10-07, physical test): the ring of the aggregate cell holding the focus marks
@@ -828,16 +848,28 @@ export function MapView() {
       <div ref={tipEl} className="tooltip" style={{ display: "none" }} />
       <div className="view-toolbar">
         {touch && <><PeriodChip /><FiltersChip /><ResetChip /></>}
+        {!touch && focus && <SelectionChip id={focus} />}
         {focus && appears && appears !== "single" && <FocusNote appears={appears} focus={focus} map={mapRef.current} />}
         {touch && !focus && status && <Legend />}
       </div>
       {!touch && !focus && status && <Legend />}
       {note && <div className="overlay-note" data-testid="map-note">{note}</div>}
-      {opsReady && mapRef.current && <Suspense fallback={null}><OpsShell map={mapRef.current} /></Suspense>}
-      <div className="phone-attr" data-testid="map-attr"><Freshness /> · <SnapshotAge compact />{SNAPSHOT ? " · " : ""}{S.status.data}: {[...new Set([...(status?.sources ?? []).map((s) => s.attribution),
+      {opsReady && mapRef.current && <Boundary name="ops"><Suspense fallback={null}><OpsShell map={mapRef.current} /></Suspense></Boundary>}
+      <div className="phone-attr" data-testid="map-attr"><Freshness /> · <SnapshotAge compact />{SNAPSHOT ? " · " : ""}{S.status.data}: {[...new Set([...credits, ...(status?.sources ?? []).map((s) => s.attribution),
         status?.basemap?.["nexum:attribution"]].filter(Boolean))].join(" · ")}</div>
     </>
   );
+}
+
+/** The active selection, named on the map (2026-10-08, physical test: an outline stayed and nothing said why). The orange
+ *  outline and ring mark it; × ends it (the trail of the investigation keeps its steps). */
+function SelectionChip({ id }: { id: string }) {
+  const e = useEntity(id);
+  if (!e) return null;
+  return (
+    <span className="chip sel-chip" data-testid="selection-chip" title={S.sel.explain}>
+      <button type="button" className="linklike" onClick={() => store.set({ inspectorOpen: true, panel: "object" })}>{S.sel.active}: <b>{e.label}</b></button>
+      <button type="button" className="sel-clear" aria-label={S.sel.clear} title={S.sel.clear} data-testid="selection-clear" onClick={() => store.select(null, "map")}>×</button></span>);
 }
 
 /** How the focus appears on the map, in words, with the action that shows it. */

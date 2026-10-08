@@ -29,13 +29,13 @@ export const TOOLS: { id: Tool; short: string; group: string; icon: string; labe
   { id: "sky", short: "Cielo", group: "see", icon: "✦", label: "Cielo da un punto", key: "Y" },
   { id: "space", short: "Meteo spaziale", group: "see", icon: "☀", label: "Meteo spaziale", key: "K" },
   { id: "markets", short: "Mercati", group: "world", icon: "€", label: "Mercati e cambi", key: "E" },
-  { id: "route", short: "Percorso", group: "map", icon: "⇢", label: "Percorso", key: "N" },
+  { id: "route", short: "Strada", group: "map", icon: "⇢", label: "Percorso stradale e navigazione", key: "N" },
   { id: "point", short: "Punto", group: "map", icon: "⌖", label: "Punto: luogo, aria, meteo, vicini", key: "I" },
   { id: "scenes", short: "Sentinel-2", group: "see", icon: "▦", label: "Scene Sentinel-2", key: "J" },
   { id: "import", short: "Importa", group: "world", icon: "⇪", label: "Importa (GeoJSON, CSV, ArcGIS)", key: "U" },
   { id: "registers", short: "Registri", group: "world", icon: "⚖", label: "Registri pubblici (sanzioni, falle sfruttate)", key: "S" },
   { id: "net", short: "Rete (passivi)", group: "tools", icon: "⌁", label: "Strumenti di rete (passivi)", key: "X" },
-  { id: "ai", short: "AI locale", group: "tools", icon: "✧", label: "Sintesi AI locale (facoltativa)", key: "Q" },
+  { id: "ai", short: "Sintesi", group: "tools", icon: "✧", label: "Sintesi dei fatti (NEXUM)", key: "Q" },
   { id: "style", short: "Stile", group: "tools", icon: "◐", label: "Stile", key: "Z" },
   { id: "share", short: "Condividi", group: "tools", icon: "⤴", label: "Condividi questa vista", key: "H" },
   { id: "help", short: "Aiuto", group: "tools", icon: "?", label: "Scorciatoie da tastiera", key: "?" },
@@ -138,7 +138,20 @@ export function OpsShell({ map }: { map: MLMap }) {
           <Panels map={map} tool={tool} />
         </Suspense>)}
       {!touch && <Footer map={map} />}
+      <NavActive />
     </>);
+}
+
+/** Navigation running: always on screen, above any card or sheet, with its stop — the position and the voice never run
+ *  unseen (2026-10-07, physical test). The route stays; only the navigation ends. */
+function NavActive() {
+  const on = useOps((s) => s.navigating);
+  if (!on) return null;
+  return (
+    <div className="ops-nav-pill" role="status" data-testid="ops-nav-active">
+      <span>◉ Navigazione attiva · posizione del dispositivo e voce</span>
+      <button type="button" className="xs primary" data-testid="ops-nav-stop" onClick={() => ops.set({ navigating: false })}>Ferma</button>
+    </div>);
 }
 
 function Hud({ map, touch }: { map: MLMap; touch: boolean }) {

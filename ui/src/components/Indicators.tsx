@@ -23,7 +23,7 @@ const cache = new Map<string, Promise<IndData>>();
 let catalog: Promise<{ catalog: CatalogItem[]; names: Record<string, string> }> | null = null;
 let catalogWv: number | null = null;
 
-function load(id: string, wv: number): Promise<IndData> {
+export function loadIndicators(id: string, wv: number): Promise<IndData> {
   const key = `${wv}:${id}`;
   if (!cache.has(key)) {
     const p = call<any>(`/indicators/${id}`, undefined, { channel: `indicators-${id}` }).then((r) => {
@@ -55,7 +55,7 @@ export function useIndicators(id: string, enabled = true): IndData | null {
     setData(null);
     if (!enabled) return;
     let live = true;
-    load(id, wv).then((d) => { if (live) setData(d); }, () => { if (live) setData({ list: [], flows: [], names: {}, attribution: {} }); });
+    loadIndicators(id, wv).then((d) => { if (live) setData(d); }, () => { if (live) setData({ list: [], flows: [], names: {}, attribution: {} }); });
     return () => { live = false; };
   }, [id, wv, enabled]);
   return data;

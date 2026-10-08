@@ -23,12 +23,12 @@ export const S = {
   trailMissing: "non più presente",
   trailName: "Nome del trail",
   trailNew: "Nuovo trail",
-  trailPath: "Percorso",
+  trailPath: "Indagine",
   trailSteps: (n: number) => `${n} ${n === 1 ? "passo" : "passi"}`,
   m: {
     mostly: (type: string) => `soprattutto ${type.toLowerCase()}`,
     back: "Indietro",
-    path: "Percorso",
+    path: "Indagine",
     more: "Altro",
     filters: "Filtri",
     filtersActive: (n: number) => `Filtri · ${n} ${n === 1 ? "attivo" : "attivi"}`,
@@ -383,7 +383,22 @@ export const S = {
     lightsCredit: "Luci notturne: NASA Earth Observatory, Black Marble 2016 (VIIRS Day/Night Band), composito delle notti serene del 2016 — immagine di riferimento, non osservazione in tempo reale",
     kinds: { event: "eventi", object: "luoghi e infrastrutture", insight: "connessioni trovate da NEXUM" } as Record<string, string>,
   },
+  sel: {
+    active: "Selezione attiva",
+    short: "Selezione",
+    second: "Secondo elemento",
+    tapCard: "clic per la scheda",
+    clear: "Togli la selezione (il trail dell'indagine resta)",
+    explain: "Il contorno e l'anello arancioni segnano la selezione attiva. Il contesto («← …» nella scheda) è da dove sei arrivato; il trail dell'indagine è l'elenco dei passi, che resta anche togliendo la selezione.",
+  },
   web: {
+    // the operator's contact, published on the site (FOSSGIS terms for the routing servers: "an email address of the
+    // operator must be easily identifiable and directly reachable"); a mailto link only, never sent in any request
+    operatorEmail: "pezzaliapp@gmail.com",
+    operatorLabel: "Contatto del gestore",
+    broken: "Questa parte di NEXUM non è riuscita a disegnarsi.",
+    brokenAll: "NEXUM non è riuscito a disegnarsi.",
+    retry: "Riprova",
     snapshot: "Snapshot",
     builtAt: (utc: string, age: string) => `dati del ${utc} UTC · ${age}`,
     newer: "È stato pubblicato un aggiornamento del mondo.",

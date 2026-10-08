@@ -237,7 +237,7 @@
   },
   "note": "Posizioni CALCOLATE nel tuo browser (SGP4) dagli elementi orbitali pubblicati da CelesTrak: propagate, non osservate in diretta. Precisione: qualche km vicino all'epoca degli elementi, peggiore lontano da essa.",
   "credit": "Elementi orbitali: CelesTrak (celestrak.org), dati pubblici della US Space Force",
-  "airTraffic": "AEREI: BLOCCATO. Nessuna fonte ADS-B legale, gratuita e utilizzabile da un sito statico passa la verifica (adsb.lol e adsb.fi senza CORS e solo uso non commerciale, airplanes.live 403, ADS-B Exchange a pagamento, OpenSky escluso come predefinito). NEXUM non simula aerei.",
+  "airTraffic": "AEREI: NON DISPONIBILE OGGI — DA RIVERIFICARE. Nessuna fonte ADS-B legale, gratuita, senza carta e senza intermediari passa oggi la verifica per un sito statico: adsb.lol (dati ODbL, uso in produzione da concordare) non risponde alle richieste del browser (niente CORS) e servirebbe un relay, non adottato; adsb.fi solo per uso personale non commerciale e senza CORS; airplanes.live 403; ADS-B Exchange a pagamento; OpenSky escluso come predefinito. La ricerca di una fonte idonea continua. NEXUM non simula aerei.",
   "notable": [
    "station",
    "science",
@@ -424,7 +424,6 @@
   ]
  },
  "route": {
-  "osrm": "https://routing.openstreetmap.de/{profile}/route/v1/driving/{coords}?overview=full&geometries=geojson&steps=true",
   "profiles": {
    "car": [
     "routed-car",
@@ -440,7 +439,10 @@
    ]
   },
   "credit": "Percorsi: FOSSGIS e.V. (Valhalla valhalla1.openstreetmap.de; di riserva OSRM routing.openstreetmap.de), servizio comunitario senza garanzie: un percorso alla volta, solo su tua richiesta, al massimo una richiesta al secondo. Dati © OpenStreetMap-Mitwirkende (ODbL).",
-  "valhalla": "https://valhalla1.openstreetmap.de",
+  "providers": [
+   { "id": "valhalla", "kind": "valhalla", "on": true, "name": "Valhalla (FOSSGIS e.V.)", "base": "https://valhalla1.openstreetmap.de" },
+   { "id": "osrm", "kind": "osrm", "on": true, "name": "OSRM (FOSSGIS e.V.)", "url": "https://routing.openstreetmap.de/{profile}/route/v1/driving/{coords}?overview=full&geometries=geojson&steps=true" }
+  ],
   "modes": {
    "car": [
     "auto",
@@ -472,7 +474,7 @@
  },
  "arcgis": {
   "search": "https://www.arcgis.com/sharing/rest/search?q={q}%20AND%20type:%22Feature%20Service%22%20AND%20access:public&f=json&num=20&sortField=numViews&sortOrder=desc{bbox}",
-  "credit": "Catalogo pubblico ArcGIS Online: ogni elemento ha la sua licenza (mostrata); NEXUM importa solo nel tuo browser, nulla viene salvato altrove.",
+  "credit": "Catalogo pubblico ArcGIS Online: ogni elemento ha la sua licenza (mostrata); si importano solo i dataset con una licenza aperta riconosciuta (pubblico dominio, CC0, CC BY, CC BY-SA, ODbL, licenze aperte governative), mai quelli sotto licenze proprietarie (es. Esri Master License Agreement), non commerciali o senza licenza. NEXUM importa solo nel tuo browser, nulla viene salvato altrove.",
   "item": "https://www.arcgis.com/home/item.html?id={id}",
   "categories": [
    [
@@ -515,14 +517,16 @@
  "net": {
   "doh": "https://dns.google/resolve?name={q}&type={t}",
   "rdap": "https://rdap.org/{kind}/{q}",
-  "ct": "https://api.certspotter.com/v1/issuances?domain={q}&include_subdomains=false&expand=dns_names",
   "ripe": "https://stat.ripe.net/data/{what}/data.json?resource={q}",
-  "credit": "Strumenti di rete PASSIVI su dati pubblici: DNS (Google Public DNS over HTTPS), RDAP (registri Internet), Certificate Transparency (SSLMate Cert Spotter), RIPEstat. Nessuna scansione, nessuna persona.",
+  "credit": "Strumenti di rete PASSIVI su dati pubblici, chiesti da questo browser: DNS (Google Public DNS over HTTPS), RDAP (rdap.org e registri Internet), RIPEstat (RIPE NCC), CVE (MITRE); Certificate Transparency solo come collegamento a crt.sh e Cert Spotter. Nessuna scansione, nessuna persona.",
   "impossible": "Scansione di porte, ricerca di persone per nome utente, telefono o email, database di violazioni: ESCLUSI (illegali o invasivi: GDPR, c.p. artt. 615-ter, 615-quater, 617-quater; confini NEXUM).",
   "internetdb": "https://internetdb.shodan.io/{q}",
   "internetdbNote": "Shodan InternetDB: porte e servizi già osservati pubblicamente da Shodan per un indirizzo (passivo, nessuna scansione da NEXUM); uso non commerciale gratuito. Facoltativo: parte solo se lo scegli.",
   "flaw": "https://cveawg.mitre.org/api/cve/{q}",
-  "flawLabel": "CVE (MITRE)"
+  "flawLabel": "CVE (MITRE)",
+  "flawSpec": { "accepts": "un identificativo CVE", "example": "CVE-2021-44228", "pattern": "^cve-\\d{4}-\\d{4,}$", "source": "CVE Program (MITRE) — CVE Services API", "limits": "la scheda pubblicata dal CNA; nessun codice di attacco" },
+  "internetdbVulnsLabel": "CVE note",
+  "rdapPlaceKey": "country"
  },
  "live": {
   "note": "Canali YouTube UFFICIALI dei gestori (enti pubblici), incorporati con youtube-nocookie e caricati solo quando li avvii. «IN ONDA» compare solo quando il lettore riproduce davvero; un canale senza diretta è detto fuori onda.",
@@ -837,6 +841,9 @@
   "informCredit": "INFORM Risk Index: Commissione europea, Joint Research Centre (DRMKC) — indice 0–10 di rischio di crisi umanitarie e disastri per paese; riuso autorizzato con citazione della fonte (Decisione 2011/833/UE).",
   "hacks": "https://api.llama.fi/hacks",
   "hacksTitle": "Incidenti DeFi",
+  "placeType": "place.country",
+  "kevIdLabel": "CVE",
+  "kevLinks": [["https://www.cve.org/CVERecord?id={id}", "Scheda CVE"], ["https://nvd.nist.gov/vuln/detail/{id}", "Scheda NVD"], ["https://www.cisa.gov/known-exploited-vulnerabilities-catalog", "Catalogo CISA KEV"]],
   "hacksCredit": "Incidenti dei protocolli di finanza decentralizzata: DefiLlama (API pubblica aperta). Protocolli, non persone; nessun tracciamento di portafogli."
  },
  "privacy": [
@@ -854,7 +861,7 @@
   ],
   [
    "Solo se apri lo strumento o agisci",
-   "USGS, GDACS e NWS (avvisi in diretta), BCE/Frankfurter, Coinbase e Tesoro USA (mercati), Photon e FOSSGIS Valhalla/OSRM (percorsi e profilo altimetrico; a FOSSGIS solo l'origine del sito, come chiedono), Open-Meteo e Wikipedia (punto), Earth Search (Sentinel-2), ArcGIS Online (cerca e importa), IMF PortWatch (transiti e scali di un giorno), DNS/RDAP/CT/RIPE/MITRE/Shodan InternetDB (rete), INFORM e DefiLlama (registri), Hugging Face (modello AI), YouTube (dirette, solo quando avvii il video), X/LinkedIn/Reddit e N2YO/CelesTrak (solo se tocchi il collegamento)"
+   "USGS, GDACS e NWS (avvisi in diretta), BCE/Frankfurter, Coinbase e Tesoro USA (mercati), Photon e FOSSGIS Valhalla/OSRM (percorsi e profilo altimetrico; a FOSSGIS solo l'origine del sito, come chiedono), Open-Meteo e Wikipedia (punto), Earth Search (Sentinel-2), ArcGIS Online (cerca e importa), IMF PortWatch (transiti e scali di un giorno), DNS/RDAP/CT/RIPE/MITRE/Shodan InternetDB (rete), INFORM e DefiLlama (registri), YouTube (dirette, solo quando avvii il video), X/LinkedIn/Reddit e N2YO/CelesTrak (solo se tocchi il collegamento)"
   ],
   [
    "Mai",

@@ -1,6 +1,7 @@
 // OBJECT MODE — the context around any element, in the same workspace. One call (/context/{id}), twelve sections;
 // every reference is a pivot that becomes the new focus.
 
+import LINKS from "../config/record-links.json";
 import { lazyStale } from "../lib/stale";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState, Suspense } from "react";
 import { call, plain } from "../lib/api";
@@ -174,7 +175,10 @@ export function Facts({ id, d, data }: { id: string; d: any; data: any }) {
             <span data-fact={f.property}>{typeof v === "string" && f.values?.[v] ? f.values[v] : fmtValue(v as any, f.digits ?? null)}{f.unit ? ` ${f.unit}` : ""}</span></span>))}
       </p>}
       {!compact && (src || ident) && <p className="facts-src xs dim">{src && <>{S.facts.source}: {src}</>}{src && ident ? " · " : ""}
-        {ident && <span className="mono">{ident.scheme} {ident.value}</span>}</p>}
+        {ident && <span className="mono">{ident.scheme} {ident.value}</span>}
+        {(() => { const L = (LINKS as Record<string, any>)[e?.source_id ?? ""] ?? (LINKS as Record<string, any>)[(d?.identifiers ?? []).find((x: any) => (LINKS as any)[x.source_id])?.source_id ?? ""];
+          const v = L && (d?.identifiers ?? []).find((x: any) => x.scheme === L.scheme)?.value;
+          return v ? <> · <a href={L.url.replace("{v}", encodeURIComponent(v))} target="_blank" rel="noopener noreferrer" className="record-link" data-testid="record-link">{L.label} {v} ↗</a></> : null; })()}</p>}
     </section>);
 }
 

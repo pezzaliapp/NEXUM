@@ -44,7 +44,7 @@ export const draw = {
 // (the names drawn over the map too: a tap on a name reaches the map — physical test #4)
 const flag = () => { (window as any).__nexumDrawing = mode !== null; document.documentElement.classList.toggle("map-taps", mode !== null || !!(window as any).__nexumPicking); };
 export const isDrawing = () => mode !== null;
-export const NAMES: Record<DrawMode, string> = { area: "Area", box: "Riquadro", radius: "Raggio", path: "Percorso" };
+export const NAMES: Record<DrawMode, string> = { area: "Area", box: "Riquadro", radius: "Raggio", path: "Linea" };
 
 /** The shape the points describe (with the cursor as the provisional last point while drawing). */
 export function shapeOf(m: DrawMode, p: LngLat[], cursor: LngLat | null): Shape | null {

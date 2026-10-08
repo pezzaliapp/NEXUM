@@ -81,7 +81,7 @@ test("golden: Raggio drawn with two real taps on the map, result, delete, again,
   expect(errors).toEqual([]);
 });
 
-test("Area, Riquadro and Percorso drawn with real taps on the visible map", async ({ page }) => {
+test("Area, Riquadro and Linea drawn with real taps on the visible map", async ({ page }) => {
   const errors = await open(page);
   await page.evaluate(() => localStorage.removeItem("nexum.aoi.shapes.v1"));
   await tool(page, "draw");
@@ -99,7 +99,7 @@ test("Area, Riquadro and Percorso drawn with real taps on the visible map", asyn
   await expect(shapes).toHaveCount(3, { timeout: 10_000 });
   await expect(shapes.nth(0)).toContainText("Riquadro");
   await expect(shapes.nth(1)).toContainText("Area");
-  await expect(shapes.nth(2)).toContainText("Percorso");
+  await expect(shapes.nth(2)).toContainText("Linea");
   await page.evaluate(() => localStorage.removeItem("nexum.aoi.shapes.v1"));
   expect(errors).toEqual([]);
 });

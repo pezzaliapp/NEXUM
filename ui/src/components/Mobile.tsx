@@ -126,8 +126,9 @@ function Menu() {
 
 function Info() {
   const status = useStore((s) => s.status);
+  const credits = useStore((s) => s.mapCredits);
   const attrs = [...new Set([...(status?.sources ?? []).map((s) => s.attribution), status?.basemap?.["nexum:attribution"],
-    status?.has_geometry ? S.legend.lightsCredit : null].filter(Boolean))];   // + the map's reference night lights
+    status?.has_geometry ? S.legend.lightsCredit : null, ...credits].filter(Boolean))];   // + the reference night lights, the tiles drawn now
   return (
     <div className="ov-body small">
       <p>{S.motto}</p>
@@ -136,6 +137,7 @@ function Info() {
       {SNAPSHOT && <p className="dim" data-testid="info-build">Versione in uso: build {__NEXUM_BUILD__}</p>}
       <p className="dim">{S.status.data}: {attrs.join(" · ")}</p>
       <p className="dim">{S.web.trailLocal}</p>
+      <p data-testid="operator-contact">{S.web.operatorLabel}: <a href={`mailto:${S.web.operatorEmail}`}>{S.web.operatorEmail}</a></p>
     </div>);
 }
 
@@ -145,9 +147,10 @@ export function CardStrip() {
   const e = useEntity(focus);
   if (focus && e) {
     return (
-      <div className="card-strip" data-testid="card-strip">
-        <button type="button" className="strip-focus" onClick={() => store.set({ inspectorOpen: true, sheet: "peek" })}>
-          <span className="tb-name">{e.label}</span> ▸</button>
+      <div className="card-strip focus-strip" data-testid="card-strip">
+        <button type="button" className="strip-focus" title={S.sel.explain} onClick={() => store.set({ inspectorOpen: true, sheet: "peek" })}>
+          <span className="strip-pre">{S.sel.short}:</span> <span className="tb-name">{e.label}</span> ▸</button>
+        <button type="button" className="sel-clear" aria-label={S.sel.clear} data-testid="selection-clear" onClick={() => store.select(null, "map")}>×</button>
       </div>);
   }
   return <HomeStrip />;

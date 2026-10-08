@@ -1,0 +1,4 @@
+{
+  "_note": "The public page of a source's own record, from an identifier NEXUM keeps (2026-10-08). Only URL patterns checked against the live site are listed.",
+  "ourairports.airports": { "scheme": "ident", "url": "https://ourairports.com/airports/{v}/", "label": "Voce su OurAirports" }
+}

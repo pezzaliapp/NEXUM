@@ -841,6 +841,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .ops-card { position: absolute; left: 10px; bottom: 34px; z-index: 8; width: min(340px, calc(100% - 20px)); background: #13171AF5;
   border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 0 8px; font-size: var(--fs-s); }
 .ops-card > p, .ops-card > div { padding: 0 10px; margin: 4px 0; }
+/* a floating card never grows past the map (2026-10-07, physical test: a tall card's × ended under the top bar). It is
+   anchored to the bottom of the map and may rise at most to just under the HUD (32 px + 8 px); beyond that its content
+   scrolls while its header (title and ×) stays in view. The same on touch, where the card is a bottom sheet. */
+.ops-card { max-height: calc(100% - 34px - 40px); overflow-y: auto; overscroll-behavior: contain; }
+.ops-card > .ops-ph { position: sticky; top: 0; z-index: 1; background: inherit; }
 .touch .ops-card { position: fixed; z-index: 91; left: 8px; right: 8px; width: auto; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 8px); max-height: 50dvh; overflow-y: auto; background: var(--panel); box-shadow: 0 -4px 24px #000a; }
 .ops-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; z-index: 6; display: flex; align-items: center; gap: 12px;
   padding: 0 10px; background: #0D1012D9; border-top: 1px solid var(--line); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; }
@@ -950,3 +955,36 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .sea-pick { display: flex; flex-direction: column; gap: 2px; position: relative; }
 .sea-pick input { min-height: 36px; }
 .sea-hits { max-height: 180px; overflow: auto; margin: 0; }
+/* a part that failed while drawing (S39): a short notice in its place, the rest of NEXUM unchanged */
+.boundary { padding: 12px; font-size: var(--fs-s); color: var(--dim); border: 1px solid var(--line-strong); background: var(--panel); }
+.boundary p { margin: 0 0 6px; }
+.boundary-actions button { margin-right: 6px; }
+.view .boundary { position: absolute; left: 8px; top: 48px; z-index: 20; max-width: min(360px, calc(100% - 16px)); }
+/* navigation running: said wherever the person is, above cards and sheets, with its stop (2026-10-07, physical test) */
+.ops-nav-pill { position: fixed; z-index: 95; top: calc(var(--cmd-h) + var(--trail-h) + 38px); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 16px); padding: 4px 6px 4px 10px; font-size: var(--fs-xs);
+  background: var(--panel); border: 1px solid var(--accent); color: var(--text); box-shadow: 0 4px 16px #000a; white-space: nowrap; }
+.ops-nav-pill > span { overflow: hidden; text-overflow: ellipsis; }
+.touch .ops-nav-pill { top: calc(var(--cmd-h) + 6px); }
+/* registers: every row opens its detail (2026-10-08) */
+.ops-reg-row { display: block; width: 100%; text-align: left; padding: 4px 2px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.ops-reg-row:hover, .ops-reg-row[aria-pressed="true"] { background: var(--raised); }
+.ops-reg-detail { border: 1px solid var(--line-strong); background: var(--raised); padding: 0 8px 6px; margin: 4px 0; }
+/* passive network lookups: the answer as fields (2026-10-08) */
+.ops-net-res { border: 1px solid var(--line); padding: 4px 8px; font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.ops-net-dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 2px 0; }
+.ops-net-dl dd { margin: 0; }
+.ops-net-list { margin: 0; padding-left: 14px; }
+/* the active selection named on the map, with its end (2026-10-08) */
+.sel-chip { display: inline-flex; align-items: center; gap: 4px; border-color: var(--accent); max-width: 340px; }
+.sel-chip .linklike { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.sel-chip .sel-clear { padding: 0 4px; line-height: 1; }
+/* the source's own record: a full touch target on touch screens (2026-10-08) */
+.touch .record-link { display: inline-flex; align-items: center; min-height: 44px; }
+/* the selection strip stays one line: "Selezione: name ▸ ×" (2026-10-08) */
+.card-strip.focus-strip { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.focus-strip .strip-focus { overflow: hidden; }
+.focus-strip .strip-focus { flex: 1 1 auto; min-width: 0; }
+.focus-strip .strip-pre { flex: none; font-size: var(--fs-xs); color: var(--dim); white-space: nowrap; font-weight: 400; }
+.focus-strip .tb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-strip .sel-clear { flex: none; min-width: 44px; min-height: 44px; }
