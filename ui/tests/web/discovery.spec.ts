@@ -41,7 +41,7 @@ for (const [dev, vp, touch] of DEVICES) {
     await explore(page, "Italia", touch);
     await expect(page.getByTestId("focus-head")).toContainText("Italy");
     const ov = page.getByTestId("overview");
-    await expect(ov.getByTestId("ov-people")).toContainText("Popolazione totale", { timeout: 30_000 });
+    await expect(ov.getByTestId("ov-people")).toContainText("Popolazione nazionale", { timeout: 30_000 });
     // declared change (2026-10-04, completion): prices have their own block after "Vivere"
     await expect(ov.getByTestId("ov-prices")).toContainText("EUR/l");
     await expect(ov.getByTestId("ov-energy")).toContainText("Produzione di elettricità");

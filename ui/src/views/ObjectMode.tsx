@@ -1,6 +1,7 @@
 // OBJECT MODE — the context around any element, in the same workspace. One call (/context/{id}), twelve sections;
 // every reference is a pivot that becomes the new focus.
 
+import { factLabel, factNote } from "../lib/demography";
 import LINKS from "../config/record-links.json";
 import { lazyStale } from "../lib/stale";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState, Suspense } from "react";
@@ -171,9 +172,11 @@ export function Facts({ id, d, data }: { id: string; d: any; data: any }) {
       {!compact && <div className="conn-h">{S.facts.title}</div>}
       {facts.length > 0 && <p className="facts-line">
         {(compact ? brief : facts).map(([f, v]) => (
-          <span key={f.property} className="fact"><span className="fk">{f.label}</span>{" "}
+          <span key={f.property} className="fact" title={factNote(e?.type, f.property) ?? undefined}><span className="fk">{factLabel(e?.type, f.property, f.label, d?.identifiers)}</span>{" "}
             <span data-fact={f.property}>{typeof v === "string" && f.values?.[v] ? f.values[v] : fmtValue(v as any, f.digits ?? null)}{f.unit ? ` ${f.unit}` : ""}</span></span>))}
       </p>}
+      {!compact && facts.map(([f]) => factNote(e?.type, f.property)).filter((x, i, a): x is string => !!x && a.indexOf(x) === i)
+        .map((n) => <p key={n} className="facts-note xs dim" data-testid="fact-note">{n}</p>)}
       {!compact && (src || ident) && <p className="facts-src xs dim">{src && <>{S.facts.source}: {src}</>}{src && ident ? " · " : ""}
         {ident && <span className="mono">{ident.scheme} {ident.value}</span>}
         {(() => { const L = (LINKS as Record<string, any>)[e?.source_id ?? ""] ?? (LINKS as Record<string, any>)[(d?.identifiers ?? []).find((x: any) => (LINKS as any)[x.source_id])?.source_id ?? ""];

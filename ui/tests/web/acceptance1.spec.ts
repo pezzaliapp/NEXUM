@@ -122,13 +122,13 @@ for (const [q, country] of [["Italia", "Italy"], ["India", "India"]] as const) {
     await expect(page.getByTestId("place-view")).toBeVisible({ timeout: 30_000 });
     const line = page.locator('[data-testid="ov-key"][data-indicator="EN.URB.LCTY"]');
     await expect(line).toBeVisible({ timeout: 30_000 });
-    await expect(line.getByTestId("ind-unnamed")).toContainText("non il suo nome");
+    await expect(line.getByTestId("ind-unnamed")).toContainText("non la nomina");
     const leader = line.getByTestId("ind-leader-link");
     await expect(leader).toBeVisible();
     const name = (await leader.textContent())!.trim();
     expect(name.length).toBeGreaterThan(1);
     await expect(line.getByTestId("ind-leader")).toContainText("Natural Earth");
-    await expect(line.getByTestId("ind-leader")).toContainText("può non coincidere");
+    await expect(line.getByTestId("ind-leader")).toContainText("non vanno confrontati");
     await leader.click();                                                          // the settlement's own card
     await expect(page.getByTestId("focus-head")).toContainText(name, { timeout: 30_000 });
     expect(errors).toEqual([]);

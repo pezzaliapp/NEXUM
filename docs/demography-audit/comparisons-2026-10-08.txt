@@ -1,0 +1,210 @@
+== largest city: WB EN.URB.LCTY vs NE most populous POP_MAX — ratio NE/WB outside 0.8–1.25
+LR Liberia                WB 2025    1,794,648 | NE Buchanan                 48,315 | ratio 0.03
+DJ Djibouti               WB 2025      616,332 | NE Ali Sabih                40,074 | ratio 0.07
+GN Guinea                 WB 2025    2,251,591 | NE Gueckedou               221,715 | ratio 0.10
+NG Nigeria                WB 2025   17,156,393 | NE Kano                  3,140,000 | ratio 0.18
+LB Lebanon                WB 2025    2,379,326 | NE Ṭarābulus               530,000 | ratio 0.22
+BI Burundi                WB 2025    1,350,147 | NE Bujumbura               331,700 | ratio 0.25
+MY Malaysia               WB 2025    9,000,280 | NE George Town           2,500,000 | ratio 0.28
+GQ Eq. Guinea             WB 2025      512,750 | NE Malabo                  155,963 | ratio 0.30
+SE Sweden                 WB 2025    1,737,765 | NE Göteborg                537,797 | ratio 0.31
+GT Guatemala              WB 2025    3,229,736 | NE Guatemala City        1,024,000 | ratio 0.32
+BF Burkina Faso           WB 2025    3,520,821 | NE Ouagadougou           1,149,000 | ratio 0.33
+UG Uganda                 WB 2025    4,265,162 | NE Kampala               1,420,000 | ratio 0.33
+LK Sri Lanka              WB 2025      647,557 | NE Colombo                 217,000 | ratio 0.34
+TZ Tanzania               WB 2025    8,561,525 | NE Dar es Salaam         2,930,000 | ratio 0.34
+AE United Arab Emirates   WB 2025    3,094,643 | NE Sharjah               1,103,027 | ratio 0.36
+SS S. Sudan               WB 2025      500,088 | NE Yei                     185,000 | ratio 0.37
+GM Gambia                 WB 2025      510,303 | NE Brikama                 195,136 | ratio 0.38
+ZM Zambia                 WB 2025    3,470,866 | NE Lusaka                1,328,000 | ratio 0.38
+SO Somalia                WB 2025    2,846,418 | NE Mogadishu             1,100,000 | ratio 0.39
+CM Cameroon               WB 2025    4,854,255 | NE Douala                1,906,000 | ratio 0.39
+MG Madagascar             WB 2025    4,228,984 | NE Antananarivo          1,697,000 | ratio 0.40
+OM Oman                   WB 2025    1,702,506 | NE Muscat                  734,697 | ratio 0.43
+CD Dem. Rep. Congo        WB 2025   17,778,474 | NE Kinshasa              7,843,000 | ratio 0.44
+PT Portugal               WB 2025    3,028,268 | NE Porto                 1,337,000 | ratio 0.44
+MR Mauritania             WB 2025    1,612,940 | NE Nouakchott              742,144 | ratio 0.46
+MW Malawi                 WB 2025    1,393,006 | NE Lilongwe                646,750 | ratio 0.46
+JO Jordan                 WB 2025    2,273,237 | NE Amman                 1,060,000 | ratio 0.47
+ML Mali                   WB 2025    3,180,343 | NE Bamako                1,494,000 | ratio 0.47
+CG Congo                  WB 2025    2,813,478 | NE Brazzaville           1,355,000 | ratio 0.48
+CN China                  WB 2025   30,482,140 | NE Shanghai             14,987,000 | ratio 0.49
+MN Mongolia               WB 2025    1,724,894 | NE Ulaanbaatar             885,000 | ratio 0.51
+EG Egypt                  WB 2025   23,074,225 | NE Cairo                11,893,000 | ratio 0.52
+PY Paraguay               WB 2025    3,627,225 | NE Asunción              1,870,000 | ratio 0.52
+AO Angola                 WB 2025   10,027,897 | NE Luanda                5,172,900 | ratio 0.52
+BD Bangladesh             WB 2025   24,652,864 | NE Dhaka                12,797,394 | ratio 0.52
+ET Ethiopia               WB 2025    5,956,679 | NE Addis Ababa           3,100,000 | ratio 0.52
+KE Kenya                  WB 2025    5,766,989 | NE Nairobi               3,010,000 | ratio 0.52
+NA Namibia                WB 2025      511,369 | NE Windhoek                268,132 | ratio 0.52
+GH Ghana                  WB 2025    4,036,227 | NE Accra                 2,121,000 | ratio 0.53
+ZA South Africa           WB 2025    6,444,575 | NE Johannesburg          3,435,000 | ratio 0.53
+NP Nepal                  WB 2025    1,672,903 | NE Kathmandu               895,000 | ratio 0.53
+ER Eritrea                WB 2025    1,152,176 | NE Asmara                  620,802 | ratio 0.54
+TT Trinidad and Tobago    WB 2025      546,564 | NE Port-of-Spain           294,934 | ratio 0.54
+VN Vietnam                WB 2025    9,816,318 | NE Ho Chi Minh City      5,314,000 | ratio 0.54
+IN India                  WB 2025   34,665,569 | NE Mumbai               18,978,000 | ratio 0.55
+BJ Benin                  WB 2025    1,375,217 | NE Cotonou                 762,000 | ratio 0.55
+SA Saudi Arabia           WB 2025    7,952,861 | NE Riyadh                4,465,000 | ratio 0.56
+GW Guinea-Bissau          WB 2025      709,092 | NE Bissau                  403,339 | ratio 0.57
+YE Yemen                  WB 2025    3,527,434 | NE Sanaa                 2,008,000 | ratio 0.57
+HN Honduras               WB 2025    1,650,284 | NE Tegucigalpa             946,000 | ratio 0.57
+TD Chad                   WB 2025    1,722,784 | NE N'Djamena               989,000 | ratio 0.57
+NE Niger                  WB 2025    1,561,491 | NE Niamey                  915,000 | ratio 0.59
+TH Thailand               WB 2025   11,391,704 | NE Bangkok               6,704,000 | ratio 0.59
+DO Dominican Rep.         WB 2025    3,648,106 | NE Santo Domingo         2,154,000 | ratio 0.59
+KZ Kazakhstan             WB 2025    2,042,036 | NE Almaty                1,209,000 | ratio 0.59
+SL Sierra Leone           WB 2025    1,387,356 | NE Freetown                827,000 | ratio 0.60
+KH Cambodia               WB 2025    2,425,801 | NE Phnom Penh            1,466,000 | ratio 0.60
+KW Kuwait                 WB 2025    3,404,995 | NE Kuwait City           2,063,000 | ratio 0.61
+TR Turkey                 WB 2025   16,236,703 | NE Istanbul             10,061,000 | ratio 0.62
+IQ Iraq                   WB 2025    8,141,119 | NE Baghdad               5,054,000 | ratio 0.62
+PA Panama                 WB 2025    2,054,541 | NE Panama City           1,281,000 | ratio 0.62
+CI Côte d'Ivoire          WB 2025    6,056,877 | NE Abidjan               3,802,000 | ratio 0.63
+HT Haiti                  WB 2025    3,133,076 | NE Port-au-Prince        1,998,000 | ratio 0.64
+GA Gabon                  WB 2025      899,225 | NE Libreville              578,156 | ratio 0.64
+RW Rwanda                 WB 2025    1,329,829 | NE Kigali                  860,000 | ratio 0.65
+US United States of Ameri WB 2025   19,154,024 | NE Los Angeles          12,500,000 | ratio 0.65
+PG Papua New Guinea       WB 2025      431,903 | NE Port Moresby            283,733 | ratio 0.66
+CO Colombia               WB 2025   11,795,829 | NE Bogota                7,772,000 | ratio 0.66
+PK Pakistan               WB 2025   18,076,794 | NE Karachi              12,130,000 | ratio 0.67
+AF Afghanistan            WB 2025    4,877,024 | NE Kabul                 3,277,000 | ratio 0.67
+IL Israel                 WB 2025    4,568,533 | NE Tel Aviv              3,112,000 | ratio 0.68
+TG Togo                   WB 2025    2,108,740 | NE Lomé                  1,452,000 | ratio 0.69
+PE Peru                   WB 2025   11,517,333 | NE Lima                  8,012,000 | ratio 0.70
+MM Myanmar                WB 2025    5,813,186 | NE Yangon                4,088,000 | ratio 0.70
+SD Sudan                  WB 2025    6,754,180 | NE Khartoum              4,754,000 | ratio 0.70
+SN Senegal                WB 2025    3,658,643 | NE Dakar                 2,604,000 | ratio 0.71
+KG Kyrgyzstan             WB 2025    1,151,223 | NE Bishkek                 837,000 | ratio 0.73
+MZ Mozambique             WB 2025    1,984,662 | NE Maputo                1,446,000 | ratio 0.73
+PH Philippines            WB 2025   15,230,559 | NE Manila               11,100,000 | ratio 0.73
+NO Norway                 WB 2025    1,115,584 | NE Oslo                    835,000 | ratio 0.75
+IT Italy                  WB 2025    4,347,104 | NE Rome                  3,339,000 | ratio 0.77
+TM Turkmenistan           WB 2025      941,130 | NE Ashgabat                727,700 | ratio 0.77
+DK Denmark                WB 2025    1,400,736 | NE København             1,085,000 | ratio 0.77
+EC Ecuador                WB 2025    3,244,749 | NE Guayaquil             2,514,000 | ratio 0.77
+RS Serbia                 WB 2025    1,412,952 | NE Belgrade              1,099,000 | ratio 0.78
+ID Indonesia              WB 2025   11,634,078 | NE Jakarta               9,125,000 | ratio 0.78
+MA Morocco                WB 2025    4,012,307 | NE Casablanca            3,181,000 | ratio 0.79
+MK North Macedonia        WB 2025      620,825 | NE Skopje                  494,087 | ratio 0.80
+SV El Salvador            WB 2025    1,132,425 | NE San Salvador          1,433,000 | ratio 1.27
+MD Moldova                WB 2025      484,352 | NE Chișinău                688,134 | ratio 1.42
+PL Poland                 WB 2025    1,800,233 | NE Katowice              2,746,000 | ratio 1.53
+JM Jamaica                WB 2025      603,770 | NE Kingston                937,700 | ratio 1.55
+AL Albania                WB 2025      535,702 | NE Tirana                  895,350 | ratio 1.67
+QA Qatar                  WB 2025      831,689 | NE Doha                  1,450,000 | ratio 1.74
+LY Libya                  WB 2025    1,203,391 | NE Tripoli               2,189,000 | ratio 1.82
+BA Bosnia and Herz.       WB 2025      348,404 | NE Sarajevo                696,731 | ratio 2.00
+count compared: 148 outside range: 96
+== total population: NE POP_EST vs WB SP.POP.TOTL — ratio outside 0.9–1.1
+SO Somalia                WB 2025     19,654,739 | NE     10,192,317 | ratio 0.52
+SY Syria                  WB 2025     25,620,427 | NE     17,070,135 | ratio 0.67
+YE Yemen                  WB 2025     41,773,878 | NE     29,161,922 | ratio 0.70
+GQ Eq. Guinea             WB 2025      1,938,431 | NE      1,355,986 | ratio 0.70
+TD Chad                   WB 2025     21,003,705 | NE     15,946,876 | ratio 0.76
+CD Dem. Rep. Congo        WB 2025    112,832,473 | NE     86,790,567 | ratio 0.77
+TM Turkmenistan           WB 2025      7,618,847 | NE      5,942,089 | ratio 0.78
+ML Mali                   WB 2025     25,198,821 | NE     19,658,031 | ratio 0.78
+CI Côte d'Ivoire          WB 2025     32,711,547 | NE     25,716,544 | ratio 0.79
+SC Seychelles             WB 2025        122,730 | NE         97,625 | ratio 0.80
+BJ Benin                  WB 2025     14,814,460 | NE     11,801,151 | ratio 0.80
+SB Solomon Is.            WB 2025        838,645 | NE        669,823 | ratio 0.80
+BI Burundi                WB 2025     14,390,003 | NE     11,530,580 | ratio 0.80
+NA Namibia                WB 2025      3,092,816 | NE      2,494,530 | ratio 0.81
+ZM Zambia                 WB 2025     21,913,874 | NE     17,861,030 | ratio 0.82
+AO Angola                 WB 2025     39,040,039 | NE     31,825,295 | ratio 0.82
+PG Papua New Guinea       WB 2025     10,762,817 | NE      8,776,109 | ratio 0.82
+DJ Djibouti               WB 2025      1,184,076 | NE        973,560 | ratio 0.82
+TZ Tanzania               WB 2025     70,545,865 | NE     58,005,463 | ratio 0.82
+MG Madagascar             WB 2025     32,740,678 | NE     26,969,307 | ratio 0.82
+ET Ethiopia               WB 2025    135,472,051 | NE    112,078,730 | ratio 0.83
+SD Sudan                  WB 2025     51,662,147 | NE     42,813,238 | ratio 0.83
+CG Congo                  WB 2025      6,484,437 | NE      5,380,508 | ratio 0.83
+GM Gambia                 WB 2025      2,822,093 | NE      2,347,706 | ratio 0.83
+NE Niger                  WB 2025     27,917,831 | NE     23,310,715 | ratio 0.83
+IQ Iraq                   WB 2025     47,020,774 | NE     39,309,783 | ratio 0.84
+GA Gabon                  WB 2025      2,593,130 | NE      2,172,579 | ratio 0.84
+MW Malawi                 WB 2025     22,216,120 | NE     18,628,747 | ratio 0.84
+BF Burkina Faso           WB 2025     24,074,580 | NE     20,321,378 | ratio 0.84
+GN Guinea                 WB 2025     15,099,727 | NE     12,771,246 | ratio 0.85
+NG Nigeria                WB 2025    237,527,782 | NE    200,963,599 | ratio 0.85
+EG Egypt                  WB 2025    118,365,995 | NE    100,388,073 | ratio 0.85
+PK Pakistan               WB 2025    255,219,554 | NE    216,565,318 | ratio 0.85
+AE United Arab Emirates   WB 2025     11,513,149 | NE      9,770,529 | ratio 0.85
+MR Mauritania             WB 2025      5,315,065 | NE      4,525,696 | ratio 0.85
+MZ Mozambique             WB 2025     35,631,653 | NE     30,366,036 | ratio 0.85
+GW Guinea-Bissau          WB 2025      2,249,515 | NE      1,920,922 | ratio 0.85
+CF Central African Rep.   WB 2025      5,513,282 | NE      4,745,185 | ratio 0.86
+SN Senegal                WB 2025     18,931,966 | NE     16,296,364 | ratio 0.86
+LR Liberia                WB 2025      5,731,206 | NE      4,937,374 | ratio 0.86
+UG Uganda                 WB 2025     51,384,894 | NE     44,269,594 | ratio 0.86
+KI Kiribati               WB 2025        136,488 | NE        117,606 | ratio 0.86
+ZW Zimbabwe               WB 2025     16,950,795 | NE     14,645,468 | ratio 0.86
+TJ Tajikistan             WB 2025     10,786,734 | NE      9,321,018 | ratio 0.86
+KW Kuwait                 WB 2025      4,865,298 | NE      4,207,083 | ratio 0.86
+CM Cameroon               WB 2025     29,879,337 | NE     25,876,380 | ratio 0.87
+RW Rwanda                 WB 2025     14,569,341 | NE     12,626,950 | ratio 0.87
+MT Malta                  WB 2025        579,704 | NE        502,653 | ratio 0.87
+GH Ghana                  WB 2025     35,064,272 | NE     30,417,856 | ratio 0.87
+AF Afghanistan            WB 2025     43,844,111 | NE     38,041,754 | ratio 0.87
+CY Cyprus                 WB 2025      1,370,754 | NE      1,198,575 | ratio 0.87
+JO Jordan                 WB 2025     11,520,684 | NE     10,101,694 | ratio 0.88
+KG Kyrgyzstan             WB 2025      7,343,064 | NE      6,456,900 | ratio 0.88
+HN Honduras               WB 2025     11,005,850 | NE      9,746,117 | ratio 0.89
+SL Sierra Leone           WB 2025      8,819,794 | NE      7,813,215 | ratio 0.89
+MY Malaysia               WB 2025     35,977,838 | NE     31,949,777 | ratio 0.89
+KZ Kazakhstan             WB 2025     20,843,754 | NE     18,513,930 | ratio 0.89
+GT Guatemala              WB 2025     18,687,881 | NE     16,604,026 | ratio 0.89
+IL Israel                 WB 2025     10,122,800 | NE      9,053,300 | ratio 0.89
+VU Vanuatu                WB 2025        335,169 | NE        299,882 | ratio 0.89
+ST São Tomé and Principe  WB 2025        240,254 | NE        215,056 | ratio 0.90
+IR Iran                   WB 2025     92,417,681 | NE     82,913,906 | ratio 0.90
+WS Samoa                  WB 2025        219,306 | NE        197,097 | ratio 0.90
+BW Botswana               WB 2025      2,562,122 | NE      2,303,697 | ratio 0.90
+LS Lesotho                WB 2025      2,363,325 | NE      2,125,268 | ratio 0.90
+VC St. Vin. and Gren.     WB 2025         99,924 | NE        110,589 | ratio 1.11
+MD Moldova                WB 2025      2,360,527 | NE      2,657,637 | ratio 1.13
+KN St. Kitts and Nevis    WB 2025         46,922 | NE         52,834 | ratio 1.13
+UA Ukraine                WB 2025     38,980,376 | NE     44,385,155 | ratio 1.14
+MK North Macedonia        WB 2025      1,820,909 | NE      2,083,459 | ratio 1.14
+LB Lebanon                WB 2025      5,849,421 | NE      6,855,713 | ratio 1.17
+AL Albania                WB 2025      2,349,580 | NE      2,854,191 | ratio 1.21
+TV Tuvalu                 WB 2025          9,492 | NE         11,646 | ratio 1.23
+MH Marshall Is.           WB 2025         36,282 | NE         58,791 | ratio 1.62
+ER Eritrea                WB 2025      3,607,003 | NE      6,081,196 | ratio 1.69
+count compared: 193 outside range: 75
+IT ('IT', 'Italy', ('2025', 4347104), (3339000.0, 'Rome'), 0.7680975656437021, ('2025', 58915656), 60297396.0, 1.0234528492732051)
+
+== most populous settlement: geometric containment (today) vs country declared by Natural Earth — differences: 32 of 217
+  United States of America today: Los Angeles          12,500,000  → declared: New York             19,040,000
+  Nigeria                  today: Kano                  3,140,000  → declared: Lagos                 9,466,000
+  Hong Kong                today: Shenzhen              7,581,000  → declared: Hong Kong             7,206,000
+  Portugal                 today: Porto                 1,337,000  → declared: Lisbon                2,812,000
+  Lebanon                  today: Ṭarābulus               530,000  → declared: Beirut                1,846,000
+  Guinea                   today: Gueckedou               221,715  → declared: Conakry               1,494,000
+  United Arab Emirates     today: Sharjah               1,103,027  → declared: Dubai                 1,379,000
+  Sweden                   today: Göteborg                537,797  → declared: Stockholm             1,264,000
+  Liberia                  today: Buchanan                 48,315  → declared: Monrovia              1,041,000
+  Djibouti                 today: Ali Sabih                40,074  → declared: Djibouti                923,000
+  Macao                    today: —                             0  → declared: Macau                   568,700
+  Bahrain                  today: —                             0  → declared: Manama                  563,920
+  Palestine                today: Jerusalem             1,029,300  → declared: Gaza City               505,700
+  Sri Lanka                today: Colombo                 217,000  → declared: Jaffna                  250,000
+  Bahamas                  today: Freeport                 25,383  → declared: Nassau                  227,940
+  Cyprus                   today: Lemosos                 154,000  → declared: Nicosia                 224,300
+  Barbados                 today: —                             0  → declared: Bridgetown              191,152
+  Fiji                     today: Lautoka                  55,894  → declared: Suva                    175,399
+  Eq. Guinea               today: Malabo                  155,963  → declared: Bata                    173,046
+  Iceland                  today: Akureyri                 16,563  → declared: Reykjavík               166,212
+  Cabo Verde               today: Mindelo                  70,611  → declared: Praia                   113,364
+  New Caledonia            today: —                             0  → declared: Nouméa                   93,060
+  Belize                   today: Orange Walk              20,835  → declared: Belize City              63,028
+  St. Vin. and Gren.       today: —                             0  → declared: Kingstown                49,485
+  Monaco                   today: —                             0  → declared: Monaco                   36,371
+  Kiribati                 today: —                             0  → declared: Tarawa                   28,802
+  Marshall Is.             today: —                             0  → declared: Majuro                   25,400
+  Greenland                today: Qaqortoq                  3,224  → declared: Nuuk                     14,798
+  Palau                    today: —                             0  → declared: Koror                    11,200
+  Turks and Caicos Is.     today: —                             0  → declared: Grand Turk                5,801
+  Tuvalu                   today: —                             0  → declared: Funafuti                  4,749
+  Vatican                  today: —                             0  → declared: Vatican City                832

@@ -4,7 +4,7 @@
 import { store } from "../store";
 
 export interface Leader { id: string; label: string; value: number | null; source: string; property: string }
-export interface IndCtx { unnamed: string; leaderLabel: string; leaderUnit?: string; caveat: string; leader?: Leader | null }
+export interface IndCtx { unnamed: string; leaderLabel: string; leaderPrefix?: string; leaderUnit?: string; caveat: string; leader?: Leader | null }
 
 export function IndContext({ c }: { c: IndCtx | undefined }) {
   if (!c) return null;
@@ -15,7 +15,7 @@ export function IndContext({ c }: { c: IndCtx | undefined }) {
       {c.leader && <span data-testid="ind-leader"> {c.leaderLabel}:{" "}
         <button type="button" className="linklike xs" data-testid="ind-leader-link" data-ref={c.leader.id}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); store.select(c.leader!.id, "indicator"); }}>{c.leader.label}</button>
-        {v != null && <> — {Math.round(v).toLocaleString("it-IT")}{c.leaderUnit ? ` ${c.leaderUnit}` : ""}</>}
+        {v != null && <> — {c.leaderPrefix ?? ""}{Math.round(v).toLocaleString("it-IT")}{c.leaderUnit ? ` ${c.leaderUnit}` : ""}</>}
         <span className="faint"> ({c.leader.source}; {c.caveat})</span></span>}
     </span>);
 }

@@ -3,6 +3,7 @@ import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { call, lastWorldVersion } from "./lib/api";
 import { setFamilies } from "./lib/palette";
 import { setRuleNames } from "./lib/connections";
+import { withDemography } from "./lib/demography";
 import type { Kind, TypeInfo, WorldStatus } from "./lib/types";
 import { store, useStore } from "./store";
 import { DEFAULT_MAP_TYPES } from "./store/store";
@@ -35,6 +36,8 @@ async function bootstrap() {
   add(ty.data.object_types, "object");
   add(ty.data.event_types, "event");
   add(ty.data.relation_types, "relation");
+  // demographic figures named as their sources define them (territory, year): config/demography.json
+  for (const [k, t] of types) types.set(k, withDemography(t));
   setFamilies([...types.values()]);
   setRuleNames(ty.data.insight_types ?? []);
   const initial = st.data.has_geometry ? "map" : "graph";   // D8

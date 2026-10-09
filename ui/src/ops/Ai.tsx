@@ -9,6 +9,7 @@ import { store, useStore } from "../store";
 import { typeLabelOf } from "../components/Highlights";
 import { loadIndicators } from "../components/Indicators";
 import { fmt } from "../components/Observations";
+import { factLabel } from "../lib/demography";
 
 /** The key indicators of a place's overview (PlaceView › Overview), in its order. */
 const KEY = ["SP.POP.TOTL", "EN.POP.DNST", "SP.URB.TOTL.IN.ZS", "EN.URB.LCTY", "eurostat.earnings.net", "eurostat.earnings.gross", "oecd.wage.gross_annual",
@@ -28,7 +29,7 @@ export async function summaryOfFocus(): Promise<{ name: string; kind: string; li
   const lines: Line[] = [];
   const props = e.details?.properties ?? {};
   const own = (st.types.get(e.type)?.facts ?? []).map((f) => [f, props[f.property]] as const).filter(([, v]) => v != null && v !== "")
-    .map(([f, v]) => ({ text: `${f.label}: ${typeof v === "string" && f.values?.[v] ? f.values[v] : typeof v === "boolean" ? (v ? "sì" : "no") : v}${f.unit ? ` ${f.unit}` : ""}`, source: src }));
+    .map(([f, v]) => ({ text: `${factLabel(e.type, f.property, f.label, e.details?.identifiers)}: ${typeof v === "string" && f.values?.[v] ? f.values[v] : typeof v === "boolean" ? (v ? "sì" : "no") : v}${f.unit ? ` ${f.unit}` : ""}`, source: src }));
   if (e.t) own.push({ text: `Data: ${new Date(e.t).toISOString().slice(0, 10)}`, source: src });
   if (own.length) lines.push({ label: "Dati della fonte", items: own });
   try {

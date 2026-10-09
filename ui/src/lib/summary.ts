@@ -4,6 +4,7 @@
 // value is simply not said. Pure functions + a small registry; the engine (rule, thresholds, confidence) stays in
 // "Perché?".
 
+import { headText } from "./demography";
 import { duration } from "./format";
 
 export type HeadPart = [string, string | number | boolean, string, number | null];
@@ -22,7 +23,7 @@ export function fmtValue(v: string | number | boolean, digits: number | null): s
 
 /** "M 6,1", "652.380 abitanti", "Nuclear · 1.746 MW" */
 export function head(parts: HeadPart[] | undefined | null): string {
-  return (parts ?? []).map(([p, v, s, d]) => `${p}${fmtValue(v, d)}${s}`).join(" · ");
+  return (parts ?? []).map(([p, v, s, d]) => { const [a, b] = headText(p, s); return `${a}${fmtValue(v, d)}${b}`; }).join(" · ");
 }
 
 const km = (n: number) => `${nf(1).format(n)} km`;

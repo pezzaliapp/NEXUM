@@ -12,6 +12,7 @@ import { store, useStore } from "../store";
 import { ByTopic, fmt } from "./Observations";
 import CTX from "../config/indicator-context.json";
 import { IndContext, type IndCtx } from "./IndContext";
+import { indicatorText } from "../lib/demography";
 
 export interface Flow { relation: string; type: string; type_label: string; direction: "out" | "in"; other: string; other_label: string | null;
   series: [string, number][]; unit: string; reporter: string; dataset: string; note: string; label: string }
@@ -35,7 +36,9 @@ export function loadIndicators(id: string, wv: number): Promise<IndData> {
         // a value about one element the source does not name: the note, and NEXUM's own most populous one beside it
         const cx = (CTX as Record<string, any>)[def.props?.indicator];
         if (cx && typeof cx === "object") props._context = { ...cx, leader: d.leaders?.[cx.leader] ?? null } as IndCtx;
-        return { ...def, props, id: x.id, points: x.points, refs: [x.def] };
+        const o = indicatorText(def.props?.indicator);   // the source's own definition (config/demography.json)
+        if (o.definition) props.definition = o.definition;
+        return { ...def, ...(o.label ? { label: o.label } : {}), props, id: x.id, points: x.points, refs: [x.def] };
       });
       return { list, flows: d.flows ?? [], names: d.source_names ?? {}, subtypes: d.subtypes ?? {},
         attribution: Object.fromEntries((r.sources ?? []).map((s: any) => [s.source_id, s.attribution])) };

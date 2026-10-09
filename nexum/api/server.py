@@ -1377,16 +1377,23 @@ def _indicators_pkg(q):
     # value and source: what NEXUM knows of the place's largest member — never the identity behind another source's
     # number (a statistic that names no element is said so by the UI)
     leaders = {}
+    membership = _membership()
     for t, (_lab, h) in hints.items():
         rp = (h.get("place_index") or {}).get("rank_property")
         if not rp:
             continue
-        for place, oid, label, val, sid in conn.execute(
-                "SELECT r.to_id, o.object_id, o.label, MAX(CAST(json_extract(o.props_json, '$.' || ?) AS REAL)), o.source_id "
-                "FROM relation r JOIN object o ON o.object_id = r.from_id WHERE r.type = 'located_in' AND o.type = ? AND o.status != 'retracted' "
-                "AND json_extract(o.props_json, '$.' || ?) IS NOT NULL GROUP BY r.to_id ORDER BY r.to_id", (rp, t, rp)):
+        m = membership.get(t)
+        if not m:
+            for place, oid, label, val, sid in conn.execute(
+                    "SELECT r.to_id, o.object_id, o.label, MAX(CAST(json_extract(o.props_json, '$.' || ?) AS REAL)), o.source_id "
+                    "FROM relation r JOIN object o ON o.object_id = r.from_id WHERE r.type = 'located_in' AND o.type = ? AND o.status != 'retracted' "
+                    "AND json_extract(o.props_json, '$.' || ?) IS NOT NULL GROUP BY r.to_id ORDER BY r.to_id", (rp, t, rp)):
+                leaders.setdefault(place, {})[t] = {"id": oid, "label": label, "property": rp, "value": val, "source_id": sid,
+                                                     "source": q.sources[sid].name if sid in q.sources else sid}
+            continue
+        for place, (oid, label, val, sid, basis) in _members_by_place(conn, t, rp, m).items():
             leaders.setdefault(place, {})[t] = {"id": oid, "label": label, "property": rp, "value": val, "source_id": sid,
-                                                 "source": q.sources[sid].name if sid in q.sources else sid}
+                                                 "source": q.sources[sid].name if sid in q.sources else sid, "basis": basis}
     srcs = {d["source_id"] for d in defs.values()}
     names = {sid: q.sources[sid].name for sid in srcs if sid in q.sources}
     catalog.sort(key=lambda c: (c["props"].get("section") or "", c["props"].get("order") or 0, c["id"]))
@@ -1616,6 +1623,73 @@ def places_index_of(q):
             names = sorted({r[0] for r in conn.execute("SELECT alias FROM alias WHERE entity_id=?", (o[0],))} - {o[1]})
             out.append([o[0], t, o[1], names, None, rank, pr.get(pi.get("context_property"))])
     return q._envelope({"places": out}, 0, Budget.of({"max_bytes": 10_000_000}), lod="refs", total=len(out), returned=len(out))
+
+
+_MEMBERSHIP = pathlib.Path(__file__).resolve().parents[2] / "config" / "place-membership.json"
+
+
+def _membership():
+    """Per member type, how its place is found (config/place-membership.json): declared by its source, else contained."""
+    try:
+        return {k: v for k, v in json.loads(_MEMBERSHIP.read_text(encoding="utf-8")).items() if not k.startswith("_")}
+    except FileNotFoundError:
+        return {}
+
+
+def member_places(conn, t, m):
+    """{member id: (place id or None, basis)} for the members of type t: the place their source declares (exact identifier)
+    when no spatial relation names another place; None when declaration and spatial relations disagree (never
+    attributed); the geometric containment when there is no usable declaration."""
+    ids = {}
+    for eid, v in conn.execute("SELECT entity_id, value FROM identifier WHERE scheme=?", (m["scheme"],)):
+        ids.setdefault(v, set()).add(eid)
+    spatial, contained = {}, {}
+    marks = ",".join("?" * len(m["spatial"]))
+    for f, to, typ in conn.execute(f"SELECT r.from_id, r.to_id, r.type FROM relation r JOIN object o ON o.object_id=r.from_id "
+                                   f"WHERE o.type=? AND r.type IN ({marks})", (t, *m["spatial"])):
+        spatial.setdefault(f, set()).add(to)
+        if typ == m["fallback"]:
+            contained.setdefault(f, set()).add(to)
+    labels = {}
+    out = {}
+    for oid, decl, dname in conn.execute("SELECT object_id, json_extract(props_json, '$.' || ?), json_extract(props_json, '$.' || ?) "
+                                         "FROM object WHERE type=? AND status != 'retracted'", (m["property"], m.get("name_property", m["property"]), t)):
+        target = ids.get(decl) if decl else None
+        if target and len(target) == 1:
+            d = next(iter(target))
+            sp = spatial.get(oid, set())
+            if not sp or d in sp:
+                out[oid] = (d, "declared")
+                continue
+            # the code names another place than the containing one: the source's own place name decides only when it is
+            # exactly the containing place's name (a dependency declared with its sovereign's code)
+            c = contained.get(oid, set())
+            if len(c) == 1 and dname:
+                cid = next(iter(c))
+                if cid not in labels:
+                    row = conn.execute("SELECT label FROM object WHERE object_id=?", (cid,)).fetchone()
+                    labels[cid] = row[0] if row else None
+                if labels[cid] == dname:
+                    out[oid] = (cid, "contained")
+                    continue
+            out[oid] = (None, "conflict")
+        else:
+            c = contained.get(oid, set())
+            out[oid] = (next(iter(c)), "contained") if len(c) == 1 else (None, "unresolved")
+    return out
+
+
+def _members_by_place(conn, t, rp, m):
+    """The most populous member of each place (rank property rp) under the membership rule."""
+    places = member_places(conn, t, m)
+    best = {}
+    for oid, label, val, sid in conn.execute(
+            "SELECT object_id, label, CAST(json_extract(props_json, '$.' || ?) AS REAL), source_id FROM object "
+            "WHERE type=? AND status != 'retracted' AND json_extract(props_json, '$.' || ?) IS NOT NULL ORDER BY object_id", (rp, t, rp)):
+        place, basis = places.get(oid, (None, None))
+        if place and (place not in best or val > best[place][2]):
+            best[place] = (oid, label, val, sid, basis)
+    return best
 
 
 def data_received_of(q):

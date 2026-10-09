@@ -1,0 +1,12 @@
+{
+ "_comment": "WHICH PLACE A MEMBER BELONGS TO, for the 'most populous member of a place' (indicators' leaders, nexum/api/server.py). 2026-10-08, demographic audit: by geometric containment alone coastal capitals (Lisbon, Stockholm, New York, Lagos, Monrovia, Reykjavík …) fell just outside the 1:50m outline and were never chosen. Rule, per member type: (1) the place its source DECLARES (member property `property`, matched exactly to the place's identifier `scheme`) when the spatial relations (`spatial`) do not name another place; (2) declared code and containment name different places: when the source's own place name (`name_property`) is exactly the containing place's name (a dependency declared with its sovereign's code, e.g. Niue) the containment holds; otherwise (disputed or ambiguous territory, coarse outlines) the member is attributed to NONE of them; (3) no usable declaration (property missing, or no place with that exact identifier): the geometric containment of today (`fallback`). No name matching, no proximity rule.",
+ "place.settlement": {
+  "property": "country_iso2",
+  "scheme": "iso3166a2",
+  "name_property": "country_name",
+  "spatial": [
+   "located_in"
+  ],
+  "fallback": "located_in"
+ }
+}
