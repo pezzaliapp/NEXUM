@@ -1,0 +1,36 @@
+id = "marine_ie.iwbn"
+name = "Marine Institute — Irish Weather Buoy Network, latest hourly observations (ERDDAP)"
+owner = "Marine Institute (Ireland)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-09"
+independence_group = "marine_ie"
+connector = "connectors.marine_ie"
+
+# Oceanographic network, Phase 1 (2026-10-09). One CSV request (dataset IWBNetwork): the latest row of every buoy in the
+# last 48 hours, at most once an hour. The buoys are platform objects; their rows the published table "ocean_marine_ie"
+# (wind converted from knots to m/s). Licence: the dataset's own licence attribute, CC BY 4.0.
+[license]
+id = "CC-BY-4.0"
+url = "https://creativecommons.org/licenses/by/4.0/"
+attribution = "Marine Institute — Irish Weather Buoy Network (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["erddap.marine.ie"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 3600
+
+[options]
+published_table = "ocean_marine_ie"

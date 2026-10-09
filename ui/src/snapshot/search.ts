@@ -12,12 +12,16 @@ export async function openSearch(bytes: Uint8Array, init?: (opts?: any) => Promi
   const rc = capi.sqlite3_deserialize(db.pointer, "main", p, bytes.length, bytes.length,
     capi.SQLITE_DESERIALIZE_FREEONCLOSE | capi.SQLITE_DESERIALIZE_READONLY);
   if (rc !== 0) throw new Error(`search index could not be opened (sqlite rc ${rc})`);
-  // idrank(rid): the rank of the element's ID (rid_map's join and order). Packed array (3 bytes per rid, value
-  // rank + 1, 0 = no element); an older snapshot's rid_rank table gives the same function.
+  // idrank(rid): the rank of the element's ID (rid_map's join and order). Bit array (byte 0 = width w, then w bits per
+  // rid, big-endian, value rank + 1, 0 = no element); an older snapshot's 3-byte array or rid_rank table gives the same
+  // function.
   const exec = (sql: string) => db.exec({ sql, returnValue: "resultRows", rowMode: "array" }) as any[][];
   const tables = new Set(exec("SELECT name FROM sqlite_master WHERE type='table'").map((r) => r[0]));
   let rank: (rid: number) => number | null;
-  if (tables.has("rid_rank_packed")) {
+  if (tables.has("rid_rank_bits")) {
+    const b = exec("SELECT b FROM rid_rank_bits")[0][0] as Uint8Array;
+    rank = (rid) => rankFromBits(b, rid);
+  } else if (tables.has("rid_rank_packed")) {
     const b = exec("SELECT b FROM rid_rank_packed")[0][0] as Uint8Array;
     rank = (rid) => {
       const i = 3 * rid;
@@ -34,4 +38,14 @@ export async function openSearch(bytes: Uint8Array, init?: (opts?: any) => Promi
     version: sqlite3.version.libVersion,
     run: (sql, args) => db.exec({ sql, bind: args, returnValue: "resultRows", rowMode: "array" }) as any[][],
   };
+}
+
+/** The value of `rid` in a rid_rank_bits array (byte 0 = width w; w bits per rid, big-endian): rank, or null when the rid
+ *  has no element or lies outside the array. */
+export function rankFromBits(b: Uint8Array, rid: number): number | null {
+  const w = b[0];
+  if (!(rid >= 0) || !w || 8 + (rid + 1) * w > b.length * 8) return null;
+  let bit = 8 + rid * w, v = 0;
+  for (let i = 0; i < w; i++, bit++) v = v * 2 + ((b[bit >> 3] >> (7 - (bit & 7))) & 1);
+  return v === 0 ? null : v - 1;
 }

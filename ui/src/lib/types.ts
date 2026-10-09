@@ -69,6 +69,11 @@ export interface TypeInfo {
   rated?: { via: string; segments: string; length: string };
   /** an explorable element type (vocabulary hint "explore"): its own view, first in search, opened from the map's names */
   explore?: { label: string; one: string; many?: string; hint: string; placeholder?: string };
+  /** the latest observations of its elements are published tables (vocabulary hint "latest"): source → table, the
+   *  element's own source's table, and the table of each of its identifiers' schemes (schemes → table: a station two
+   *  networks name), read when a card opens, matched by identifier; "recente" within recent_h hours;
+   *  note_property says why there is no value */
+  latest?: { tables: Record<string, string>; schemes?: Record<string, string>; recent_h?: number; note_property?: string };
   /** a place people name, ranked among namesakes (vocabulary hint "place_index"): the index of places holds its rank */
   place_index?: { rank_property: string; min_rank?: number; context_property?: string };
 }

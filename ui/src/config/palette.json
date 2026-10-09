@@ -14,7 +14,8 @@
   "government": "#B39B5E",
   "observation": "#8C9AB8",
   "person": "#A3907E",
-  "space": "#6F7FA6"
+  "space": "#6F7FA6",
+  "ocean": "#56C1CF"
  },
  "_families": {
   "place": "places of reference (inhabited places, states): a pale neutral, the backdrop of everything else",
@@ -30,7 +31,8 @@
   "government": "governments and offices (not on the map): ochre",
   "observation": "measured series (not on the map): grey-blue",
   "person": "office holders (not on the map): taupe",
-  "space": "satellites (not on the map; orbits have their own layer): slate"
+  "space": "satellites (not on the map; orbits have their own layer): slate",
+  "ocean": "observation of the sea (buoys, floats, coastal stations, tide gauges): aqua cyan, lighter and greener than the ports' sea blue"
  },
  "types": {
   "transport.port": "#4F95BF"

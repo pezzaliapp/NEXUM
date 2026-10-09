@@ -15,6 +15,7 @@ import { ConnectionsBlock } from "../components/Connections";
 import { ObservationRecord, ObservationsBlock } from "../components/Observations";
 import { TenuresBlock } from "../components/Tenures";
 import { RatesBlock } from "../components/Rates";
+import { LatestObs } from "../components/LatestObs";
 import { clearNameOf } from "../components/SearchBox";
 // loaded only when needed (O6: never part of the opening download): a place's view, the imagery, an indicator's table
 const PlaceView = lazyStale(() => import("./PlaceView").then((m) => ({ default: m.PlaceView })));
@@ -100,6 +101,8 @@ export function ObjectMode({ id }: { id: string }) {
         {/* a camera (vocabulary hint "media"): the viewer of THIS camera, first; other cameras only after it, apart */}
         {d?.properties && types.get(e?.type ?? "")?.media && <Suspense fallback={<p className="xs dim conn-pad">{S.loading}</p>}><CamViewer id={id} props={d.properties} /></Suspense>}
         {ctx.data && e?.kind !== "insight" && <Facts id={id} d={d} data={ctx.data.data} />}
+        {/* the latest observations the source published (vocabulary hint "latest"), read when the card opens */}
+        {d && types.get(e?.type ?? "")?.latest && <LatestObs id={id} d={d} />}
         {/* OSSERVA: the public webcams near a place (a city), surfaced in its own view */}
         {ready && types.get(e?.type ?? "")?.nearby_media_km && <Suspense fallback={null}><PlaceWebcams id={id} /></Suspense>}
         {ready && d?.properties && <RatesBlock id={id} props={d.properties} ctxData={ctx.data!.data} />}

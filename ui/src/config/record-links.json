@@ -1,4 +1,23 @@
 {
-  "_note": "The public page of a source's own record, from an identifier NEXUM keeps (2026-10-08). Only URL patterns checked against the live site are listed.",
-  "ourairports.airports": { "scheme": "ident", "url": "https://ourairports.com/airports/{v}/", "label": "Voce su OurAirports" }
+ "_note": "The public page of a source's own record, from an identifier NEXUM keeps (2026-10-08). Only URL patterns checked against the live site are listed.",
+ "ourairports.airports": {
+  "scheme": "ident",
+  "url": "https://ourairports.com/airports/{v}/",
+  "label": "Voce su OurAirports"
+ },
+ "noaa.ndbc": {
+  "scheme": "ndbc",
+  "url": "https://www.ndbc.noaa.gov/station_page.php?station={v}",
+  "label": "Stazione su NOAA NDBC"
+ },
+ "argo.ifremer": {
+  "scheme": "wmo",
+  "url": "https://fleetmonitoring.euro-argo.eu/float/{v}",
+  "label": "Galleggiante su Euro-Argo"
+ },
+ "ispra.rmn": {
+  "scheme": "ispra_platform",
+  "url": "https://dati.isprambiente.it/ld/rmn/platform/{v}",
+  "label": "Stazione nei dati aperti ISPRA"
+ }
 }

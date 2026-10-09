@@ -16,7 +16,7 @@ iso_region = { kind = "text" }
 [relation_type."located_in"]
 label = "si trova in"
 nature = "spatial"
-from = ["transport.airport", "place.settlement", "transport.port", "energy.power_plant", "geo.volcano", "camera.public_webcam", "toll.scheme", "toll.road_section"]
+from = ["transport.airport", "place.settlement", "transport.port", "energy.power_plant", "geo.volcano", "camera.public_webcam", "toll.scheme", "toll.road_section", "ocean.coastal_station", "ocean.tide_gauge"]
 to = ["place.country"]
 
 # (2026-10-03, audit di integrità §29) Gli aeroporti NON ricevono più il Paese dalla geometria: OurAirports dichiara il

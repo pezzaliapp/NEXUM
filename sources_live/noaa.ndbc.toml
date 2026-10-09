@@ -1,0 +1,39 @@
+id = "noaa.ndbc"
+name = "NOAA NDBC — active stations owned by NDBC, NOS and NOS PORTS, latest observations"
+owner = "NOAA National Data Buoy Center (National Weather Service)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-09"
+independence_group = "noaa_ndbc"
+connector = "connectors.ndbc"
+
+# Oceanographic network, Phase 1 (2026-10-09). Only the stations whose owner the catalogue names as NDBC, NOS or NOAA NOS
+# PORTS (NOAA's own: public domain); the stations of partners (universities, regional systems, other countries) are left
+# out until their terms are verified. Files: activestations.xml (XML catalogue) and latest_obs.txt (whitespace-delimited
+# columns) — "csv" stands for delimited text here. The latest observations are the published table "ocean_ndbc".
+# Terms: "public domain, unless specifically noted otherwise"; no endorsement implied; no NOAA/NWS logo; NDBC asks to
+# keep retrievals minimal: at most once an hour.
+[license]
+id = "public-domain-us-gov"
+url = "https://www.weather.gov/disclaimer"
+attribution = "NOAA National Data Buoy Center (NDBC) — stazioni NDBC, NOS e NOS PORTS"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["www.ndbc.noaa.gov"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 3600
+
+[options]
+published_table = "ocean_ndbc"

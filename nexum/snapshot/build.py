@@ -18,7 +18,7 @@ Layout (every data file is gzip-compressed JSON with the `.jgz` extension, decom
   s/<version>/ent/<n>.jgz           exact service responses per element + related rows (FNV-1a shard)
   s/<version>/raw/<n>.jgz           exact raw-record extractions by (raw_id, locator)
   s/<version>/rules.jgz             rule definitions (WHY)
-  s/<version>/search.sqlite.jgz     the Core's full-text index (FTS5 shadow tables, vocabulary) + rid_rank_packed (join, order)
+  s/<version>/search.sqlite.jgz     the Core's full-text index (FTS5 shadow tables, vocabulary) + rid_rank_bits (join, order)
   s/<version>/sdoc/<n>.jgz          rid_map by rid range (SDOC rids per file) with type, label and insight status
   s/<version>/ind/<n>.jgz           country indicators and energy flows: exact /indicators/<id> responses by place (FNV-1a shard)
 """
@@ -155,6 +155,20 @@ def shard_of(eid: str, n: int) -> int:
 
 def dumps(o) -> bytes:
     return json.dumps(o, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
+
+
+def pack_ranks(ids):
+    """[(entity_id, rid)] sorted by entity_id → the rid_rank_bits blob: byte 0 = width w, then rid 0..max → idrank + 1
+    (0 = no element) in w bits each, big-endian."""
+    n = max((rid for _e, rid in ids), default=0) + 1
+    vals = [0] * n
+    for k, (_eid, rid) in enumerate(ids):
+        vals[rid] = k + 1
+    w = max(1, max(vals).bit_length())
+    acc = int("".join(format(v, f"0{w}b") for v in vals) or "0", 2)
+    nbits = w * n
+    pad = (-nbits) % 8
+    return bytes([w]) + (acc << pad).to_bytes((nbits + pad) // 8, "big")
 
 
 def write_jgz(path: pathlib.Path, obj) -> int:
@@ -517,27 +531,29 @@ class Builder:
         fts_sql = src.execute("SELECT sql FROM sqlite_master WHERE name='search_fts'").fetchone()[0]
         vocab_sql = src.execute("SELECT sql FROM sqlite_master WHERE name='search_vocab'").fetchone()[0]
         d = sqlite3.connect(str(p))
-        d.execute("PRAGMA page_size=2048")             # physical layout only: the smallest compressed file measured
+        # physical layout only (2026-10-09, O9): 16 KiB pages and 16,000-byte FTS5 leaf pages (below) are the smallest
+        # compressed file measured — the same documents, terms, statistics and scores (1,830 queries compared, 0 differences)
+        d.execute("PRAGMA page_size=16384")
         d.execute(fts_sql)
         d.execute(vocab_sql)
         # rid_map's join and order, without its ids: idrank = position of entity_id in binary order, so that
         # "ORDER BY score, idrank" = the Core's "ORDER BY score, m.entity_id" (ids are resolved only for rows used).
-        # Packed as one array (3 bytes per rid, big-endian, value idrank + 1, 0 = no element): the same mapping as a
-        # (rid, idrank) table in about half the compressed bytes; the browser reads it once as the idrank() function.
+        # Packed as one bit array: byte 0 = the width w in bits, then for every rid 0..max its value (idrank + 1, 0 = no
+        # element) in w bits, big-endian (2026-10-09, O9: w = 18 today, about 11% fewer compressed bytes than 3 bytes per
+        # rid; w grows by itself with the number of elements). The browser reads it once as the idrank() function.
         ids = sorted(src.execute("SELECT entity_id, rid FROM rid_map"))
-        packed = bytearray(3 * (max((rid for _e, rid in ids), default=0) + 1))
-        for k, (_eid, rid) in enumerate(ids):
-            assert k + 1 < 1 << 24
-            packed[3 * rid:3 * rid + 3] = (k + 1).to_bytes(3, "big")
-        d.execute("CREATE TABLE rid_rank_packed(b BLOB NOT NULL) STRICT")
-        d.execute("INSERT INTO rid_rank_packed VALUES(?)", (bytes(packed),))
+        d.execute("CREATE TABLE rid_rank_bits(b BLOB NOT NULL) STRICT")
+        d.execute("INSERT INTO rid_rank_bits VALUES(?)", (pack_ranks(ids),))
         for t in ("search_fts_data", "search_fts_idx", "search_fts_docsize", "search_fts_config"):
             cols = [r[1] for r in src.execute(f"PRAGMA table_info({t})")]
             d.execute(f"DELETE FROM {t}")
             d.executemany(f"INSERT INTO {t}({', '.join(cols)}) VALUES({', '.join('?' * len(cols))})",
                           src.execute(f"SELECT {', '.join(cols)} FROM {t}"))
         d.commit()
-        # merge the index segments (physical layout only: same documents, terms and statistics — parity-verified)
+        # merge the index segments into 16,000-byte leaf pages (physical layout only: same documents, terms and
+        # statistics — the averages record is copied as is, so every score is the Core's — parity-verified)
+        d.execute("INSERT INTO search_fts(search_fts, rank) VALUES('pgsz', 16000)")
+        d.commit()
         d.execute("INSERT INTO search_fts(search_fts) VALUES('optimize')")
         d.commit()
         d.execute("VACUUM")

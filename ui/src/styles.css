@@ -568,6 +568,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .facts-line { margin: 4px 0 2px; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: var(--fs-s); line-height: 1.35; }
 .facts-line .fk { color: var(--dim); }
 .facts-src { margin: 2px 0 0; }
+/* the latest observations of an element (components/LatestObs.tsx): laid out as the source's facts */
+.latest { padding: 8px 12px 6px; border-bottom: 1px solid var(--line); }
+.latest .conn-pad { padding: 0; }
+.latest p { margin: 4px 0 2px; }
+.latest-at { font-size: var(--fs-s); }
 .conn-result { color: var(--text) !important; font-size: 12.5px !important; }
 .maplabel.hl.ins { color: #E6D6A8; }
 .maplabel.hl.ins { white-space: normal; text-overflow: clip; width: max-content; line-height: 16px;

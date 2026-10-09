@@ -1,0 +1,38 @@
+id = "argo.ifremer"
+name = "Argo — profiling floats reporting in the last days, latest near-surface sample (Ifremer ERDDAP)"
+owner = "International Argo Program (GDAC served by Ifremer)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-09"
+independence_group = "argo_gdac"
+connector = "connectors.argo"
+
+# Oceanographic network, Phase 1 (2026-10-09). One CSV request per UTC day (15 days on the first run, then today and
+# yesterday), dataset ArgoFloats: platform number, time, position and its flag, the most recent level within 10 dbar of
+# the surface (pressure, temperature, salinity, their flags, data mode). Never the name of a person. The latest sample of
+# each float is the published table "ocean_argo". Licence: "freely available without restriction", acknowledgement and
+# DOI required (shown with every value).
+[license]
+id = "argo-free-with-acknowledgement"
+url = "https://argo.ucsd.edu/data/acknowledging-argo/"
+attribution = "Argo: dati raccolti e resi liberamente disponibili dal Programma internazionale Argo e dai programmi nazionali che vi contribuiscono (argo.ucsd.edu, ocean-ops.org), parte del Global Ocean Observing System — DOI 10.17882/42182"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "csv"
+auth = "none"
+allowed_hosts = ["erddap.ifremer.fr"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.05
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "incremental"
+min_poll_interval_s = 86400
+
+[options]
+published_table = "ocean_argo"

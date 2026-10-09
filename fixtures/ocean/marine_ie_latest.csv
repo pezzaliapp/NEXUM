@@ -1,0 +1,6 @@
+station_id,longitude,latitude,time,AtmosphericPressure,WindDirection,WindSpeed,Gust,WaveHeight,WavePeriod,MeanWaveDirection,Hmax,AirTemperature,SeaTemperature,salinity,QC_Flag
+,degrees_east,degrees_north,UTC,millibars,degrees true,knots,knots,meters,seconds,degrees_true,meters,degrees_C,degrees_C,dimensionless,
+M2,-5.4302,53.4836,2026-10-09T11:00:00Z,1008.215,281.0,17.077,21.859,1.641,4.453,284.0,3.125,14.17,14.775,33.85658,0
+M3,-10.548261,51.215956,2026-10-09T11:00:00Z,1016.65,294.0,24.25,33.016,3.984,6.914,285.0,5.781,14.463,15.352,34.96681,0
+M5,-6.704336,51.690425,2026-10-09T11:00:00Z,1012.585,298.0,19.354,26.526,2.93,5.977,259.0,5.0,15.342,15.899,35.07973,0
+M6,-15.88135,53.07482,2026-10-09T11:00:00Z,1016.138,280.0,29.714,38.025,4.336,6.914,277.0,7.188,13.047,14.416,35.48668,0

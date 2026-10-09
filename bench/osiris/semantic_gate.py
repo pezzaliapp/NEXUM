@@ -7,6 +7,7 @@ through the same API the browser's snapshot is built from (nexum.snapshot.servic
   Webcam   → place, country, events
   Relation → evidence
   Object / Event → timeline
+  Ocean    → network, country (land stations only), latest observation (table row ↔ object by identifier), search
 
     python3 bench/osiris/semantic_gate.py   → bench/osiris/semantic-gate.json; exit 1 when a chain is broken"""
 
@@ -134,6 +135,45 @@ st, tb = get("/tables/orbits")
 check("Space", "orbital catalogue published", st == 200 and len(tb["data"]["rows"]) > 1000, len(tb["data"]["rows"]) if st == 200 else st)
 sat = find("ISS (ZARYA)", "space.satellite")
 check("Space", "notable spacecraft are NEXUM objects (searchable)", bool(sat), sat and sat["label"])
+
+# ── Ocean (2026-10-09, oceanographic network Phase 1): platforms are NEXUM objects, found by the general search, with
+# their network; land stations have their country by containment, platforms at sea none; a table row is an object ──
+def ocean_object(scheme, value, typ):
+    hit = find(value, typ)
+    if not hit:
+        return None
+    _, b = get(f"/entities/{hit['id']}")
+    ids = {(x["scheme"], str(x["value"])) for x in b["data"].get("identifiers") or []}
+    return hit if (scheme, str(value)) in ids else None
+
+
+tg = find("Ancona — mareografo RMN", "ocean.tide_gauge")
+tgr = rel_types(tg["id"]) if tg else {}
+check("Ocean", "tide gauge found by the general search", bool(tg), tg and tg["label"])
+check("Ocean", "tide gauge: network (part_of_network)", "part_of_network" in tgr, tgr)
+check("Ocean", "tide gauge: the country its source declares (on the pier, outside the coarse outline)", "located_in" in tgr, tgr)
+check("Ocean", "tide gauge: no country by proximity", "near_place" not in tgr, tgr)
+bd = find("9014070 - Algonac, MI", "ocean.tide_gauge")
+bdr = rel_types(bd["id"]) if bd else {}
+check("Ocean", "a border tide gauge: one country, the declared one", bdr.get("located_in") == 1, bdr)
+for table, typ, min_rows in (("ocean_ndbc", "ocean.platform", 50), ("ocean_argo", "ocean.platform", 1000), ("ocean_coops", "ocean.tide_gauge", 200)):
+    st, tb = get(f"/tables/{table}")
+    rows = tb["data"]["rows"] if st == 200 else []
+    check("Ocean", f"{table}: latest observations published", len(rows) >= min_rows, len(rows))
+    f = tb["data"]["fields"] if st == 200 else []
+    scheme = {"ocean_argo": "wmo", "ocean_coops": "coops"}.get(table, "ndbc")
+    row = next((r for r in rows if r[0] == scheme and (table != "ocean_ndbc" or r[1][:1].isdigit())), None)
+    obj = row and (ocean_object(row[0], row[1], typ) or ocean_object(row[0], row[1], "ocean.tide_gauge"))
+    check("Ocean", f"{table}: a row is a NEXUM object with the same identifier", bool(obj), row and row[:3])
+    if obj:
+        ort = rel_types(obj["id"])
+        check("Ocean", f"{table}: its network", "part_of_network" in ort, ort)
+        if typ == "ocean.platform" and obj.get("type") == "ocean.platform":
+            check("Ocean", f"{table}: a platform at sea has no country", "located_in" not in ort and "near_place" not in ort, ort)
+_, rels = get(f"/entities/{tg['id']}/relations") if tg else (0, {"data": {"groups": []}})
+nrel = next((g["items"][0]["relation"]["id"] for g in rels["data"]["groups"] if g["type"] == "part_of_network"), None)
+st, nev = n_items(f"/entities/{nrel}/evidence") if nrel else (0, 0)
+check("Ocean", "network relation → evidence", nev > 0, {"relation": nrel, "evidence": nev})
 
 failed = [c for c in checks if not c["pass"]]
 (ROOT / "bench/osiris/semantic-gate.json").write_text(json.dumps({"checks": checks, "failed": len(failed)}, indent=1, ensure_ascii=False))

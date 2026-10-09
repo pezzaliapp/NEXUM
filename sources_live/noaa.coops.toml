@@ -1,0 +1,39 @@
+id = "noaa.coops"
+name = "NOAA CO-OPS — water-level stations, declared state/territory, latest sea level (Tides & Currents APIs)"
+owner = "NOAA National Ocean Service — Center for Operational Oceanographic Products and Services"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-09"
+independence_group = "noaa_coops"
+connector = "connectors.coops"
+
+# Oceanographic network, Phase 1 (2026-10-09). The water-level stations of the metadata API (stations.json, keyless) with
+# the state/territory their catalogue declares (→ the country of the station), and the water level of the last hour of
+# each station from the data API (metric, datum MLLW, application=NEXUM as the API asks), one station per request with a
+# pause between requests (the API throttles heavy load), at most once an hour per station. The latest values are the
+# published table "ocean_coops". The stations NDBC also lists are the same objects (identifier "coops"). Terms: public
+# domain unless annotated otherwise; NOS requests attribution.
+[license]
+id = "public-domain-us-gov"
+url = "https://tidesandcurrents.noaa.gov/disclaimers.html"
+attribution = "NOAA National Ocean Service — CO-OPS Tides & Currents"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["api.tidesandcurrents.noaa.gov"]
+
+[politeness]
+min_interval_s = 3600
+max_rps = 0.5
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 3600
+
+[options]
+published_table = "ocean_coops"

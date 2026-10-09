@@ -95,6 +95,18 @@ export const S = {
     linkNote: "Si apre la pagina originale del gestore. NEXUM non mostra anteprime di questa webcam: il gestore non consente di riprodurne le immagini altrove.",
   },
   facts: { title: "Dati della fonte", source: "Fonte", ident: "Identificativo" },
+  latest: {
+    title: "Ultime osservazioni",
+    at: (when: string, age: string) => `Osservazione del ${when} · ${age}`,
+    recent: "recente",
+    notRecent: "non recente",
+    none: "Nessuna osservazione nel file più recente della fonte.",
+    quality: "Qualità",
+    conversions: "Unità",
+    source: "Fonte",
+    loading: "Lettura delle ultime osservazioni…",
+    error: "Ultime osservazioni non disponibili ora.",
+  },
   rates: {
     title: "Tariffa",
     rate: "Tariffa per km",

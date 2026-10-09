@@ -1,0 +1,36 @@
+id = "ispra.rmn"
+name = "ISPRA — Rete Mareografica Nazionale (RMN), stations from the linked open data (SPARQL)"
+owner = "ISPRA — Istituto Superiore per la Protezione e la Ricerca Ambientale"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-09"
+independence_group = "ispra_rmn"
+connector = "connectors.ispra_rmn"
+
+# Oceanographic network, Phase 1 (2026-10-09). One SPARQL query (JSON results), at most once a day: the 36 tide gauges of
+# the RMN with name, position, the operational status ISPRA declares, their sensors and the month of the latest open
+# series. No measurement: the open series end in October 2023 (checked 2026-10-09); the card says so. Licence: CC BY 4.0
+# ("a patto che sia sempre citata la fonte").
+[license]
+id = "CC-BY-4.0"
+url = "https://www.isprambiente.gov.it/it/note-legali"
+attribution = "ISPRA — Rete Mareografica Nazionale (CC BY 4.0)"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["dati.isprambiente.it"]
+
+[politeness]
+min_interval_s = 86400
+max_rps = 0.1
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 86400
+
+[options]

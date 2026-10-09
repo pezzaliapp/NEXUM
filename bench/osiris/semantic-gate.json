@@ -17,10 +17,11 @@
    "pass": true,
    "detail": {
     "geo.volcano": 3,
-    "place.settlement": 32,
+    "place.settlement": 31,
     "observation.indicator": 45,
-    "place.country": 26,
-    "transport.port": 33,
+    "place.country": 23,
+    "ocean.tide_gauge": 20,
+    "transport.port": 31,
     "observation.official_series": 2,
     "observation.opinion_series": 3,
     "observation.fuel_price": 1,
@@ -31,7 +32,7 @@
    "chain": "Country",
    "check": "webcams",
    "pass": true,
-   "detail": 354
+   "detail": 340
   },
   {
    "chain": "Country",
@@ -195,6 +196,146 @@
    "check": "notable spacecraft are NEXUM objects (searchable)",
    "pass": true,
    "detail": "ISS (ZARYA)"
+  },
+  {
+   "chain": "Ocean",
+   "check": "tide gauge found by the general search",
+   "pass": true,
+   "detail": "Ancona — mareografo RMN"
+  },
+  {
+   "chain": "Ocean",
+   "check": "tide gauge: network (part_of_network)",
+   "pass": true,
+   "detail": {
+    "located_in": 1,
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "tide gauge: the country its source declares (on the pier, outside the coarse outline)",
+   "pass": true,
+   "detail": {
+    "located_in": 1,
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "tide gauge: no country by proximity",
+   "pass": true,
+   "detail": {
+    "located_in": 1,
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "a border tide gauge: one country, the declared one",
+   "pass": true,
+   "detail": {
+    "located_in": 1,
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_ndbc: latest observations published",
+   "pass": true,
+   "detail": 405
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_ndbc: a row is a NEXUM object with the same identifier",
+   "pass": true,
+   "detail": [
+    "ndbc",
+    "41004",
+    "2026-10-09T14:50Z"
+   ]
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_ndbc: its network",
+   "pass": true,
+   "detail": {
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_ndbc: a platform at sea has no country",
+   "pass": true,
+   "detail": {
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_argo: latest observations published",
+   "pass": true,
+   "detail": 4077
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_argo: a row is a NEXUM object with the same identifier",
+   "pass": true,
+   "detail": [
+    "wmo",
+    "1901514",
+    "2026-10-04T07:23Z"
+   ]
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_argo: its network",
+   "pass": true,
+   "detail": {
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_argo: a platform at sea has no country",
+   "pass": true,
+   "detail": {
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_coops: latest observations published",
+   "pass": true,
+   "detail": 286
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_coops: a row is a NEXUM object with the same identifier",
+   "pass": true,
+   "detail": [
+    "coops",
+    "1611400",
+    "2026-10-09T15:18Z"
+   ]
+  },
+  {
+   "chain": "Ocean",
+   "check": "ocean_coops: its network",
+   "pass": true,
+   "detail": {
+    "located_in": 1,
+    "part_of_network": 1
+   }
+  },
+  {
+   "chain": "Ocean",
+   "check": "network relation → evidence",
+   "pass": true,
+   "detail": {
+    "relation": "rel_7j35ybm7gqgbawlkeim7csqemy",
+    "evidence": 1
+   }
   }
  ],
  "failed": 0

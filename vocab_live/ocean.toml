@@ -1,0 +1,69 @@
+# Rete oceanografica (Fase 1, 2026-10-09; audit NEXUM-OCEANOGRAPHIC-NETWORK-AUDIT.md). Piattaforme che osservano il mare:
+# boe ormeggiate e alla deriva, stazioni tsunami (DART), piattaforme offshore, galleggianti profilatori Argo; stazioni
+# costiere e mareografi. Ogni piattaforma è un oggetto NEXUM con la sua rete (relazione dichiarata dal catalogo della
+# fonte) e le ULTIME osservazioni che la fonte pubblica (valore, unità, istante UTC, qualità quando c'è): mai "LIVE", la
+# scheda dice sempre l'età dell'osservazione. Le stazioni a terra hanno il loro Paese per contenimento geografico; le
+# piattaforme in mare nessun Paese (mai per vicinanza). Unità: quelle della fonte, oppure convertite con fattori esatti
+# (nodi → m/s, piedi → m; millibar = hPa) e dichiarate nella nota della scheda.
+
+[object_type."ocean.platform"]
+label = "Piattaforma oceanografica"
+geometry = "point"
+identity_schemes = ["wmo", "ndbc", "marine_ie"]
+display = { family = "ocean", density_priority = 4, group = "Boe e piattaforme marine", subtypes = { property = "platform_kind", note = "Piattaforme che osservano il mare in posizione fissa o alla deriva. Le misure sono le ultime pubblicate dalla fonte: la scheda ne dice l'età.", values = { moored_buoy = "boa ormeggiata", drifting_buoy = "boa alla deriva", tsunami_buoy = "boa tsunami (DART)", offshore_platform = "piattaforma offshore", profiling_float = "galleggiante profilatore (Argo)", usv = "veicolo di superficie senza equipaggio", other = "altra piattaforma (tipo non specificato dalla fonte)" } }, headline = [{ property = "platform_kind", values = { moored_buoy = "boa ormeggiata", drifting_buoy = "boa alla deriva", tsunami_buoy = "boa tsunami (DART)", offshore_platform = "piattaforma offshore", profiling_float = "profilatore Argo", usv = "veicolo di superficie senza equipaggio", other = "altra piattaforma" } }], latest = { tables = { "noaa.ndbc" = "ocean_ndbc", "noaa.coops" = "ocean_coops", "argo.ifremer" = "ocean_argo", "marine_ie.iwbn" = "ocean_marine_ie" }, schemes = { ndbc = "ocean_ndbc", coops = "ocean_coops", marine_ie = "ocean_marine_ie" }, recent_h = 3, note_property = "data_note" }, facts = [{ property = "platform_kind", label = "Tipo", values = { moored_buoy = "boa ormeggiata", drifting_buoy = "boa alla deriva", tsunami_buoy = "boa tsunami (DART)", offshore_platform = "piattaforma offshore", profiling_float = "galleggiante profilatore (Argo)", usv = "veicolo di superficie senza equipaggio", other = "altra piattaforma (tipo non specificato dalla fonte)" } }, { property = "operator", label = "Gestore" }] }
+[object_type."ocean.platform".properties]
+platform_kind = { kind = "text", required = true }
+operator = { kind = "text" }
+data_note = { kind = "text" }
+
+# Stazioni costiere (C-MAN e simili): nessuna fonte ne dichiara il Paese → il Paese che le contiene (contorno 1:50m)
+[object_type."ocean.coastal_station"]
+label = "Stazione costiera"
+geometry = "point"
+identity_schemes = ["wmo", "ndbc"]
+display = { family = "ocean", density_priority = 4, group = "Stazioni costiere e mareografi", subtypes = { property = "platform_kind", note = "Stazioni fisse sulla costa che osservano il mare e il tempo dalla riva. Le misure sono le ultime pubblicate dalla fonte: la scheda ne dice l'età.", values = { coastal_station = "stazione costiera" } }, headline = [{ property = "platform_kind", values = { coastal_station = "stazione costiera" } }], latest = { tables = { "noaa.ndbc" = "ocean_ndbc", "noaa.coops" = "ocean_coops", "argo.ifremer" = "ocean_argo", "marine_ie.iwbn" = "ocean_marine_ie" }, schemes = { ndbc = "ocean_ndbc", coops = "ocean_coops", marine_ie = "ocean_marine_ie" }, recent_h = 3, note_property = "data_note" }, facts = [{ property = "platform_kind", label = "Tipo", values = { coastal_station = "stazione costiera" } }, { property = "operator", label = "Gestore" }] }
+[object_type."ocean.coastal_station".properties]
+platform_kind = { kind = "text", required = true }
+operator = { kind = "text" }
+data_note = { kind = "text" }
+
+# Mareografi: il Paese che la loro fonte DICHIARA (CO-OPS: lo stato o territorio della stazione; ISPRA: la rete nazionale,
+# "distribuite sul territorio nazionale"), mai il contorno — che ai moli e ai confini sbaglia. Stesso gruppo delle stazioni
+# costiere (una sola riga di legenda). La stessa stazione nominata da NDBC e da CO-OPS è un solo oggetto (identificativo "coops").
+[object_type."ocean.tide_gauge"]
+label = "Mareografo"
+geometry = "point"
+identity_schemes = ["coops", "ndbc", "wmo", "ispra_platform"]
+display = { family = "ocean", density_priority = 4, group = "Stazioni costiere e mareografi", subtypes = { property = "platform_kind", note = "Stazioni fisse che misurano il livello del mare. Le misure sono le ultime pubblicate dalla fonte: la scheda ne dice l'età.", values = { tide_gauge = "mareografo" } }, headline = [{ property = "platform_kind", values = { tide_gauge = "mareografo" } }], latest = { tables = { "noaa.ndbc" = "ocean_ndbc", "noaa.coops" = "ocean_coops", "argo.ifremer" = "ocean_argo", "marine_ie.iwbn" = "ocean_marine_ie" }, schemes = { ndbc = "ocean_ndbc", coops = "ocean_coops", marine_ie = "ocean_marine_ie" }, recent_h = 3, note_property = "data_note" }, facts = [{ property = "platform_kind", label = "Tipo", values = { tide_gauge = "mareografo" } }, { property = "operator", label = "Gestore" }, { property = "reporting", label = "Stato" }, { property = "sensors", label = "Sensori dichiarati" }] }
+[object_type."ocean.tide_gauge".properties]
+platform_kind = { kind = "text", required = true }
+operator = { kind = "text" }
+reporting = { kind = "text" }
+sensors = { kind = "text" }
+data_note = { kind = "text" }
+
+# Le reti a cui le piattaforme appartengono, come le nomina il catalogo della fonte (nessuna posizione: non sono sulla mappa)
+[object_type."ocean.network"]
+label = "Rete di osservazione del mare"
+geometry = "none"
+identity_schemes = ["ocean_network"]
+display = { family = "ocean", density_priority = 9, group = "Reti di osservazione del mare", map = false, facts = [{ property = "operator", label = "Gestore" }, { property = "licence_note", label = "Licenza dei dati" }, { property = "page_url", label = "Pagina della rete" }] }
+[object_type."ocean.network".properties]
+operator = { kind = "text" }
+licence_note = { kind = "text" }
+page_url = { kind = "text" }
+
+[relation_type."part_of_network"]
+label = "fa parte della rete"
+nature = "organizational"
+from = ["ocean.platform", "ocean.coastal_station", "ocean.tide_gauge"]
+to = ["ocean.network"]
+
+# Le stazioni a terra: il Paese che le contiene (contorno 1:50m), mai "vicino a"; le piattaforme in mare nessun Paese
+[[enrichment]]
+id = "ocean_station_containment"
+when_kind = "object"
+when_types = ["ocean.coastal_station"]
+container_type = "place.country"
+produce = "relation"
+relation_type = "located_in"
