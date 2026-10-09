@@ -251,7 +251,7 @@ export function GraphView() {
     const e = store.entity(id);
     const kind = extra.kind ?? e?.kind ?? "object";
     const t = store.get().types.get(e?.type ?? "");
-    const base = kind === "aggregate" ? "#56636B" : colorOf(t?.family, kind);
+    const base = kind === "aggregate" ? "#56636B" : colorOf(t?.family, kind, t?.id);
     const color = kind === "aggregate" ? base : alpha(base, bandOpacity[band(e?.confidence ?? 0.9)]);
     g.addNode(id, { label: extra.label ?? e?.label ?? id, kind, x: 0, y: 0, size: kind === "aggregate" ? 7 : kind === "object" ? 5.5 : 5,
       color, baseColor: base, shape: SHAPE_CODE[kind] ?? 0, ...extra });
@@ -579,7 +579,7 @@ function ShortRef({ id }: { id: string }) {
   const text = (e.kind === "insight" ? shortLabel(summaryOf(id), typeLabelOf) : null) ?? e.label;
   return (
     <button type="button" className="ref short" data-ref={id} title={e.label} onClick={() => store.select(id, "graph")}>
-      <span className="shape" style={{ color: colorOf(types.get(e.type)?.family, e.kind) }}>{SHAPE[e.kind]}</span>
+      <span className="shape" style={{ color: colorOf(types.get(e.type)?.family, e.kind, e.type) }}>{SHAPE[e.kind]}</span>
       <span className="lbl">{text}</span>
     </button>);
 }

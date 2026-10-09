@@ -33,7 +33,7 @@ export function TopBar() {
       <div className="tb-title" data-testid="tb-title">
         {focus && e ? (
           <button type="button" className="tb-focus" onClick={() => store.set({ sheet: "peek", inspectorOpen: true, overlay: null })}>
-            <span className="shape" style={{ color: colorOf(types.get(e.type)?.family, e.kind) }} aria-hidden>{SHAPE[e.kind]}</span>
+            <span className="shape" style={{ color: colorOf(types.get(e.type)?.family, e.kind, e.type) }} aria-hidden>{SHAPE[e.kind]}</span>
             <span className="tb-name">{e.label}</span>
           </button>
         ) : <span className="wordmark">NEX<b>U</b>M</span>}

@@ -69,6 +69,8 @@ export interface TypeInfo {
   rated?: { via: string; segments: string; length: string };
   /** an explorable element type (vocabulary hint "explore"): its own view, first in search, opened from the map's names */
   explore?: { label: string; one: string; many?: string; hint: string; placeholder?: string };
+  /** a place people name, ranked among namesakes (vocabulary hint "place_index"): the index of places holds its rank */
+  place_index?: { rank_property: string; min_rank?: number; context_property?: string };
 }
 
 export interface WorldStatus {

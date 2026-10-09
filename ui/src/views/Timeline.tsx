@@ -157,7 +157,7 @@ export function Timeline() {
       const e = store.entity(m.id);
       const y = m.track === 0 ? g.trackF : g.trackR;
       const isF = m.id === store.get().focus;
-      ctx.fillStyle = isF ? TOKENS.accent : colorOf(types.get(e?.type ?? "")?.family, e?.kind);
+      ctx.fillStyle = isF ? TOKENS.accent : colorOf(types.get(e?.type ?? "")?.family, e?.kind, e?.type);
       const r = isF ? 5 : m.id === hover.current ? 4.5 : 3.2;
       ctx.beginPath();
       if (e?.kind === "insight") { ctx.moveTo(px, y - r); ctx.lineTo(px + r, y); ctx.lineTo(px, y + r); ctx.lineTo(px - r, y); }

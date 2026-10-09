@@ -634,6 +634,9 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .changes li { margin: 5px 0; font-size: 13px; overflow-wrap: anywhere; }
 .maplabel.place.explorable { pointer-events: auto; cursor: pointer; }
 .maplabel.place.explorable:hover { color: var(--text); text-decoration: underline; }
+/* the ranked places on the map (e.g. cities): named by rank, each name opens its card */
+.maplabel.city { color: var(--text); pointer-events: auto; cursor: pointer; }
+.maplabel.city:hover { text-decoration: underline; }
 /* Phase 3B blocks on touch screens: every link and control at least 44 px tall */
 @media (pointer: coarse) {
   .obs .linklike, .gov .linklike, .rates .linklike, .gov-foot a, .overview .linklike, .ov-some .ref { display: inline-flex; align-items: center; min-height: 44px; }

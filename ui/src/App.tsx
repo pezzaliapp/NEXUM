@@ -32,7 +32,7 @@ async function bootstrap() {
     group: t.display_hints?.group, headline: t.display_hints?.headline, facts: t.display_hints?.facts,
     media: t.display_hints?.media, map: t.display_hints?.map, series: t.display_hints?.series, wave: t.display_hints?.wave, indicator: t.display_hints?.indicator, digest: t.display_hints?.digest, subtypes: t.display_hints?.subtypes, nearby_media_km: t.display_hints?.nearby_media_km,
     tenure: t.display_hints?.tenure, rates: t.display_hints?.rates, rated: t.display_hints?.rated,
-    explore: t.display_hints?.explore }));
+    explore: t.display_hints?.explore, place_index: t.display_hints?.place_index }));
   add(ty.data.object_types, "object");
   add(ty.data.event_types, "event");
   add(ty.data.relation_types, "relation");

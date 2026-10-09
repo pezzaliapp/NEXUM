@@ -14,6 +14,7 @@ import { S } from "../lib/strings";
 import { SnapshotAge } from "../components/WebNotes";
 import { FiltersChip, Freshness, PeriodChip, ResetChip, usePeriodName } from "../components/Period";
 import { typeLabelOf } from "../components/Highlights";
+import { loadPlaces } from "../components/SearchBox";
 import { head, register, shortLabel, summaryOf } from "../lib/summary";
 import type { Scope } from "../lib/types";
 import { useEntity, store, useStore } from "../store";
@@ -68,10 +69,16 @@ const LOCAL_Z = 5.5;        // MapLibre zoom from which the elements themselves 
 const DENSITY_OPACITY = { idle: 1, focus: 0.55 };
 export const DENSITY_INTENSITY = { flat: 0.42, globe: 0.3 };
 const DENSITY_SPREAD = 1.45;   // heatmap radius in cell spacings (cells are regular in longitude, wider apart in Mercator rows near the poles)   // multiplies the zoom fade of the density layer
-// elements without a date (places, infrastructure: always visible, already named by the backdrop) recede; the
-// period's events and insights stand out
-const ITEM_OPACITY_IDLE: any = ["*", ["get", "o"], ["case", ["==", ["get", "k"], "object"], 0.4, 1]];
+// elements without a date (places, infrastructure) are small marks a little quieter than the period's events and
+// insights, yet legible on the dark map and on imagery (2026-10-09, map legibility: at 0.4 a port or a city vanished
+// on imagery). A focused element: the others recede. A focused area (an explorable element, e.g. a state): the layers
+// shown stay as they are — the area's orange outline is the emphasis.
+const ITEM_OPACITY_IDLE: any = ["*", ["get", "o"], ["case", ["==", ["get", "k"], "object"], 0.75, 1]];
 const ITEM_OPACITY_FOCUS: any = ["*", ["get", "o"], ["case", ["boolean", ["feature-state", "lk"], false], 1, 0.35]];
+/** Population (rank) from which a ranked place is named at a zoom: the most populous first, more as the map zooms in. */
+const NAME_FROM = (z: number) => (z < 5.5 ? 1e6 : z < 7 ? 3e5 : z < 8.5 ? 5e4 : 0);
+/** Labels of places (index of the backdrop) from this rank on are small areas (micro-states): named after the cities. */
+const MINOR_PLACE_RANK = 6;
 const CONTEXT_FIRST_MS = 1500;
 const SNAP_Z = 10;          // Core zoom from which the viewport is snapped to 0.01° instead of to aggregate cells
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
@@ -284,7 +291,10 @@ export function MapView() {
             5, ["match", ["get", "k"], "object", 0.18, 0.4], 8, ["match", ["get", "k"], "object", 0.3, 0.45],
             12, ["match", ["get", "k"], "object", 0.5, 0.55]],
           "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "p"] },
-          paint: { "icon-color": ["get", "c"], "icon-opacity": ITEM_OPACITY_IDLE } });
+          // elements: a thin dark edge (the labels' own shadow colour) sets them apart on imagery — their size and touch
+          // area are unchanged: a larger mark would cover the operational marks drawn underneath (a port in a port city)
+          paint: { "icon-color": ["get", "c"], "icon-opacity": ITEM_OPACITY_IDLE,
+            "icon-halo-color": "#0D1012", "icon-halo-width": ["case", ["==", ["get", "k"], "object"], 1.2, 0] } });
         // WORLD MODE: the notable events of "Cosa sta succedendo", named (they are elements of the world like any other)
         m.addLayer({ id: "nexum-hl-ring", type: "symbol", source: "nexum-hl", layout: { "icon-image": "ring", "icon-size": 0.62,
           "icon-allow-overlap": true, "icon-ignore-placement": true }, paint: { "icon-color": "#D6DBDE", "icon-opacity": 0.75 } });
@@ -511,11 +521,18 @@ export function MapView() {
       }
       idsRef.current = ids;
       const types = store.get().types;
+      if (!ranksAsked.current && ids.some((id) => { const t = types.get(store.entity(id)?.type ?? ""); return !!t?.place_index && !t.explore; })) {
+        ranksAsked.current = true;
+        loadPlaces().then((all) => {
+          ranks.current = new Map(all.filter((x) => x[5] != null).map((x) => [x[0], [x[5] as number, x[6] ?? null]]));
+          drawLabels();
+        });
+      }
       const feats = ids.map((id) => {
         const e = store.entity(id)!;
         const t = types.get(e.type);
         return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: e.point! },
-          properties: { id, k: e.kind, c: colorOf(t?.family, e.kind), o: bandOpacity[band(e.confidence)],
+          properties: { id, k: e.kind, c: colorOf(t?.family, e.kind, e.type), o: bandOpacity[band(e.confidence)],
             p: t?.density_priority ?? 9, f: t?.family ?? "" } };
       }).filter((f) => f.geometry.coordinates);
       (m.getSource("nexum-items") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats });
@@ -619,7 +636,9 @@ export function MapView() {
     const st = store.get();
     const k = st.focus ? DENSITY_OPACITY.focus : DENSITY_OPACITY.idle;
     m.setPaintProperty("nexum-density", "heatmap-opacity", ["interpolate", ["linear"], ["zoom"], 0, k, 3, 0.8 * k, 4.8, 0.35 * k, LOCAL_Z, 0]);
-    m.setPaintProperty("nexum-items", "icon-opacity", st.focus ? ITEM_OPACITY_FOCUS : ITEM_OPACITY_IDLE);
+    // a focused area keeps the layers as shown, unless its connections are asked on the map (then they stand out)
+    const area = !!st.focus && !!st.types.get(store.entity(st.focus)?.type ?? "")?.explore && st.mapLinks !== st.focus;
+    m.setPaintProperty("nexum-items", "icon-opacity", !st.focus || area ? ITEM_OPACITY_IDLE : ITEM_OPACITY_FOCUS);
     m.removeFeatureState({ source: "nexum-items" });
     if (!st.focus) return;
     const ctx = st.context?.id === st.focus ? st.context.data : null;
@@ -675,7 +694,7 @@ export function MapView() {
       src.setData({ type: "FeatureCollection", features: ids.map((id) => {
         const e = store.entity(id)!;
         return { type: "Feature" as const, geometry: { type: "Point" as const, coordinates: e.point! },
-          properties: { id, k: e.kind, c: colorOf(types.get(e.type)?.family, e.kind) } };
+          properties: { id, k: e.kind, c: colorOf(types.get(e.type)?.family, e.kind, e.type) } };
       }) });
       drawLabels();
     }).catch(() => {});
@@ -738,6 +757,10 @@ export function MapView() {
   // Place names of the backdrop (same source as the borders): fetched once, drawn with the level of detail the
   // source recommends; the place names of the focus's connections are drawn first and highlighted.
   const placeNames = useRef<{ name: string; x: number; y: number; min_zoom: number; rank: number }[] | null>(null);
+  // the rank (e.g. inhabitants) and context (e.g. its state) of the places people name, from the index of places — read
+  // only once such a place is on the map (the layer on, the regional zoom): never on the first screen otherwise
+  const ranks = useRef<Map<string, [number, string | null]> | null>(null);
+  const ranksAsked = useRef(false);
   useEffect(() => {
     if (!hasGeo) return;
     plain<any>("/basemap/labels.json").then((d) => { placeNames.current = d.labels ?? []; drawLabels(); }, () => { placeNames.current = []; });
@@ -759,7 +782,7 @@ export function MapView() {
       const out: string[] = [];
       const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
       // one label at a screen point; `center` for place names, to the right of the mark for elements
-      const put = (x: number, y: number, text: string, cls: string, center: boolean, force = false) => {
+      const put = (x: number, y: number, text: string, cls: string, center: boolean, force = false, id?: string) => {
         if (x < 0 || y < 0 || x > w || y > h) return false;
         const cw = cls.includes("place") ? 7.2 : cls ? 7.4 : 6.4;
         const lines = cls.includes("ins") ? Math.min(3, Math.ceil((text.length * cw) / 220)) : 1;   // what NEXUM found wraps, never cut
@@ -769,14 +792,35 @@ export function MapView() {
         if (!force && boxes.some(([x1, y1, x2, y2]) => bx < x2 && bx + bw > x1 && by < y2 && by + bh > y1)) return false;
         boxes.push([bx, by, bx + bw, by + bh]);
         const named = cls.includes("place") && exploreTypes().length > 0;
-        out.push(`<div class="maplabel ${cls}${named ? " explorable" : ""}${flip ? " flip" : ""}"${named ? ` role="button" data-name="${esc(text)}"` : ""} style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;max-width:${Math.max(80, Math.min(220, flip ? x - 12 : w - x - 12))}px">${esc(text)}</div>`);
+        const opens = named ? ` role="button" data-name="${esc(text)}"` : id ? ` role="button" data-id="${esc(id)}"` : "";
+        out.push(`<div class="maplabel ${cls}${named ? " explorable" : ""}${flip ? " flip" : ""}"${opens} style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;max-width:${Math.max(80, Math.min(220, flip ? x - 12 : w - x - 12))}px">${esc(text)}</div>`);
         return true;
       };
-      const place = (id: string, cls: string, force = false) => {
+      const place = (id: string, cls: string, force = false, opens = false) => {
         const e = store.entity(id), pt = pointOf(id);
         if (!e || !pt || occluded(m, pt)) return;
         const p = m.project(pt);
-        put(p.x, p.y, e.label, cls, false, force);
+        put(p.x, p.y, e.label, cls, false, force, opens ? id : undefined);
+      };
+      // PLACES PEOPLE NAME (2026-10-09, city map audit): the ranked places on the map (e.g. inhabited places), the most
+      // populous first and more of them as the map zooms in; those of the place in focus first. Within the label budget
+      // and the same no-overlap rule; each name opens its card.
+      const isRanked = (id: string) => { const t = st.types.get(store.entity(id)?.type ?? ""); return !!t?.place_index && !t.explore; };
+      const ranked = () => {
+        const from = NAME_FROM(m.getZoom()), rk = ranks.current;
+        if (!rk) return [];
+        const home = st.focus && st.types.get(store.entity(st.focus)?.type ?? "")?.explore ? store.entity(st.focus)?.label : null;
+        return idsRef.current.filter((id) => id !== st.focus && isRanked(id) && (rk.get(id)?.[0] ?? 0) >= from)
+          .map((id) => ({ id, r: rk.get(id)?.[0] ?? 0, h: home && rk.get(id)?.[1] === home ? 1 : 0 }))
+          .sort((a, b) => b.h - a.h || b.r - a.r).map((x) => x.id);
+      };
+      // the ranked places take at most half of the names before the places of the backdrop, the rest after them
+      const namedRanked = new Set<string>();
+      const nameRanked = (upTo: number) => {
+        for (const id of ranked()) {
+          if (out.length >= Math.min(max, upTo)) break;
+          if (!namedRanked.has(id)) { namedRanked.add(id); place(id, "city", false, true); }
+        }
       };
       const zWeb = m.getZoom() + 1;                          // the source's zoom scale (256 px tiles)
       const names = (placeNames.current ?? []).filter((n) => {
@@ -808,8 +852,11 @@ export function MapView() {
           const n = byName.get(store.entity(id)?.label ?? "");
           if (n) putName(n, "place linked"); else place(id, "linked");
         }
-        // 3. geography: the place names the source recommends at this zoom
-        for (const n of names) { if (out.length >= max) break; if (!used.has(n.name) && n.min_zoom <= zWeb) putName(n, "place"); }
+        // 3. geography: the place names the source recommends at this zoom, the ranked places before the small areas
+        nameRanked(out.length + Math.ceil((max - out.length) / 2));
+        for (const n of names) { if (out.length >= max) break; if (!used.has(n.name) && n.min_zoom <= zWeb && n.rank < MINOR_PLACE_RANK) putName(n, "place"); }
+        nameRanked(max);
+        for (const n of names) { if (out.length >= max) break; if (!used.has(n.name) && n.min_zoom <= zWeb && n.rank >= MINOR_PLACE_RANK) putName(n, "place"); }
         host.innerHTML = out.join("");
         return;
       }
@@ -821,8 +868,12 @@ export function MapView() {
         const p = m.project(pt);
         put(p.x, p.y, text, id.startsWith("ins_") ? "hl ins" : "hl", false);
       }
-      for (const n of names) { if (out.length >= max) break; if (n.min_zoom <= zWeb) putName(n, "place"); }
-      const ids = [...idsRef.current].sort((a, b) => {
+      nameRanked(out.length + Math.ceil((max - out.length) / 2));
+      for (const n of names) { if (out.length >= max) break; if (n.min_zoom <= zWeb && n.rank < MINOR_PLACE_RANK) putName(n, "place"); }
+      nameRanked(max);
+      for (const n of names) { if (out.length >= max) break; if (n.min_zoom <= zWeb && n.rank >= MINOR_PLACE_RANK) putName(n, "place"); }
+      // the other elements (the ranked places are named above, by rank, or not at all)
+      const ids = idsRef.current.filter((id) => !isRanked(id)).sort((a, b) => {
         const ea = store.entity(a)!, eb = store.entity(b)!;
         const pa = st.types.get(ea.type)?.density_priority ?? 9, pb = st.types.get(eb.type)?.density_priority ?? 9;
         return pa - pb || (eb.confidence ?? 0) - (ea.confidence ?? 0);
@@ -844,6 +895,8 @@ export function MapView() {
       <div ref={labelsEl} className="maplabels" data-testid="map-labels" onClick={(ev) => {
         const name = (ev.target as HTMLElement).closest<HTMLElement>(".maplabel.explorable")?.dataset.name;
         if (name) openNamed(name, "map-name");
+        const id = (ev.target as HTMLElement).closest<HTMLElement>(".maplabel[data-id]")?.dataset.id;
+        if (id) store.select(id, "map-name");
       }} />
       <div ref={tipEl} className="tooltip" style={{ display: "none" }} />
       <div className="view-toolbar">

@@ -60,7 +60,7 @@ export function EventLine({ id, h }: { id: string; h?: any[] }) {
   return (
     <li className="disc">
       <button type="button" className="disc-btn" data-ref={id} onClick={() => store.select(id, "highlights")}>
-        <span className="disc-kind"><span className="shape" style={{ color: colorOf(t?.family, e?.kind) }} aria-hidden>{SHAPE[e?.kind ?? "event"]}</span> {t?.label}{fact ? ` · ${fact}` : ""}</span>
+        <span className="disc-kind"><span className="shape" style={{ color: colorOf(t?.family, e?.kind, t?.id) }} aria-hidden>{SHAPE[e?.kind ?? "event"]}</span> {t?.label}{fact ? ` · ${fact}` : ""}</span>
         <span className="disc-text">{e?.label}</span>
         {e?.t != null && <span className="disc-date">{dayLabel(e.t)}</span>}
       </button>
@@ -100,7 +100,7 @@ export function Highlights() {
               return (
                 <button key={x.type} type="button" className="chip" aria-pressed={on} data-type={x.type} title={S.hl.onlyThis}
                   onClick={() => (on ? store.setMapTypes(store.get().defaults.mapTypes) : only(x.type))}>
-                  <span style={{ color: colorOf(t?.family, t?.kind) }} aria-hidden>{SHAPE[t?.kind ?? "event"]}</span> {t?.label ?? x.type} · {x.n.toLocaleString("it-IT")}
+                  <span style={{ color: colorOf(t?.family, t?.kind, t?.id) }} aria-hidden>{SHAPE[t?.kind ?? "event"]}</span> {t?.label ?? x.type} · {x.n.toLocaleString("it-IT")}
                 </button>);
             })}
           </div>

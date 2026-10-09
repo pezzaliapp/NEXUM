@@ -1,0 +1,41 @@
+{
+ "_comment": "COLOURS BY MEANING (2026-10-09, map legibility). One muted hue per family of the vocabulary (display hint 'family'), chosen for what the family is — not by its position in a sorted list — so a family added to the vocabulary never shifts another one's colour: a family not listed here is drawn in the neutral grey of the palette until a hue is chosen for it. A type may refine its family's hue when two kinds of the same family must be told apart on the map (sea and air transport). Shape still tells the nature (■ element, ● event, ◆ connection found by NEXUM); the selection keeps the accent and NEXUM's connections the link colour, which no family uses.",
+ "families": {
+  "place": "#C3CBD0",
+  "transport": "#9A8BC4",
+  "energy": "#C08064",
+  "natural_feature": "#B07A8C",
+  "natural_event": "#6FA3A0",
+  "conflict": "#B85B55",
+  "response": "#9785B3",
+  "toll": "#86A07A",
+  "camera": "#6E8797",
+  "event": "#9785B3",
+  "government": "#B39B5E",
+  "observation": "#8C9AB8",
+  "person": "#A3907E",
+  "space": "#6F7FA6"
+ },
+ "_families": {
+  "place": "places of reference (inhabited places, states): a pale neutral, the backdrop of everything else",
+  "transport": "air transport (airfields): violet",
+  "energy": "power plants: terracotta",
+  "natural_feature": "volcanoes and other natural features: rose",
+  "natural_event": "natural hazards (earthquakes, fires, storms, floods): teal",
+  "conflict": "organised violence: a muted red, as the security zones",
+  "response": "emergency response (mapping activations): lavender, as the other source registers of events",
+  "toll": "tolled roads: green",
+  "camera": "public webcams: steel blue (their own point layer keeps the colours of config/points.json)",
+  "event": "registers of events (not on the map): lavender",
+  "government": "governments and offices (not on the map): ochre",
+  "observation": "measured series (not on the map): grey-blue",
+  "person": "office holders (not on the map): taupe",
+  "space": "satellites (not on the map; orbits have their own layer): slate"
+ },
+ "types": {
+  "transport.port": "#4F95BF"
+ },
+ "_types": {
+  "transport.port": "sea transport (ports and landings): sea blue, apart from airfields"
+ }
+}

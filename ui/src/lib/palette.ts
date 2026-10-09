@@ -1,27 +1,34 @@
-// Visual encoding (decision D7). Nature → shape; family (from vocab display hints) → one of a few muted hues,
-// assigned by sorted family name so that no domain vocabulary is written in the UI code (W9).
+// Visual encoding (decision D7). Nature → shape; family (from vocab display hints) → one muted hue chosen for its
+// meaning in src/config/palette.json (2026-10-09: no longer by sorted position, which turned every family past the
+// eighth into the same grey and would shift colours whenever the vocabulary grows). A type may refine its family's
+// hue; a family not in the configuration is drawn in the neutral grey. No domain vocabulary in this code (W9).
 
 import type { Kind, TypeInfo } from "./types";
+import PALETTE from "../config/palette.json";
 
 export const TOKENS = {
   bg: "#0D1012", panel: "#13171A", raised: "#1A1F23", line: "#262C31",
   text: "#D6DBDE", dim: "#8A949A", accent: "#E0A640", link: "#79A7C9",
 };
-export const FAMILY_HUES = ["#6E8797", "#86A07A", "#C08064", "#9785B3", "#B39B5E", "#6FA3A0", "#B07A8C", "#8C9AB8"];
 export const OTHER = "#77858B";
 export const INSIGHT = "#C9B98A";
 export const SHAPE: Record<Kind, string> = { object: "■", event: "●", insight: "◆", relation: "—" };
 
-let familyColor = new Map<string, string>();
+const FAMILIES: Record<string, string> = PALETTE.families;
+const TYPES: Record<string, string> = PALETTE.types;
+let typeFamily = new Map<string, string>();
 
+/** The family of each type (to colour an element known only by its type). */
 export function setFamilies(types: TypeInfo[]) {
-  const fams = [...new Set(types.map((t) => t.family).filter(Boolean))].sort();
-  familyColor = new Map(fams.map((f, i) => [f, i < FAMILY_HUES.length ? FAMILY_HUES[i] : OTHER]));
+  typeFamily = new Map(types.map((t) => [t.id, t.family]));
 }
 
-export function colorOf(family: string | undefined, kind?: Kind): string {
+/** The colour of an element: its type's own hue, else its family's, else the neutral grey; insights their own. */
+export function colorOf(family: string | undefined, kind?: Kind, type?: string): string {
   if (kind === "insight") return INSIGHT;
-  return (family && familyColor.get(family)) || OTHER;
+  if (type && TYPES[type]) return TYPES[type];
+  const f = family ?? (type ? typeFamily.get(type) : undefined);
+  return (f && FAMILIES[f]) || OTHER;
 }
 
 export const bandOpacity = [0.45, 0.7, 1.0];

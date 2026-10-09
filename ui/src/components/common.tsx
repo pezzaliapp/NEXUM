@@ -17,7 +17,7 @@ export function Ref({ id, origin = "inspector", showType = false, title }: { id:
   return (
     <button type="button" className={`ref${focus === id ? " is-focus" : ""}`} data-ref={id} title={title ?? e.label}
       onClick={(ev) => (ev.shiftKey ? store.setSecondary(id) : store.select(id, origin))}>
-      <span className="shape" style={{ color: colorOf(t?.family, e.kind) }}>{SHAPE[e.kind]}</span>
+      <span className="shape" style={{ color: colorOf(t?.family, e.kind, e.type) }}>{SHAPE[e.kind]}</span>
       <span className="lbl">{e.label}</span>
       {showType && <span className="faint xs">{t?.label ?? e.type}</span>}
     </button>

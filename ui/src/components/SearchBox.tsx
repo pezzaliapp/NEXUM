@@ -29,7 +29,8 @@ function groupRank(g: any, text: string): number {
 // name ("Sudan: Government · Sudan") above the place itself. A small index of the explorable places (labels and their
 // source names, read once on the first search) puts a place named exactly or by prefix first — generic, no exception list.
 let placesP: Promise<Place[]> | null = null;
-const loadPlaces = () => (placesP ??= call<any>("/places-index", undefined, { channel: "places-index" })
+/** The index of places, read once (the first search, or the map naming its places by rank). */
+export const loadPlaces = () => (placesP ??= call<any>("/places-index", undefined, { channel: "places-index" })
   .then((r) => r.data.places as Place[], () => { placesP = null; return [] as Place[]; }));
 /** The clear name of a place when its source label is abbreviated (null otherwise), from the loaded index. */
 export async function clearNameOf(id: string): Promise<string | null> {
@@ -154,7 +155,7 @@ export function SearchBox({ inline = false }: { inline?: boolean } = {}) {
             const head = group !== lastGroup ? (lastGroup = group, <div className="grp" key={`g-${group}`}>{types.get(group)?.label ?? group.replace(/_/g, " ")}</div>) : null;
             return [head, (
               <div key={id} className="it" role="option" aria-selected={i === sel} data-ref={id} onMouseEnter={() => setSel(i)} onClick={() => choose(id)}>
-                <span style={{ color: colorOf(types.get(e.type)?.family, e.kind) }}>{SHAPE[e.kind]}</span>
+                <span style={{ color: colorOf(types.get(e.type)?.family, e.kind, e.type) }}>{SHAPE[e.kind]}</span>
                 <span className="grow ellipsis">{clear[id] ? `${clear[id]} (${e.label})` : e.label}</span>
                 {ctx[id] && <span className="xs dim ellipsis" data-testid="search-context">{ctx[id]}</span>}
                 {e.t != null && <span className={`xs ${inPeriod(e.t, scope.time_window ?? null) ? "dim" : "accent"}`} data-outside={!inPeriod(e.t, scope.time_window ?? null) || undefined}>

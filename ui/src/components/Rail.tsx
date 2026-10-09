@@ -89,7 +89,7 @@ export function Rail() {
       <label key={c.key} className={`typerow${on ? "" : " off"}`} data-type={c.ids[0]} data-group={c.label}>
         <input type="checkbox" checked={on === c.ids.length} ref={(el) => { if (el) el.indeterminate = on > 0 && on < c.ids.length; }}
           onChange={() => setIds(c.ids, on < c.ids.length)} />
-        <span style={{ color: colorOf(c.family, c.kind) }} aria-hidden>{SHAPE[c.kind]}</span>
+        <span style={{ color: colorOf(c.family, c.kind, c.ids[0]) }} aria-hidden>{SHAPE[c.kind]}</span>
         <span className="ellipsis">{c.label}</span>
         <span className="n">{num(c.n)}</span>
       </label>);
