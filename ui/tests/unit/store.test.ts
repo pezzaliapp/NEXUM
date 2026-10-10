@@ -53,3 +53,73 @@ test("LRU keeps at most MAX_REFS entities and never evicts focus or trail", () =
   assert.ok(s.entityCount() <= MAX_REFS);
   assert.ok(s.entity(ref(0).id), "focus and trail survive eviction");
 });
+
+// Touch navigation (2026-10-10, first use on a phone): Indietro returns to the screen before, × leaves the cards for where
+// the first one was opened; filters, period and the investigation's steps are never touched.
+test("touch Indietro: Mappa → Evento → Dettaglio → Indietro → Mappa", () => {
+  const s = createStore();
+  s.normalize({ a: ref(1), b: ref(2) });
+  s.select(ref(1).id, "map");
+  s.set({ sheet: "full" });                                  // the detail
+  s.select(ref(2).id, "connection");
+  assert.equal(s.up(), true);
+  assert.equal(s.get().focus, ref(1).id);
+  assert.equal(s.get().trail.index, 0);
+  assert.equal(s.up(), true);
+  assert.equal(s.get().focus, null);                         // the map, nothing in focus
+  assert.equal(s.canUp(), false);
+  assert.equal(s.up(), false);                               // the start: Back belongs to the browser
+  assert.deepEqual(s.get().trail.steps.map((x) => x.ref), [ref(1).id, ref(2).id]);   // the investigation keeps its steps
+});
+
+test("touch ×: Mappa → Indagine → Evento → Chiudi → Indagine → Mappa", () => {
+  const s = createStore();
+  s.normalize({ a: ref(1), b: ref(2) });
+  s.select(ref(1).id, "map");
+  s.select(ref(2).id, "map");
+  s.select(null, "map");
+  s.set({ overlay: "trail" });                               // the Indagine, from the map
+  s.go(0);                                                   // a step of it
+  assert.equal(s.get().focus, ref(1).id);
+  assert.equal(s.get().overlay, null);
+  s.select(ref(2).id, "connection");                         // deeper, then ×: out of every card
+  s.closeCard();
+  assert.equal(s.get().focus, null);
+  assert.equal(s.get().overlay, "trail");                    // back in the Indagine
+  assert.deepEqual(s.get().trail.steps.map((x) => x.ref), [ref(1).id, ref(2).id]);
+  s.set({ overlay: null });                                  // its Chiudi
+  assert.equal(s.canUp(), false);
+});
+
+test("touch Indietro keeps the filters, the period and the surface it returns to", () => {
+  const s = createStore();
+  s.normalize({ a: ref(1), b: ref(2) });
+  s.setScope({ min_confidence: 0.7 });
+  s.set({ mapTypes: ["t.x"] });
+  s.select(ref(1).id, "map");
+  s.set({ mobileTab: "graph", stage: "graph" });
+  s.select(ref(2).id, "graph");
+  s.up();
+  assert.equal(s.get().focus, ref(1).id);
+  assert.equal(s.get().stage, "graph");                      // the screen as it was when the step was taken
+  s.up();
+  assert.equal(s.get().focus, null);
+  assert.equal(s.get().stage, "map");
+  assert.equal(s.get().scope.min_confidence, 0.7);
+  assert.deepEqual(s.get().mapTypes, ["t.x"]);
+});
+
+test("touch: from a search result, Indietro returns to the search; from another surface, to the map", () => {
+  const s = createStore();
+  s.normalize({ a: ref(1) });
+  s.set({ overlay: "search" });
+  s.select(ref(1).id, "search");
+  s.up();
+  assert.equal(s.get().overlay, "search");
+  assert.equal(s.get().focus, null);
+  s.set({ overlay: null, mobileTab: "time" });
+  assert.equal(s.canUp(), true);
+  s.up();
+  assert.equal(s.get().mobileTab, "map");
+  assert.equal(s.canUp(), false);
+});

@@ -368,6 +368,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .sheet-handle { flex: none; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none;
   min-height: 28px !important; height: 28px; }
 .sheet-handle .grip { width: 44px; height: 5px; border-radius: 3px; background: var(--line-strong); }
+/* × on the card: always in the same place, at the top right, at every height of the sheet (name line included) */
+.sheet-close { position: absolute; top: 0; right: 2px; z-index: 3; font-size: 22px; line-height: 1; padding: 0;
+  background: transparent; border-color: transparent; color: var(--dim); }
+.touch.as-sheet .insp .sheet-handle { margin: 0 46px; }   /* the grip in the middle, the × beside it, never one over the other */
+.touch.as-sheet .insp .focushead h1, .touch.as-sheet .insp .phead { padding-right: 40px; }
 .sheet-more { flex: none; border-radius: 0; border-top: 1px solid var(--line) !important; background: var(--panel);
   color: var(--link); font-size: 13px; min-height: 48px !important; box-shadow: 0 -12px 12px -4px var(--panel); }
 .touch.as-sheet .insp[data-sheet="peek"] .pbody { flex: 1 1 auto; min-height: 0; }
@@ -996,3 +1001,7 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .focus-strip .strip-pre { flex: none; font-size: var(--fs-xs); color: var(--dim); white-space: nowrap; font-weight: 400; }
 .focus-strip .tb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .focus-strip .sel-clear { flex: none; min-width: 44px; min-height: 44px; }
+/* iPhone in landscape (viewport-fit=cover): the bars and the card stay clear of the notch and the rounded corners */
+.app.touch .topbar { padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right)); }
+.app.touch .tabs, .touch.as-sheet .insp { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.app.touch .card-strip { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }

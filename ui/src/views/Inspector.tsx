@@ -1,7 +1,7 @@
 import { lazyStale } from "../lib/stale";
 import { Suspense } from "react";
 import { S } from "../lib/strings";
-import { isSheet, isTouch } from "../lib/layers";
+import { dismissTop, isSheet, isTouch } from "../lib/layers";
 import { store, useStore } from "../store";
 import { WorldSummary } from "./WorldSummary";
 import { sheetDrag, sheetRoom } from "../lib/sheetdrag";
@@ -37,6 +37,8 @@ export function Inspector() {
     <aside className="insp" aria-label="inspector" data-testid="inspector" data-panel={panel}
       data-sheet={touch ? (asSheet ? sheet : "side") : undefined}>
       {asSheet && <SheetHandle />}
+      {asSheet && <button type="button" className="sheet-close" aria-label={S.m.close} title={S.m.close} data-testid="sheet-close"
+        onClick={() => (panel === "why" && whyId ? dismissTop() : focus ? store.closeCard() : store.set({ inspectorOpen: false, sheet: "peek" }))}>×</button>}
       {body}
       {asSheet && focus && sheet === "peek" && panel !== "why" && (
         <button type="button" className="sheet-more" data-testid="sheet-more" onClick={() => store.set({ sheet: "full" })}>

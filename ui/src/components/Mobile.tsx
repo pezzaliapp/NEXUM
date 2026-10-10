@@ -2,14 +2,14 @@
 // strip that stands for the focus card when it is not open. THE FOCUS CARD IS THE INTERFACE: Map, Graph and Time are
 // the surfaces behind it. Same world, stable IDs, focus, trail and semantics as the desktop workspace.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { SHAPE, colorOf } from "../lib/palette";
 import { S } from "../lib/strings";
-import { dismissTop, isSheet, openOverlay } from "../lib/layers";
+import { canGoBack, dismissTop, goBack, isSheet, openOverlay, subscribeLayers } from "../lib/layers";
 import { store, useEntity, useStore } from "../store";
 import type { MobileTab } from "../store/store";
 import { Rail } from "./Rail";
-import { SearchBox } from "./SearchBox";
+import { SearchBox, clearInlineSearch } from "./SearchBox";
 import { TrailSheet } from "./TrailBar";
 import { SnapshotAge } from "./WebNotes";
 import { SNAPSHOT } from "../lib/api";
@@ -17,9 +17,12 @@ import { Freshness, PeriodSheet, ResetChip, useChanges } from "./Period";
 import { Discovery, useHighlights } from "./Highlights";
 export { FiltersChip } from "./Period";
 
-/** ← · current focus · Percorso ▾ · ⋯ */
+const subscribeBack = (l: () => void) => { const a = store.subscribe(l), b = subscribeLayers(l); return () => { a(); b(); }; };
+
+/** ← · ⌂ · current focus · Indagine ▾ · ⋯ — ← is the same as the system Back (the topmost layer, then the screen before). */
 export function TopBar() {
   const trail = useStore((s) => s.trail);
+  const back = useSyncExternalStore(subscribeBack, canGoBack);
   const focus = useStore((s) => s.focus);
   const overlay = useStore((s) => s.overlay);
   const e = useEntity(focus);
@@ -27,7 +30,7 @@ export function TopBar() {
   return (
     <header className="cmd topbar" data-testid="topbar">
       <button type="button" className="tb-back" aria-label={S.m.back} title={S.m.back} data-testid="tb-back"
-        disabled={trail.index <= 0} onClick={() => store.back()}>←</button>
+        disabled={!back} onClick={() => goBack()}>←</button>
       <button type="button" className="tb-home" aria-label={S.home} title={S.homeTitle} data-testid="tb-home"
         disabled={!focus} onClick={() => store.home()}>⌂</button>
       <div className="tb-title" data-testid="tb-title">
@@ -59,8 +62,10 @@ export function BottomNav() {
   const overlay = useStore((s) => s.overlay);
   const focus = useStore((s) => s.focus);
   const go = (id: MobileTab | "search") => {
-    if (id === "search") return openOverlay("search");
+    if (id === "search") { clearInlineSearch(); return openOverlay("search"); }
     const sheet = store.get().sheet;
+    // Mappa again, on the map: the map in view, the element's card down to its name line (nothing closed, nothing lost)
+    if (id === "map" && tab === "map" && !overlay) return focus ? store.set({ sheet: "mini" }) : undefined;
     // Graph and Time tell the connections themselves: the card steps back to its name line (never hidden)
     const next = !focus ? sheet : id === "map" ? (sheet === "mini" ? "peek" : sheet) : "mini";
     store.set({ mobileTab: id, overlay: null, sheet: next === "full" ? "mini" : next,
@@ -84,7 +89,8 @@ export function Overlays() {
   const overlay = useStore((s) => s.overlay);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (overlay === "search") (document.getElementById("nexum-search") as HTMLInputElement | null)?.focus();
+    // the search comes back with its words (from a result, Back): the keyboard only for an empty field
+    if (overlay === "search") { const i = document.getElementById("nexum-search") as HTMLInputElement | null; if (i && !i.value) i.focus(); }
     else panel.current?.querySelector<HTMLElement>("button, input")?.focus({ preventScroll: true });
   }, [overlay]);
   if (!overlay) return null;

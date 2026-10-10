@@ -37,9 +37,14 @@ export async function clearNameOf(id: string): Promise<string | null> {
   const p = (await loadPlaces()).find((x) => x[0] === id);
   return p?.[4] ?? null;
 }
+// the words of the touch "Cerca": still there when Back returns to the search from a result; a new search starts empty
+let inlineQ = "";
+export const clearInlineSearch = () => { inlineQ = ""; };
+
 /** `inline`: inside the touch "Cerca" overlay (results listed under the field, always open). */
 export function SearchBox({ inline = false }: { inline?: boolean } = {}) {
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(inline ? inlineQ : "");
+  useEffect(() => { if (inline) inlineQ = q; }, [inline, q]);
   const [listOpen, setListOpen] = useState(false);
   const [res, setRes] = useState<{ ids: { id: string; group: string }[]; ranked: boolean; est: number | null } | null>(null);
   const [sel, setSel] = useState(0);

@@ -23,6 +23,12 @@ export type MobileTab = "map" | "graph" | "time" | "search" | "focus";
 export type Overlay = "filters" | "menu" | "trail" | "search" | "info" | "period";
 /** The focus card on touch layouts: a name line (mini), the first connections (peek), everything (full). */
 export type Sheet = "mini" | "peek" | "full";
+/** The surface behind the card on touch layouts. */
+export type Surface = "map" | "graph" | "time";
+/** A screen the person can go back to on touch layouts (session only, never saved): what was in focus, the section, the
+ *  overlay it was opened from (Indagine, Cerca), the surface, the step of the investigation. */
+export interface NavEntry { focus: string | null; section: string; overlay: Overlay | null; surface: Surface; index: number;
+  placeCtx: State["placeCtx"] }
 
 export interface State {
   status: WorldStatus | null;
@@ -76,6 +82,8 @@ export interface State {
   /** Where the person came from inside an explorable element's view (e.g. Italy · Opinione), kept while they go deeper
    *  from it, so the way back is one tap; cleared when they navigate from elsewhere. */
   placeCtx: { id: string; section: string } | null;
+  /** Touch layouts: the screens under the current one (← and the system Back return to them, × leaves the cards). */
+  navStack: NavEntry[];
 }
 
 /** Changes the person made with respect to the starting state (the badge "Filtri · N" counts `filters`). */
@@ -110,7 +118,7 @@ export function createStore() {
     section: "overview", mapFit: null, mapLinks: null, placeCtx: null, mobileTab: "map", railOpen: false, inspectorOpen: false, worldVersion: 0, rev: 0, mapInfo: null, mapCredits: [], viewport: null, context: null, path: null,
     overlay: null, sheet: "peek", mapFloor: 0, graphUnfiltered: null,
     period: DEFAULT_PERIOD, clock: null, defaults: { mapFloor: 0, mapTypes: DEFAULT_MAP_TYPES }, homeTick: 0,
-    mapTypes: DEFAULT_MAP_TYPES, mapZones: false,
+    mapTypes: DEFAULT_MAP_TYPES, mapZones: false, navStack: [],
   };
   const entities = new Map<string, Entity>();
   const subscribers = new Set<() => void>();
@@ -196,6 +204,20 @@ export function createStore() {
     return { ...t, steps, index: steps.length - 1, dirty: true };
   }
 
+  const surfaceOf = (s: State): Surface => (s.mobileTab === "time" ? "time" : s.stage === "graph" ? "graph" : "map");
+  /** The current screen, remembered before going somewhere else from it (at most 50 levels). */
+  const pushed = (): NavEntry[] => [...state.navStack, { focus: state.focus, section: state.section, overlay: state.overlay,
+    surface: surfaceOf(state), index: state.trail.index, placeCtx: state.placeCtx }].slice(-50);
+  /** Back to a remembered screen as it was; filters, period and the investigation's steps are never touched. */
+  const restore = (e: NavEntry, navStack: NavEntry[]) => {
+    const t = state.trail;
+    const index = e.focus && t.steps[e.index]?.ref === e.focus ? e.index : t.index;
+    set({ focus: e.focus, secondary: null, origin: "back", panel: e.focus ? "object" : "world", whyId: null, section: e.section,
+      placeCtx: e.placeCtx, overlay: e.overlay, railOpen: e.overlay === "filters", trail: index === t.index ? t : { ...t, index },
+      mobileTab: e.surface, ...(e.surface !== "time" ? { stage: e.surface } : {}), sheet: e.surface === "map" ? "peek" : "mini",
+      inspectorOpen: e.focus ? true : state.inspectorOpen, navStack });
+  };
+
   return {
     get: () => state,
     entity: (id: string | null | undefined) => (id ? entities.get(id) : undefined),
@@ -208,12 +230,13 @@ export function createStore() {
     /** Click anywhere = SELECT + FOCUS (D9). */
     select(id: string | null, origin: string, section = "overview") {
       if (typeof performance !== "undefined") performance.mark(`nexum:select:${id}`);
-      if (!id) return set({ focus: null, secondary: null, origin, panel: "world", whyId: null });
+      if (!id) return set({ focus: null, secondary: null, origin, panel: "world", whyId: null, navStack: [] });
       // from inside an explorable element's view ("place"): remember it and its section; deeper steps keep it
       const cur = state.focus ? entities.get(state.focus) : undefined;
       const fromPlace = cur && state.types.get(cur.type)?.explore ? { id: cur.id, section: state.section } : state.placeCtx;
       const placeCtx = origin === "place" && id !== fromPlace?.id ? fromPlace : null;
-      set({ focus: id, secondary: null, origin, panel: "object", whyId: null, trail: pushTrail(id),
+      const navStack = id === state.focus && section === state.section ? state.navStack : pushed();
+      set({ focus: id, secondary: null, origin, panel: "object", whyId: null, trail: pushTrail(id), navStack,
         inspectorOpen: true, overlay: null, sheet: section === "overview" ? "peek" : "full", section, placeCtx });
     },
     setSecondary(id: string | null) { set({ secondary: id }); },
@@ -226,7 +249,26 @@ export function createStore() {
       // FOCUS ≠ FILTER: walking the path changes the focus only; the conditions a step was observed with stay in
       // the step (format unchanged) and are applied only by an explicit "Applica" (applyStep)
       set({ focus: t.steps[i].ref, origin: "trail", panel: "object", whyId: null, trail: { ...t, index: i },
-        overlay: null, sheet: "peek" });
+        overlay: null, sheet: "peek", navStack: t.steps[i].ref === state.focus && !state.overlay ? state.navStack : pushed() });
+    },
+    /** Touch "Indietro" (← and the system Back, once no layer is open): the screen before this one; false at the start
+     *  (the map, nothing in focus), where Back belongs to the browser. */
+    up(): boolean {
+      const st = state.navStack;
+      if (st.length) { restore(st[st.length - 1], st.slice(0, -1)); return true; }
+      if (state.focus) { set({ focus: null, secondary: null, origin: "back", panel: "world", whyId: null, placeCtx: null }); return true; }
+      if (surfaceOf(state) !== "map") { set({ mobileTab: "map", stage: "map" }); return true; }
+      return false;
+    },
+    canUp: () => state.navStack.length > 0 || !!state.focus || surfaceOf(state) !== "map",
+    /** Touch "×" on the element's card: out of the cards, back where the first one was opened (the map, or the Indagine
+     *  or Cerca it came from). */
+    closeCard() {
+      const st = state.navStack;
+      let j = st.length - 1;
+      while (j >= 0 && st[j].focus) j--;
+      if (j >= 0) restore(st[j], st.slice(0, j));
+      else set({ focus: null, secondary: null, origin: "close", panel: "world", whyId: null, placeCtx: null, navStack: [] });
     },
     /** "Applica": the filters and period recorded with a step become the current ones (explicit choice). */
     applyStep(i: number) {
@@ -247,7 +289,7 @@ export function createStore() {
     /** ESPLORA: the focus closes and the views return to the world as at the start; filters stay as they are. */
     home() {
       set({ focus: null, secondary: null, origin: "home", panel: "world", whyId: null, overlay: null, sheet: "peek",
-        inspectorOpen: false, homeTick: state.homeTick + 1 });
+        inspectorOpen: false, homeTick: state.homeTick + 1, navStack: [] });
     },
     /** RIPRISTINA: period, types, sources, confidence and display settings back to the start. The focus stays. */
     resetFilters() {
@@ -281,7 +323,7 @@ export function createStore() {
     },
     newTrail() {
       set({ trail: { id: newTrailId(), name: "Indagine", steps: [], index: -1, savedAt: null, dirty: false },
-        focus: null, panel: "world" });
+        focus: null, panel: "world", navStack: [] });
     },
     setWorldVersion(v: number) {
       if (v !== state.worldVersion) set({ worldVersion: v });
