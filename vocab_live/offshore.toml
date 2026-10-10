@@ -1,0 +1,132 @@
+# NEXUM Offshore, Phase 1 Adriatic (2026-10-10; audit NEXUM-OFFSHORE-AUDIT.md). The offshore hydrocarbon structures of
+# the Italian Adriatic as the official UNMIG lists describe them (source mase.unmig): platforms and similar structures
+# (zones A and B), their wells, the collection and treatment plants, the production concessions and the operators.
+# Every card states the source, its licence, the list's own reference date and "Dati rielaborati da NEXUM – elaborazione
+# non ufficiale"; nothing is live (the lists are updated twice a year), there are no drilling-rig positions.
+# Relations: only those a column of the source names (never position or proximity). The connection schemes of the WebGIS
+# are relations of the graph only: no line on the map (display hint map_line = false), never a pipeline route.
+
+[object_type."energy.offshore_platform"]
+label = "Piattaforma offshore (idrocarburi)"
+geometry = "point"
+identity_schemes = ["unmig_platform"]
+display = { family = "energy", density_priority = 4, group = "Piattaforme offshore (UNMIG)", subtypes = { property = "structure_class", note = "Elenco ufficiale UNMIG delle piattaforme marine e strutture assimilabili (zone A e B dell'Adriatico): dati aggiornati due volte l'anno, mai in tempo reale. Dati rielaborati da NEXUM – elaborazione non ufficiale.", values = { "struttura reticolare" = "struttura reticolare", monotubolare = "monotubolare", bitubolare = "bitubolare", cluster = "cluster", "testa pozzo sottomarina" = "testa pozzo sottomarina", "unità galleggiante" = "unità galleggiante (FSO)", altro = "altra struttura" } }, headline = [{ property = "structure_class" }], facts = [{ property = "as_of", label = "Data di riferimento" }, { property = "structure", label = "Tipo di struttura" }, { property = "mineral", label = "Minerale" }, { property = "operator", label = "Operatore" }, { property = "concession", label = "Concessione" }, { property = "centrale", label = "Centrale (dichiarata)" }, { property = "wells_connected", label = "Pozzi collegati", digits = 0 }, { property = "year_installed", label = "Anno di installazione", digits = 0 }, { property = "depth_m", label = "Profondità del fondale", unit = "m", digits = 0 }, { property = "coast_km", label = "Distanza dalla costa", unit = "km", digits = 1 }, { property = "height_m", label = "Altezza sul mare", unit = "m", digits = 0 }, { property = "zone", label = "Zona marina" }, { property = "within_12nm", label = "Entro 12 miglia dalla costa e dalle aree marine protette" }, { property = "unmig_flags", label = "Indicazioni UNMIG" }, { property = "source_note", label = "Note della fonte" }, { property = "data_ref", label = "Edizione della fonte" }, { property = "source_line", label = "Fonte e licenza" }] }
+[object_type."energy.offshore_platform".properties]
+structure_class = { kind = "text" }
+structure = { kind = "text" }
+section = { kind = "text" }
+zone = { kind = "text" }
+concession = { kind = "text" }
+operator = { kind = "text" }
+mineral = { kind = "text" }
+year_installed = { kind = "int" }
+coast_km = { kind = "float", unit = "km" }
+height_m = { kind = "float", unit = "m" }
+depth_m = { kind = "float", unit = "m" }
+centrale = { kind = "text" }
+wells_connected = { kind = "int" }
+within_12nm = { kind = "text" }
+unmig_flags = { kind = "text" }
+source_note = { kind = "text" }
+as_of = { kind = "text", required = true }
+data_ref = { kind = "text", required = true }
+source_line = { kind = "text", required = true }
+
+# Wells: information about the platforms, not a map layer (they stand on their platform); the status code is read only
+# through the legend of the official list
+[object_type."energy.hc_well"]
+label = "Pozzo offshore (idrocarburi)"
+geometry = "none"
+identity_schemes = ["unmig_well"]
+display = { family = "energy", density_priority = 9, group = "Pozzi offshore (UNMIG)", map = false, headline = [{ property = "status_code" }], facts = [{ property = "as_of", label = "Data di riferimento" }, { property = "status", label = "Stato" }, { property = "status_code", label = "Codice di stato (fonte)" }, { property = "platform", label = "Piattaforma (dichiarata)" }, { property = "field", label = "Campo" }, { property = "concession", label = "Concessione" }, { property = "centrale", label = "Centrale (dichiarata)" }, { property = "operator", label = "Operatore" }, { property = "zone", label = "Zona marina" }, { property = "coordinates", label = "Coordinate" }, { property = "data_ref", label = "Edizione della fonte" }, { property = "source_line", label = "Fonte e licenza" }] }
+[object_type."energy.hc_well".properties]
+status_code = { kind = "text" }
+status = { kind = "text" }
+field = { kind = "text" }
+platform = { kind = "text" }
+concession = { kind = "text" }
+centrale = { kind = "text" }
+operator = { kind = "text" }
+zone = { kind = "text" }
+coordinates = { kind = "text" }
+as_of = { kind = "text", required = true }
+data_ref = { kind = "text", required = true }
+source_line = { kind = "text", required = true }
+
+[object_type."energy.hc_centrale"]
+label = "Centrale di raccolta e trattamento (idrocarburi)"
+geometry = "point"
+identity_schemes = ["unmig_centrale"]
+display = { family = "energy", density_priority = 4, group = "Centrali di raccolta e trattamento (UNMIG)", subtypes = { property = "mineral", note = "Elenco nazionale UNMIG delle centrali di raccolta e trattamento di gas naturale e olio greggio: dati aggiornati due volte l'anno. Dati rielaborati da NEXUM – elaborazione non ufficiale.", values = { Gas = "gas", Olio = "olio" } }, headline = [{ property = "mineral", prefix = "centrale " }], facts = [{ property = "as_of", label = "Data di riferimento" }, { property = "mineral", label = "Minerale" }, { property = "operator", label = "Operatore" }, { property = "wells_connected", label = "Pozzi allacciati", digits = 0 }, { property = "comune", label = "Comune" }, { property = "provincia", label = "Provincia" }, { property = "regione", label = "Regione" }, { property = "area_m2", label = "Area occupata", unit = "m²", digits = 0 }, { property = "data_ref", label = "Edizione della fonte" }, { property = "source_line", label = "Fonte e licenza" }] }
+[object_type."energy.hc_centrale".properties]
+mineral = { kind = "text" }
+operator = { kind = "text" }
+wells_connected = { kind = "int" }
+comune = { kind = "text" }
+provincia = { kind = "text" }
+regione = { kind = "text" }
+area_m2 = { kind = "float", unit = "m2" }
+as_of = { kind = "text", required = true }
+data_ref = { kind = "text", required = true }
+source_line = { kind = "text", required = true }
+
+# Production concessions at sea (zones A and B): no polygon on the map in Phase 1
+[object_type."energy.hc_concession"]
+label = "Concessione di coltivazione (idrocarburi)"
+geometry = "none"
+identity_schemes = ["unmig_title"]
+display = { family = "energy", density_priority = 9, group = "Concessioni di coltivazione (UNMIG)", map = false, facts = [{ property = "as_of", label = "Data di riferimento" }, { property = "title_kind", label = "Titolo" }, { property = "holders", label = "Titolari (quote)" }, { property = "granted", label = "Conferimento" }, { property = "period", label = "Periodo di vigenza" }, { property = "area_km2", label = "Superficie", unit = "km²", digits = 2 }, { property = "zone", label = "Zona" }, { property = "data_ref", label = "Edizione della fonte" }, { property = "source_line", label = "Fonte e licenza" }] }
+[object_type."energy.hc_concession".properties]
+title_kind = { kind = "text" }
+holders = { kind = "text" }
+granted = { kind = "text" }
+period = { kind = "text" }
+area_km2 = { kind = "float", unit = "km2" }
+zone = { kind = "text" }
+as_of = { kind = "text", required = true }
+data_ref = { kind = "text", required = true }
+source_line = { kind = "text", required = true }
+
+# Operators of the platforms, named exactly as the platforms list names them (legal persons only)
+[object_type."org.company"]
+label = "Società"
+geometry = "none"
+identity_schemes = ["unmig_operator"]
+display = { family = "energy", density_priority = 9, group = "Operatori (UNMIG)", map = false, facts = [{ property = "role_note", label = "Ruolo" }] }
+[object_type."org.company".properties]
+role_note = { kind = "text" }
+
+[relation_type."on_platform"]
+label = "è sulla piattaforma"
+nature = "infrastructural"
+from = ["energy.hc_well"]
+to = ["energy.offshore_platform"]
+display = { map_line = false }
+
+[relation_type."delivers_to"]
+label = "fa capo a (centrale dichiarata da UNMIG)"
+nature = "infrastructural"
+from = ["energy.offshore_platform"]
+to = ["energy.hc_centrale", "energy.offshore_platform"]
+display = { map_line = false }
+
+[relation_type."in_concession"]
+label = "nella concessione"
+nature = "organizational"
+from = ["energy.offshore_platform"]
+to = ["energy.hc_concession"]
+display = { map_line = false }
+
+[relation_type."operated_by"]
+label = "gestita da"
+nature = "organizational"
+from = ["energy.offshore_platform"]
+to = ["org.company"]
+display = { map_line = false }
+
+[relation_type."scheme_link"]
+label = "collegata (schema UNMIG, non il tracciato) a"
+nature = "infrastructural"
+from = ["energy.offshore_platform"]
+to = ["energy.offshore_platform", "energy.hc_centrale"]
+display = { map_line = false }

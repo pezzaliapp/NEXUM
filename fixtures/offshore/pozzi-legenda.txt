@@ -1,0 +1,7 @@
+PR     Produttivo erogante
+PP     Produttivo non erogante
+RE     Reiniezione
+MO     Monitoraggio
+AL     Non produttivo
+PS     Potenzialmente utilizzabile per lo stoccaggio
+ST     Stoccaggio

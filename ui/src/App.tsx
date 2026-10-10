@@ -30,7 +30,7 @@ async function bootstrap() {
     id: t.id, label: t.label, kind, family: t.display_hints?.family ?? "", count: t.count ?? 0,
     density_priority: t.display_hints?.density_priority ?? 9, geometry: t.geometry, nature: t.nature,
     group: t.display_hints?.group, headline: t.display_hints?.headline, facts: t.display_hints?.facts,
-    media: t.display_hints?.media, map: t.display_hints?.map, series: t.display_hints?.series, wave: t.display_hints?.wave, indicator: t.display_hints?.indicator, digest: t.display_hints?.digest, subtypes: t.display_hints?.subtypes, nearby_media_km: t.display_hints?.nearby_media_km,
+    media: t.display_hints?.media, map: t.display_hints?.map, map_line: t.display_hints?.map_line, series: t.display_hints?.series, wave: t.display_hints?.wave, indicator: t.display_hints?.indicator, digest: t.display_hints?.digest, subtypes: t.display_hints?.subtypes, nearby_media_km: t.display_hints?.nearby_media_km,
     tenure: t.display_hints?.tenure, rates: t.display_hints?.rates, rated: t.display_hints?.rated,
     explore: t.display_hints?.explore, place_index: t.display_hints?.place_index, latest: t.display_hints?.latest }));
   add(ty.data.object_types, "object");

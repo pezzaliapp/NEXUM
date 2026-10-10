@@ -54,6 +54,9 @@ export interface TypeInfo {
     credit_property?: string; observed_property?: string; state_property?: string };
   /** false: information about other elements, never a map layer nor a filter (vocabulary hint "map") */
   map?: boolean;
+  /** a relation type never drawn as a line on the map, only in the graph and the card (vocabulary hint "map_line"):
+   * e.g. a connection scheme between two offshore structures, which a straight line would show as a pipeline route */
+  map_line?: boolean;
   /** measured values carried by the type (vocabulary hints "series" / "wave") */
   series?: { property: string; kind: string };
   wave?: { property: string };

@@ -1,0 +1,40 @@
+id = "mase.unmig"
+name = "MASE — UNMIG: piattaforme marine, pozzi, centrali e titoli minerari (elenchi ufficiali)"
+owner = "Ministero dell'ambiente e della sicurezza energetica — DG FTA — Ufficio nazionale minerario per gli idrocarburi e le georisorse (UNMIG)"
+verdict = "adopt"
+reliability_tier = "T1"
+verified_at = "2026-10-10"
+independence_group = "mase_unmig"
+connector = "connectors.unmig"
+
+# NEXUM Offshore, Phase 1 Adriatic (2026-10-10; audit NEXUM-OFFSHORE-AUDIT.md). Five static files of the UNMIG site, read
+# at most once a month (the lists are updated twice a year): the platforms, the producing wells, the collection and
+# treatment plants (XLSX: each carries its own "Dati al …" line), the mining titles (XLSX, "Aggiornamento: …") and the
+# WebGIS connection schemes (KML, straight lines between structures: never drawn, never a pipeline route).
+# Licences, read 2026-10-10: the dataset pages say "I dati sono distribuiti con licenza Creative Commons Attribuzione 4.0
+# Internazionale CC BY 4.0"; the WebGIS map that publishes the connection schemes says "I contenuti sono distribuiti con
+# licenza Italian Open Data License v 2.0" (attribution; never suggest an official character). MASE legal notes: CC BY 4.0
+# unless stated otherwise, "a patto che sia sempre citata la fonte e … riportato l'indirizzo web della pagina originale".
+[license]
+id = "CC-BY-4.0"
+url = "https://unmig.mase.gov.it/ricerca-e-coltivazione-di-idrocarburi/piattaforme-marine/"
+attribution = "Fonte: Ministero dell'ambiente e della sicurezza energetica — DG FTA — UNMIG (unmig.mase.gov.it), CC BY 4.0; schemi di collegamento: WebGIS UNMIG, IODL 2.0. Dati rielaborati da NEXUM – elaborazione non ufficiale"
+redistribution = "allowed_with_attribution"
+commercial_use = "allowed"
+
+[access]
+type = "zip"            # the XLSX lists are zip containers (Office Open XML); the KML is plain XML
+auth = "none"
+allowed_hosts = ["unmig.mase.gov.it"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

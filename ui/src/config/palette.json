@@ -35,9 +35,13 @@
   "ocean": "observation of the sea (buoys, floats, coastal stations, tide gauges): aqua cyan, lighter and greener than the ports' sea blue"
  },
  "types": {
-  "transport.port": "#4F95BF"
+  "transport.port": "#4F95BF",
+  "energy.offshore_platform": "#C9A24A",
+  "energy.hc_centrale": "#A88440"
  },
  "_types": {
-  "transport.port": "sea transport (ports and landings): sea blue, apart from airfields"
+  "transport.port": "sea transport (ports and landings): sea blue, apart from airfields",
+  "energy.offshore_platform": "offshore hydrocarbon structures (UNMIG): amber, apart from the power plants' terracotta and the ocean's aqua",
+  "energy.hc_centrale": "hydrocarbon collection and treatment plants (UNMIG): a darker amber, the same meaning on land"
  }
 }

@@ -619,6 +619,8 @@ export function MapView() {
       for (const sec of ["related_objects", "related_events"]) {
         for (const it of context.data?.[sec]?.items ?? []) {
           if (String(it.reason ?? "").startsWith("shares_participant")) continue;   // context, not a connection
+          const rt = String(it.reason ?? "").startsWith("relation:") ? store.get().types.get(String(it.reason).slice(9)) : undefined;
+          if (rt?.map_line === false) continue;   // a relation the vocabulary keeps off the map (graph and card only)
           const p = store.entity(it.$ref)?.point;
           if (p && it.$ref !== focus) lines.push({ type: "Feature", geometry: { type: "LineString", coordinates: [fp, p] }, properties: { r: it.$ref } });
         }
