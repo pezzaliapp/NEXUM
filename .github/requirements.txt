@@ -1,0 +1,4 @@
+# The only third-party Python packages of the NEXUM jobs (nexum-live, nexum-events): the spreadsheet reader of seven connectors (fuel prices,
+# commodities, tolls, Eurobarometer, consumer surveys) and its dependency. MIT; the versions of the author's machine.
+openpyxl==3.1.3
+et-xmlfile==1.1.0

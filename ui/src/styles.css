@@ -537,6 +537,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .hl-domains { display: flex; flex-wrap: wrap; gap: 6px; }
 .hl-domains .chip[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 .hl-list { list-style: none; margin: 0; padding: 0; }
+.evcov { margin: 6px 0 2px; }
+.evcov p { margin: 2px 0; }
+.evcov .warn { font-size: inherit; }
+.evcov summary { cursor: pointer; color: var(--dim); margin-top: 2px; }
+.evcov .list { margin: 4px 0; }
 .maplabel.hl { color: var(--text); font-weight: 600; font-size: 11.5px; }
 .ov .ov-head { z-index: 5; }
 .ov-filters .rail { z-index: auto; }

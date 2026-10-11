@@ -27,8 +27,11 @@ class RawError(ValueError):
 
 
 class RawExtractor:
-    def __init__(self, raw_dir):
+    def __init__(self, raw_dir, fields=None):
         self.store = RawStore(raw_dir)
+        # exposure policy (2026-10-11): {source_id: the only fields a published raw record may show}, as declared by
+        # the source's connector (RAW_FIELDS); the Raw Store itself is never changed
+        self.fields = fields or {}
         self._lock = threading.Lock()
         self._manifest = None
         self._parsed: OrderedDict = OrderedDict()   # sha → parsed payload (small LRU)
@@ -106,11 +109,16 @@ class RawExtractor:
             record, fmt = rows[n], "shapefile_attributes"
         else:
             raise RawError(f"unsupported locator {locator!r}")
+        omitted = None
+        allowed = self.fields.get(entry["source_id"])
+        if allowed is not None and isinstance(record, dict):
+            omitted = sorted(k for k in record if k not in allowed) or None   # their names only, never their values
+            record = {k: v for k, v in record.items() if k in allowed}
         body = json.dumps(record, ensure_ascii=False, default=str)
         truncated = len(body.encode()) > MAX_RECORD_BYTES
         if truncated:
             record = body.encode()[:MAX_RECORD_BYTES].decode("utf-8", "ignore")
         return {"raw_id": raw_id, "source_id": entry["source_id"], "sha256": entry["sha256"], "url": entry["url"],
                 "fetched_ms": entry["fetched_ms"], "locator": locator, "format": fmt, "record": record,
-                "truncated": truncated,
+                "truncated": truncated, "omitted_fields": omitted,
                 "note": "geometria omessa: solo attributi" if fmt == "shapefile_attributes" else None}

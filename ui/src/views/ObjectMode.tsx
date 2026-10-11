@@ -358,7 +358,8 @@ export function EvidenceItem({ ev }: { ev: any }) {
       )}
       {err && <div className="err">{err}</div>}
       {raw && (<div data-testid="raw-record"><div className="xs dim">{S.rawRecord} · {raw.source_id} · {S.licence}: {raw.licence?.license_id} · {raw.licence?.attribution}</div>
-        <pre className="raw">{typeof raw.record === "string" ? raw.record : JSON.stringify(raw.record, null, 1)}</pre></div>)}
+        <pre className="raw">{typeof raw.record === "string" ? raw.record : JSON.stringify(raw.record, null, 1)}</pre>
+        {raw.omitted_fields?.length > 0 && <div className="xs dim" data-testid="raw-omitted">{S.rawOmitted(raw.omitted_fields.length)}</div>}</div>)}
     </li>
   );
 }

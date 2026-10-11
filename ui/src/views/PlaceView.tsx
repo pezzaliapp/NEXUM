@@ -22,6 +22,7 @@ import { ObservationsBlock, useObservations, hasObservations, fmt } from "../com
 import { currentHolders, TenuresBlock, useTenures } from "../components/Tenures";
 import { Ref, Section, useFetch } from "../components/common";
 import { dayLabel } from "../lib/period";
+import { EventsCoverage } from "../components/EventsCoverage";
 import { Facts, Related, Sections, TimelineSec } from "./ObjectMode";
 
 type Conn = Parameters<typeof ConnectionsBlock>[0]["c"];
@@ -155,7 +156,7 @@ export function PlaceView({ id, d, ctxData, conn }: { id: string; d: any; ctxDat
         <ObservationsBlock id={id} ctxData={ctxData} part="opinion" immediate />
         <ObservationsBlock id={id} ctxData={ctxData} part="pairs" immediate /></div>}
       {cur === "sicurezza" && <Security id={id} label={label} />}
-      {cur === "eventi" && <div className="place-sec"><Related id={id} title={S.sections.relatedEvents} name="related-events" sec={relEv} path="events" />
+      {cur === "eventi" && <div className="place-sec"><EventsCoverage /><Related id={id} title={S.sections.relatedEvents} name="related-events" sec={relEv} path="events" />
         <TimelineSec id={id} data={ctxData.timeline} kind="object" /></div>}
       {cur === "osserva" && <Observe id={id} d={d} mediaTypes={mediaTypes} />}
       {cur === "sources" && <Sections id={id} data={ctxData} />}

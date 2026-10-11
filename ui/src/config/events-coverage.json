@@ -1,0 +1,26 @@
+{
+  "_comment": "What the events of the published world cover, per source (2026-10-11). Data, not UI code: the source ids are those of the registry; the date of each one comes from the world (its last successful delivery). Organised violence (UCDP) has its own section, Sicurezza, with its own delay note.",
+  "sources": [
+    {
+      "id": "usgs.earthquakes",
+      "what": "Terremoti",
+      "src": "USGS · M 4,5 e oltre (dal 2015: M 5,5 e oltre)"
+    },
+    {
+      "id": "nasa.eonet",
+      "what": "Cicloni tropicali, incendi oltre 4 km², vulcani, alluvioni, frane",
+      "src": "NASA EONET"
+    },
+    {
+      "id": "noaa.ncei_hazards",
+      "what": "Eruzioni, tsunami, terremoti con danni o vittime",
+      "src": "NOAA NCEI"
+    },
+    {
+      "id": "cems.rapid_mapping",
+      "what": "Attivazioni Copernicus: mappature d'emergenza richieste da un'autorità, non tutti gli eventi",
+      "src": "Copernicus EMS"
+    }
+  ],
+  "live": "In diretta, letti dal browser e non conservati: solo «Allerte dal vivo» (terremoti USGS delle ultime 24 ore, allerte GDACS, avvisi NWS per gli Stati Uniti)."
+}

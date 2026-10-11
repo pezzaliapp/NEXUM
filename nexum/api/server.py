@@ -6,6 +6,7 @@ The world database is opened read-only; the only writes go to the separate TRAIL
 
 import gzip
 import hashlib
+import importlib
 import json
 import math
 import mimetypes
@@ -325,7 +326,7 @@ class Service:
         self.basemap = RawPolygonProvider(raw_dirs, world_dir / "basemap", bm["source_id"],
                                           bm_src.attribution if bm_src else bm["source_id"],
                                           bm.get("precision_decimals", 2))
-        self.raw = RawExtractor(cfg.raw_dir)
+        self.raw = RawExtractor(cfg.raw_dir, raw_fields(self.sources))
         self.trails = TrailStore(trails_path or world_dir / "trails.sqlite", world_id)
         self.use_cache = response_cache
         self.ui_dir = pathlib.Path(ui_dir) if ui_dir else None
@@ -1701,6 +1702,16 @@ API_OPS = {"highlights": highlights_of, "insight_types": insight_types_of, "insi
            "observations": observations_of, "tenures": tenures_of, "indicators": indicators_of,
            "indicators_catalog": indicators_catalog_of, "security": security_of, "event_media": event_media_of,
            "data_received": data_received_of, "places_index": places_index_of}
+
+
+def raw_fields(sources):
+    """The exposure policy of raw records: the fields each connector declares publishable (RAW_FIELDS), if any."""
+    out = {}
+    for s in sources.values():
+        f = getattr(importlib.import_module(s.connector), "RAW_FIELDS", None)
+        if f is not None:
+            out[s.id] = frozenset(f)
+    return out
 
 
 def api_op(w, name, *args):

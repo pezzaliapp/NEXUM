@@ -1,0 +1,200 @@
+# NEXUM — automatic natural events (decision D7 as extended by the author on 2026-10-11: a scheduled job for the
+# snapshot of natural events; GDELT news stay under the original D7, browser-side only).
+#
+#   update  (every 6 h)   acquisition per source → processing → checks → the next REFERENCE WORLD (private release)
+#   publish (once a day)  the same, then snapshot, parity, assembly, exposure and production checks → deploy, verify;
+#                         a production deploy that fails its verification is rolled back automatically
+#
+# The world is persistent and verified: every run starts from the latest reference world (xz archive + manifest,
+# SHA-256, integrity check), a release of a PRIVATE repository (the Raw Store keeps fields NEXUM never publishes).
+# Without it the job stops: the world is never rebuilt from scratch, never taken from a cache. A failed run writes
+# nothing; the next one starts again from the last good reference world. Sources and intervals: sources/,
+# sources_live/ (auth = none; the Polite Scheduler enforces each source's minimum interval).
+#
+# Configuration (by the author):
+#   variable NEXUM_WORLD_REPO        "<owner>/<private repository>" holding the reference worlds
+#   secret   NEXUM_WORLD_TOKEN       fine-grained token: that repository only, Contents read and write
+#   environment "cloudflare" (deployment branches: main only):
+#     secret   CLOUDFLARE_API_TOKEN  Account · Cloudflare Pages · Edit, nothing else
+#     variable CLOUDFLARE_ACCOUNT_ID
+#   variable NEXUM_AUTO_PUBLISH      "true" lets the DAILY run deploy to production; otherwise it deploys to the preview
+# Cost: €0 — public repository on standard GitHub-hosted runners; release assets have no total size or bandwidth
+# limit (each file < 2 GiB); Cloudflare Pages Free (one deploy a day, 7,628 files ≤ 20,000).
+name: nexum-events
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "update (reference world only) or publish (also the site)"
+        type: choice
+        options: [update, publish]
+        default: update
+      deploy:
+        description: "where a publish run deploys"
+        type: choice
+        options: [none, preview, production]
+        default: none
+      test_break:
+        description: "recovery test only: sources whose network is cut (comma separated)"
+        type: string
+        default: ""
+  # SCHEDULE OFF until the author's GO (2026-10-11). Minute 23 avoids the start of the hour (GitHub delays there).
+  # schedule:
+  #   - cron: "23 3 * * *"          # publish
+  #   - cron: "23 9,15,21 * * *"    # update
+
+concurrency:
+  group: nexum-events
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  WORLD_REPO: ${{ vars.NEXUM_WORLD_REPO }}
+  SITE_URL: https://nexum.pezzalihub.app
+  PAGES_PROJECT: nexum
+  PREVIEW_BRANCH: live-review
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    environment: cloudflare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: ui/package-lock.json }
+      - name: Python dependencies (pinned)
+        run: python3 -m pip install --disable-pip-version-check -r .github/requirements.txt
+      - name: Registry check (licences, hosts, auth = none)
+        run: python3 -m nexum.cli live registry-check > /dev/null
+      - name: Mode
+        run: |
+          mode="${{ inputs.mode }}"; deploy="${{ inputs.deploy }}"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "23 3 * * *" ]; then
+              mode=publish; if [ "${{ vars.NEXUM_AUTO_PUBLISH }}" = "true" ]; then deploy=production; else deploy=preview; fi
+            else mode=update; deploy=none; fi
+          fi
+          [ "$mode" = publish ] || deploy=none
+          echo "MODE=$mode" >> "$GITHUB_ENV"; echo "DEPLOY=$deploy" >> "$GITHUB_ENV"
+          echo "mode $mode · deploy $deploy" >> "$GITHUB_STEP_SUMMARY"
+      - name: Reference world (latest world-*/prod-* release; checksum verified by the pipeline)
+        env:
+          GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ] || [ -z "$WORLD_REPO" ]; then
+            echo "::error::no reference world configured: stop (the world is never rebuilt from scratch)"; exit 3; fi
+          tag=$(gh release list -R "$WORLD_REPO" --limit 100 --json tagName,isDraft,createdAt \
+                --jq '[.[] | select((.isDraft | not) and ((.tagName | startswith("world-")) or (.tagName | startswith("prod-"))))] | sort_by(.createdAt) | last | .tagName // ""')
+          if [ -z "$tag" ]; then echo "::error::no reference world release: stop"; exit 3; fi
+          gh release download "$tag" -R "$WORLD_REPO" -D seed -p world.tar.xz -p manifest.json
+          echo "REFERENCE_TAG=$tag" >> "$GITHUB_ENV"
+      - name: Pipeline
+        id: pipeline
+        run: |
+          args="run --seed seed --out out"
+          [ -n "${{ inputs.test_break }}" ] && args="$args --test-break ${{ inputs.test_break }}"
+          [ "$MODE" = publish ] && args="$args --publish --production-url $SITE_URL"
+          python3 .github/nexum-events/pipeline.py $args
+      - name: Store the next reference world (new release, digest verified before anything older is removed)
+        id: store
+        if: always() && hashFiles('out/seed/manifest.json') != ''
+        env:
+          GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
+        run: |
+          wv=$(python3 -c "import json; print(json.load(open('out/seed/manifest.json'))['world_version'])")
+          want=$(python3 -c "import json; print(json.load(open('out/seed/manifest.json'))['archive_sha256'])")
+          tag="world-${wv}-$(date -u +%Y%m%dT%H%MZ)"
+          gh release create "$tag" -R "$WORLD_REPO" --title "$tag" \
+            --notes "Reference world written by nexum-events run ${{ github.run_id }} ($MODE) from $REFERENCE_TAG." \
+            out/seed/world.tar.xz out/seed/manifest.json out/report.json
+          got=$(gh api "repos/$WORLD_REPO/releases/tags/$tag" --jq '.assets[] | select(.name == "world.tar.xz") | .digest')
+          if [ "$got" != "sha256:$want" ]; then
+            echo "::error::uploaded reference world digest $got ≠ sha256:$want: release removed"
+            gh release delete "$tag" -R "$WORLD_REPO" --yes --cleanup-tag; exit 1; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Deploy and verify (preview or production; production rolls back by itself when verification fails)
+        id: deploy
+        if: success() && env.DEPLOY != 'none' && hashFiles('out/site.json') != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          set -o pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PAGES_PROJECT/deployments"
+          auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          version=$(python3 -c "import json; print(json.load(open('out/site.json'))['version'])")
+          build=$(python3 -c "import json; print(json.load(open('out/site.json'))['build'])")
+          if [ "$DEPLOY" = production ]; then branch=main
+            prev=$(curl -fsS -H "$auth" "$api?env=production" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'][0]['id'])")
+            echo "rollback target (previous production): $prev" >> "$GITHUB_STEP_SUMMARY"
+          else branch=$PREVIEW_BRANCH; fi
+          npx --yes wrangler@4.144.0 pages deploy data/deploy/web --project-name "$PAGES_PROJECT" --branch "$branch" \
+            --commit-hash "$GITHUB_SHA" --commit-message "nexum-events $build ($version)" | tee deploy.log
+          url=$(grep -oE "https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev" deploy.log | tail -1)
+          check() {  # $1 = base URL: the deployed site must serve exactly this build and snapshot
+            for i in $(seq 1 10); do
+              c=$(curl -fsS "$1/current.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])" || true)
+              b=$(curl -fsS "$1/version.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['build'])" || true)
+              s=$(curl -fsS -o /dev/null -w "%{http_code}" "$1/s/$version/api/status.json" || true)
+              [ "$c" = "$version" ] && [ "$b" = "$build" ] && [ "$s" = 200 ] && return 0; sleep 15; done; return 1; }
+          ok=1; check "$url" || ok=0
+          [ "$DEPLOY" = production ] && [ $ok = 1 ] && { check "$SITE_URL" || ok=0; }
+          echo "deployed $build ($version) to $branch: $url · verified=$ok" >> "$GITHUB_STEP_SUMMARY"
+          if [ $ok = 0 ]; then
+            if [ "$DEPLOY" = production ]; then
+              curl -fsS -X POST -H "$auth" "$api/$prev/rollback" > /dev/null
+              echo "::error::verification failed: production rolled back to $prev"
+            else echo "::error::preview verification failed"; fi
+            exit 1; fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Mark the reference world behind production (prod-*, kept; the 3 most recent)
+        if: success() && env.DEPLOY == 'production' && steps.store.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
+        run: |
+          t="${{ steps.store.outputs.tag }}"; gh release edit "$t" -R "$WORLD_REPO" --tag "prod-${t#world-}" --title "prod-${t#world-}"
+          gh release list -R "$WORLD_REPO" --limit 100 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("prod-"))] | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
+          while read -r x; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
+      - name: Keep the 4 most recent world-* reference worlds (recovery versions)
+        if: always() && steps.store.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
+        run: |
+          gh release list -R "$WORLD_REPO" --limit 100 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("world-"))] | sort_by(.createdAt) | reverse | .[4:] | .[].tagName' |
+          while read -r x; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
+      - name: Report
+        if: always()
+        run: |
+          if [ -f out/report.json ]; then
+            python3 -c "import json; r = json.load(open('out/report.json')); print('##', r.get('outcome')); \
+          [print('-', s, v['status']) for s, v in r.get('phases', {}).get('acquisition', {}).items()]; \
+          [print('- check:', f) for f in r.get('phases', {}).get('checks', {}).get('failures', [])]" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Signal a source that failed or is suspended (the run went on with the other sources)
+        if: always() && hashFiles('out/attention.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body="Sources needing attention: $(tr -d '\n' < out/attention.json) — $url (a suspended source is resumed only by the author)"
+          n=$(gh issue list --state open --search "nexum-events: source needs attention in:title" --json number --jq '.[0].number // ""')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$body"; else gh issue create --title "nexum-events: source needs attention" --body "$body"; fi
+      - name: Signal a failure (one open issue, a comment per failed run; GitHub also emails the failure)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          n=$(gh issue list --state open --search "nexum-events: run failed in:title" --json number --jq '.[0].number // ""')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "Failed again ($MODE): $url"
+          else gh issue create --title "nexum-events: run failed" --body "Run $MODE failed: $url. Production was not changed (or was rolled back)."; fi

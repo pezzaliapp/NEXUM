@@ -364,7 +364,7 @@ function AlertsPanel({ map }: { map: MLMap }) {
     return [...(hl?.recent ?? []), ...(hl?.strongest ?? [])].filter((r: any) => !seen.has(r.$ref) && !!seen.add(r.$ref)).map((r: any) => {
       const e = store.entity(r.$ref);
       return { id: `nexum:${r.$ref}`, ref: r.$ref, kind: "nexum" as const, verified: true, title: e?.label ?? r.head ?? r.$ref, place: "", t: e?.t ?? null,
-        c: (e?.point as [number, number] | undefined) ?? null, src: "NEXUM", url: null };
+        c: (e?.point as [number, number] | undefined) ?? null, src: S.evcov.archive, url: null };
     });
   }, [hl]);
   const all: Row[] = [...KINDS.flatMap((k) => (feeds[k]?.items ?? []) as Row[]), ...nexum];

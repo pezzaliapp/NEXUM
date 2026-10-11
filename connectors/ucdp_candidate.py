@@ -51,6 +51,8 @@ DIGEST = ("id", "date_start", "date_prec", "adm_1", "latitude", "longitude", "be
 KEEP = ("id", "type_of_violence", "conflict_name", "dyad_name", "side_a", "side_b", "where_prec", "adm_1", "adm_2",
         "latitude", "longitude", "country", "region", "date_prec", "date_start", "date_end", "deaths_a", "deaths_b",
         "deaths_civilians", "deaths_unknown", "best", "high", "low", "event_clarity", "code_status")
+# exposure policy (2026-10-11): a published raw record (provenance) shows only these fields, never source_*
+RAW_FIELDS = KEEP
 
 
 def describe():
