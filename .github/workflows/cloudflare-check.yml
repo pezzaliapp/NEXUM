@@ -1,0 +1,31 @@
+name: cloudflare-check
+# Read-only check of the Cloudflare token of environment "cloudflare": the Pages project nexum is reachable and its
+# production branch is main (so live-review stays a preview). Manual only. No deploy, no build, nothing written.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: cloudflare
+    steps:
+      - name: Read the Pages project nexum (GET only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || { echo "::error::secret missing"; exit 1; }
+          code=$(curl -sS -o p.json -w "%{http_code}" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/nexum")
+          python3 - "$code" <<'EOF'
+          import json, sys
+          r = json.load(open("p.json")); res = r.get("result") or {}
+          print(json.dumps({"http": sys.argv[1], "success": r.get("success"),
+                            "errors": [e.get("code") for e in r.get("errors") or []],
+                            "project": res.get("name"), "production_branch": res.get("production_branch")}))
+          ok = sys.argv[1] == "200" and r.get("success") and res.get("name") == "nexum" and res.get("production_branch") == "main"
+          sys.exit(0 if ok else 1)
+          EOF
+          rm -f p.json
