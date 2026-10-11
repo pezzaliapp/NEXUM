@@ -71,8 +71,22 @@ jobs:
         with: { node-version: "22", cache: npm, cache-dependency-path: ui/package-lock.json }
       - name: Python dependencies (pinned)
         run: python3 -m pip install --disable-pip-version-check -r .github/requirements.txt
-      - name: Registry check (licences, hosts, auth = none)
-        run: python3 -m nexum.cli live registry-check > /dev/null
+      # read from the registry files only: opening the world (nexum.cli live registry-check) would create an empty
+      # data/live, and the pipeline never overwrites a world (run 38160761825, 2026-10-11)
+      - name: Registry check (licences, hosts, auth = none; the world is not opened)
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys
+          from nexum import worlds
+          from nexum.core.registry import admissible, load_registry
+          c = worlds.live()
+          s = load_registry([pathlib.Path(c.root) / d for d in c.source_dirs])
+          bad = {k: admissible(v, allow_fixture=c.allow_fixture)[1] for k, v in s.items()
+                 if not admissible(v, allow_fixture=c.allow_fixture)[0]}
+          print(len(s), "sources, not admissible:", bad)
+          sys.exit(1 if bad else 0)
+          PY
+          test ! -e data/live || { echo "::error::data/live exists before the reference world is restored"; exit 1; }
       - name: Mode
         run: |
           mode="${{ inputs.mode }}"; deploy="${{ inputs.deploy }}"
