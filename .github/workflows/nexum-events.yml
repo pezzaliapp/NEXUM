@@ -39,6 +39,10 @@ on:
         description: "recovery test only: sources whose network is cut (comma separated)"
         type: string
         default: ""
+      reference:
+        description: "restore exactly this reference release (empty: the newest by publishedAt)"
+        type: string
+        default: ""
   # SCHEDULE OFF until the author's GO (2026-10-11). Minute 23 avoids the start of the hour (GitHub delays there).
   # schedule:
   #   - cron: "23 3 * * *"          # publish
@@ -98,15 +102,17 @@ jobs:
           [ "$mode" = publish ] || deploy=none
           echo "MODE=$mode" >> "$GITHUB_ENV"; echo "DEPLOY=$deploy" >> "$GITHUB_ENV"
           echo "mode $mode · deploy $deploy" >> "$GITHUB_STEP_SUMMARY"
-      - name: Reference world (latest world-*/prod-* release; checksum verified by the pipeline)
+      - name: Reference world (the newest world-*/prod-* release by publishedAt, or the one asked; checksum verified by the pipeline)
         env:
           GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
         run: |
           if [ -z "$GH_TOKEN" ] || [ -z "$WORLD_REPO" ]; then
             echo "::error::no reference world configured: stop (the world is never rebuilt from scratch)"; exit 3; fi
-          tag=$(gh release list -R "$WORLD_REPO" --limit 100 --json tagName,isDraft,createdAt \
-                --jq '[.[] | select((.isDraft | not) and ((.tagName | startswith("world-")) or (.tagName | startswith("prod-"))))] | sort_by(.createdAt) | last | .tagName // ""')
-          if [ -z "$tag" ]; then echo "::error::no reference world release: stop"; exit 3; fi
+          # ordered by publishedAt (the creation date is the tagged commit's, the same for every release); missing, equal
+          # or inconsistent dates stop the run (.github/nexum-events/releases.py)
+          latest=$(gh release list -R "$WORLD_REPO" --limit 100 --json tagName,isDraft,publishedAt | python3 .github/nexum-events/releases.py latest)
+          tag="${{ inputs.reference }}"; [ -n "$tag" ] || tag="$latest"
+          echo "newest reference by publishedAt: $latest · restored: $tag" >> "$GITHUB_STEP_SUMMARY"
           gh release download "$tag" -R "$WORLD_REPO" -D seed -p world.tar.xz -p manifest.json
           echo "REFERENCE_TAG=$tag" >> "$GITHUB_ENV"
       - name: Pipeline
@@ -175,17 +181,17 @@ jobs:
           GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
         run: |
           t="${{ steps.store.outputs.tag }}"; gh release edit "$t" -R "$WORLD_REPO" --tag "prod-${t#world-}" --title "prod-${t#world-}"
-          gh release list -R "$WORLD_REPO" --limit 100 --json tagName,createdAt \
-            --jq '[.[] | select(.tagName | startswith("prod-"))] | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
-          while read -r x; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
+          gone=$(gh release list -R "$WORLD_REPO" --limit 100 --json tagName,isDraft,publishedAt |
+                 python3 .github/nexum-events/releases.py prune --prefix prod- --keep 3 --protect "prod-${t#world-}")
+          for x in $gone; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
       - name: Keep the 4 most recent world-* reference worlds (recovery versions)
         if: always() && steps.store.outputs.tag != ''
         env:
           GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
         run: |
-          gh release list -R "$WORLD_REPO" --limit 100 --json tagName,createdAt \
-            --jq '[.[] | select(.tagName | startswith("world-"))] | sort_by(.createdAt) | reverse | .[4:] | .[].tagName' |
-          while read -r x; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
+          gone=$(gh release list -R "$WORLD_REPO" --limit 100 --json tagName,isDraft,publishedAt |
+                 python3 .github/nexum-events/releases.py prune --prefix world- --keep 4 --protect "${{ steps.store.outputs.tag }}")
+          for x in $gone; do gh release delete "$x" -R "$WORLD_REPO" --yes --cleanup-tag; done
       - name: Report
         if: always()
         run: |
