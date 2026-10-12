@@ -243,7 +243,19 @@ test("audit · every drawn layer is interactive or declared context; a real clic
   await tap(page, false, s!.xy);
   await expect.poll(() => page.evaluate(() => (window as any).__nexum.store.get().focus)).toBe(s!.p.id);
   answered["nexum-items"] = "element card";
-  // relation lines (drawn from the open element) → the element they lead to
+  // relation lines (drawn from the open element) → the element they lead to. Opened on Houston (2026-10-12): the cities
+  // near Catania have only the line to their country, no longer drawn; Houston has a nearby city and a flood
+  await reset();
+  await page.locator("#nexum-search").fill("Houston");
+  const hits = page.locator("#nexum-results .it[data-ref]").filter({ has: page.locator(".grow", { hasText: /^Houston$/ }) });
+  await hits.first().waitFor({ timeout: 30_000 });
+  let houston: string | null = null;
+  for (const h of await hits.all()) {
+    const ref = await h.getAttribute("data-ref");
+    if (await page.evaluate((r) => (window as any).__nexum.store.entity(r)?.type === "place.settlement", ref)) { houston = ref; await h.click(); break; }
+  }
+  expect(houston, "Houston (city) in the results").not.toBeNull();
+  await expect.poll(() => page.evaluate(() => (window as any).__nexum.store.get().focus)).toBe(houston);
   await expect.poll(() => page.evaluate(() => (window as any).__nexum.map.getSource("nexum-links").serialize().data.features?.length ?? 0), { timeout: 20_000 }).toBeGreaterThan(0);
   // one line framed across the view (short lines sit beside the elements they join)
   await page.evaluate(() => { const m = (window as any).__nexum.map, c = m.getSource("nexum-links").serialize().data.features[0].geometry.coordinates;

@@ -151,17 +151,34 @@ test("desktop windows from 1120 px keep the full workspace on an element (left p
   }
 });
 
-test("a selected element keeps its contextual relation line (Konya → Turkey); only a whole area's web is quiet", async ({ browser }) => {
+// declared change (2026-10-12, author's GO): no line from an element to the country holding it — the country's point is
+// its bbox centre, off the territory (Toulon → the Sahel, any US city → France); the relation stays in the card. The
+// element's other relation lines are kept (Houston: a nearby city, a flood).
+test("no relation line to the country holding the element (Toulon → France); the relation stays in the card; other lines stay", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(BASE);
   await page.waitForFunction(() => performance.getEntriesByName("nexum:ready").length > 0, null, { timeout: 90_000 });
-  await page.locator("#nexum-search").fill("Konya");
-  // declared change (2026-10-04): a city's result also says its state ("Konya · Turkey"); the label is matched
-  const hit = page.locator("#nexum-results .it[data-ref]").filter({ has: page.locator(".grow", { hasText: /^Konya$/ }) }).first();
-  await hit.click({ timeout: 30_000 });
-  await expect(page.getByTestId("focus-head")).toContainText("Konya");
-  await expect.poll(() => page.evaluate(() => (window as any).__nexum.map.getSource("nexum-links").serialize().data.features.length), { timeout: 20_000 })
-    .toBeGreaterThan(0);
+  const lines = () => page.evaluate(() => { const st = (window as any).__nexum.store;
+    return (window as any).__nexum.map.getSource("nexum-links").serialize().data.features.map((f: any) => st.entity(f.properties.r)?.type); });
+  const select = async (name: string, type: string) => {
+    await page.locator("#nexum-search").fill(name);
+    // a city's result also says its state ("Toulon · France"): the label is matched, then the type
+    const hits = page.locator("#nexum-results .it[data-ref]").filter({ has: page.locator(".grow", { hasText: new RegExp(`^${name}$`) }) });
+    await hits.first().waitFor({ timeout: 30_000 });
+    for (const h of await hits.all()) {
+      const ref = await h.getAttribute("data-ref");
+      if (await page.evaluate(([r, t]) => (window as any).__nexum.store.entity(r)?.type === t, [ref, type])) { await h.click(); break; }
+    }
+    await expect(page.getByTestId("focus-head")).toContainText(name);
+    await page.waitForFunction(() => { const s = (window as any).__nexum.store.get(); return s.context?.id === s.focus; }, null, { timeout: 20_000 });
+  };
+  await select("Toulon", "place.settlement");
+  await expect(page.getByTestId("connections")).toContainText("France");
+  expect(await lines()).not.toContain("place.country");
+  await select("Houston", "place.settlement");
+  await expect(page.getByTestId("connections")).toContainText("United States of America");
+  await expect.poll(lines, { timeout: 20_000 }).not.toHaveLength(0);
+  expect(await lines()).not.toContain("place.country");
   await ctx.close();
 });
