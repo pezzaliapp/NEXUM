@@ -153,7 +153,9 @@ jobs:
           version=$(python3 -c "import json; print(json.load(open('out/site.json'))['version'])")
           build=$(python3 -c "import json; print(json.load(open('out/site.json'))['build'])")
           if [ "$DEPLOY" = production ]; then branch=main
-            prev=$(curl -fsS -H "$auth" "$api?env=production" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'][0]['id'])")
+            # the deployment production serves now (canonical_deployment), not the newest one: after a rollback the
+            # newest is the rolled-back deployment. Not readable → stop before deploying.
+            prev=$(curl -fsS -H "$auth" "${api%/deployments}" | python3 -c "import json,sys; d = json.load(sys.stdin)['result']['canonical_deployment']; assert d['environment'] == 'production'; print(d['id'])")
             echo "rollback target (previous production): $prev" >> "$GITHUB_STEP_SUMMARY"
           else branch=$PREVIEW_BRANCH; fi
           npx --yes wrangler@4.144.0 pages deploy data/deploy/web --project-name "$PAGES_PROJECT" --branch "$branch" \

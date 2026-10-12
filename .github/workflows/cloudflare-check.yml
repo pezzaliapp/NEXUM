@@ -1,6 +1,7 @@
 name: cloudflare-check
 # Read-only check of the Cloudflare token of environment "cloudflare": the Pages project nexum is reachable and its
-# production branch is main (so live-review stays a preview). Manual only. No deploy, no build, nothing written.
+# production branch is main (so live-review stays a preview), and the deployment production serves now (the rollback
+# target of the next production deploy) is readable. Manual only. No deploy, no build, nothing written.
 on:
   workflow_dispatch:
 permissions:
@@ -24,8 +25,10 @@ jobs:
           r = json.load(open("p.json")); res = r.get("result") or {}
           print(json.dumps({"http": sys.argv[1], "success": r.get("success"),
                             "errors": [e.get("code") for e in r.get("errors") or []],
-                            "project": res.get("name"), "production_branch": res.get("production_branch")}))
+                            "project": res.get("name"), "production_branch": res.get("production_branch"),
+                            "production_now": {k: (res.get("canonical_deployment") or {}).get(k) for k in ("id", "environment")}}))
           ok = sys.argv[1] == "200" and r.get("success") and res.get("name") == "nexum" and res.get("production_branch") == "main"
+          ok = ok and (res.get("canonical_deployment") or {}).get("environment") == "production"
           sys.exit(0 if ok else 1)
           EOF
           rm -f p.json
