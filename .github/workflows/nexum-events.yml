@@ -43,10 +43,11 @@ on:
         description: "restore exactly this reference release (empty: the newest by publishedAt)"
         type: string
         default: ""
-  # SCHEDULE OFF until the author's GO (2026-10-11). Minute 23 avoids the start of the hour (GitHub delays there).
-  # schedule:
-  #   - cron: "23 3 * * *"          # publish
-  #   - cron: "23 9,15,21 * * *"    # update
+  # SCHEDULE ON by the author's GO (2026-10-12); times in UTC. Minute 23 avoids the start of the hour (GitHub delays
+  # there). The "Mode" step matches the publish cron string exactly: change both together.
+  schedule:
+    - cron: "23 3 * * *"          # publish
+    - cron: "23 9,15,21 * * *"    # update
 
 concurrency:
   group: nexum-events
