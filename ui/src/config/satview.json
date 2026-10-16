@@ -1,0 +1,58 @@
+{
+  "_comment": "SATELLITE VIEW (2026-10-15): the observing satellites whose OWN imagery NEXUM can show, keyed by NORAD catalogue number. Data, not UI code. One entry = one satellite and the products that come from it alone (a layer, a platform filter, a stream): never the product of another satellite. 'swath_km' is the instrument's nominal swath (a theoretical field, said as such); 'cmr' is the NASA CMR collection whose newest granule proves the instrument is still delivering (checked at run time, never assumed). Services already in media-hosts.json: NASA GIBS (WMS + WMTS), EUMETView, CMR, Earth Search, youtube-nocookie.",
+  "stale_days": 3,
+  "text": {
+    "presetHint": "tocca un satellite per vedere ciò che ha osservato",
+    "heading": "Immagine dal satellite",
+    "under": "Sotto il satellite",
+    "metaLabel": "Satellite",
+    "notDelivering": " — il satellite NON consegna dati recenti",
+    "dailyNote": "MOSAICO GIORNALIERO: unione dei passaggi diurni del satellite in quella data UTC; l'ora di ogni pixel non è indicata dal servizio.",
+    "newest": "la più recente di questo satellite",
+    "none": "Il servizio non ha un'immagine di questo satellite per questo momento: nessuna immagine vuota o sostitutiva viene mostrata.",
+    "stacNote": "Le acquisizioni compaiono nel catalogo dopo l'elaborazione (di solito alcune ore). Il satellite acquisisce solo terre emerse e coste.",
+    "issSource": "Fonte: NASA (YouTube ufficiale) · satellite ISS · telecamere esterne della stazione. Di notte orbitale l'immagine è nera."
+  },
+  "sats": {
+    "25544": {
+      "name": "ISS (Stazione spaziale internazionale)",
+      "kind": "video",
+      "instrument": "telecamere esterne della stazione (NASA)",
+      "source": "NASA · canale YouTube ufficiale",
+      "playlist": "PL2aBZuCeDwlQMf6xMgQAUAY_nbHAgW5jz",
+      "channel": "UCLA_DiR1FfKNvjuUpBHmylQ",
+      "page": "https://www.nasa.gov/live/",
+      "note": "Playlist ufficiale NASA «Live Video from the International Space Station». La NASA non garantisce la diretta continua: di notte orbitale l'immagine è nera, a volte la trasmissione è sospesa o sostituita.",
+      "attribution": "Video: NASA (nessun avallo della NASA a NEXUM)"
+    },
+    "54743": {
+      "name": "Meteosat-12 (MTG-I1)",
+      "kind": "geo",
+      "lon": 0,
+      "instrument": "FCI (Flexible Combined Imager)",
+      "source": "EUMETSAT EUMETView",
+      "cadence_min": 10,
+      "products": [
+        { "key": "tc", "label": "Colori reali", "layer": "mtg_fd:rgb_truecolour", "res": "1 km" },
+        { "key": "ir", "label": "Infrarosso 10,5 µm", "layer": "mtg_fd:ir105_hrfi", "res": "2 km" }
+      ],
+      "attribution": "Contains modified EUMETSAT Meteosat data (CC BY 4.0)"
+    },
+    "40697": { "name": "Sentinel-2A", "kind": "stac", "platform": "sentinel-2a", "instrument": "MSI (MultiSpectral Instrument)", "swath_km": 290,
+      "source": "Copernicus · catalogo Earth Search (Element 84)", "attribution": "Contains modified Copernicus Sentinel data" },
+    "42063": { "name": "Sentinel-2B", "kind": "stac", "platform": "sentinel-2b", "instrument": "MSI (MultiSpectral Instrument)", "swath_km": 290,
+      "source": "Copernicus · catalogo Earth Search (Element 84)", "attribution": "Contains modified Copernicus Sentinel data" },
+    "60989": { "name": "Sentinel-2C", "kind": "stac", "platform": "sentinel-2c", "instrument": "MSI (MultiSpectral Instrument)", "swath_km": 290,
+      "source": "Copernicus · catalogo Earth Search (Element 84)", "attribution": "Contains modified Copernicus Sentinel data" },
+    "43013": { "name": "NOAA-20 (JPSS-1)", "kind": "daily", "layer": "VIIRS_NOAA20_CorrectedReflectance_TrueColor", "instrument": "VIIRS", "res": "≈ 375 m",
+      "swath_km": 3040, "cmr": "VJ102MOD", "source": "NASA GIBS (WMS)", "attribution": "Imagery: NASA GIBS / ESDIS · dati NOAA/NASA" },
+    "54234": { "name": "NOAA-21 (JPSS-2)", "kind": "daily", "layer": "VIIRS_NOAA21_CorrectedReflectance_TrueColor", "instrument": "VIIRS", "res": "≈ 375 m",
+      "swath_km": 3040, "cmr": "VJ202MOD", "source": "NASA GIBS (WMS)", "attribution": "Imagery: NASA GIBS / ESDIS · dati NOAA/NASA" },
+    "25994": { "name": "Terra", "kind": "daily", "layer": "MODIS_Terra_CorrectedReflectance_TrueColor", "instrument": "MODIS", "res": "≈ 250 m",
+      "swath_km": 2330, "cmr": "MOD021KM", "source": "NASA GIBS (WMS)", "attribution": "Imagery: NASA GIBS / ESDIS · NASA Terra/MODIS",
+      "note": "Missione in chiusura (2026–2027): l'ultimo dato del satellite è verificato a ogni richiesta." },
+    "27424": { "name": "Aqua", "kind": "daily", "layer": "MODIS_Aqua_CorrectedReflectance_TrueColor", "instrument": "MODIS", "res": "≈ 250 m",
+      "swath_km": 2330, "cmr": "MYD021KM", "source": "NASA GIBS (WMS)", "attribution": "Imagery: NASA GIBS / ESDIS · NASA Aqua/MODIS",
+      "note": "Missione in chiusura (2026–2027): l'ultimo dato del satellite è verificato a ogni richiesta." }
+  }
+}

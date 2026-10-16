@@ -5,6 +5,7 @@
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
 import { call } from "../lib/api";
 import OPS from "../config/ops.json";
+import SATVIEW from "../config/satview.json";
 import { ops } from "./state";
 
 export interface OrbitRow { norad: number; name: string; family: string; cospar: string; epoch: string; mm: number; ecc: number; inc: number }
@@ -45,6 +46,8 @@ export const passesOf = (id: number, obs: { lat: number; lng: number }, t0: numb
   ask<{ rise: number; set: number; max: number; maxEl: number; azRise: number; azSet: number }[]>("passes", { id, obs, t0, hours, minEl });
 
 const NOTABLE = new Set(OPS.orbits.notable);
+/** The observers of SAT VIEW (catalogue numbers): their own imagery can be shown in their card. */
+export const OBSERVERS = new Set(Object.keys(SATVIEW.sats).map(Number));
 export const FAMILIES = OPS.orbits.families as unknown as Record<string, [string, string]>;
 /** family → category (config orbits.groups: CelesTrak's own groups, never a guess from the name). */
 export const GROUPS = OPS.orbits.groups as unknown as [string, string, string[]][];
@@ -63,6 +66,7 @@ export function splitAntimeridian(pts: [number, number, number][]): [number, num
   return out.filter((l) => l.length > 1);
 }
 
+const LAYERS = ["ops-orbits", "ops-orbits-hit", "ops-orbit-track"];
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 const REFRESH_MS = 3000;
 
@@ -73,22 +77,29 @@ export function installOrbits(map: MLMap, before?: string): () => void {
   map.addLayer({ id: "ops-orbit-track", type: "line", source: "ops-orbit-track",
     paint: { "line-color": ["coalesce", ["get", "c"], "#E0A640"], "line-width": 1.4, "line-opacity": 0.8, "line-dasharray": [2, 2] } }, before);
   map.addLayer({ id: "ops-orbits", type: "circle", source: "ops-orbits", paint: {
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, ["case", ["get", "big"], 3.2, 1.3], 4, ["case", ["get", "big"], 4.5, 2], 8, ["case", ["get", "big"], 6, 3]],
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, ["case", ["get", "obs"], 5, ["get", "big"], 3.2, 1.3], 4, ["case", ["get", "obs"], 6.5, ["get", "big"], 4.5, 2],
+      8, ["case", ["get", "obs"], 8, ["get", "big"], 6, 3]],
     "circle-color": ["get", "c"], "circle-opacity": ["case", ["get", "big"], 1, 0.75],
-    "circle-stroke-width": ["case", ["boolean", ["feature-state", "sel"], false], 2, 0], "circle-stroke-color": "#E0A640" } }, before);
+    "circle-stroke-width": ["case", ["boolean", ["feature-state", "sel"], false], 2.5, ["get", "obs"], 1.5, 0],
+    "circle-stroke-color": ["case", ["boolean", ["feature-state", "sel"], false], "#E0A640", "#F4F6F7"] } }, before);
+  // the observers (SAT VIEW preset): a wider invisible target, so a finger finds them on a phone
+  map.addLayer({ id: "ops-orbits-hit", type: "circle", source: "ops-orbits", filter: ["==", ["get", "obs"], true],
+    paint: { "circle-radius": 16, "circle-opacity": 0 } }, before);
   let timer = 0, on = false, gen = 0, sel: number | null = null;
   const tick = async () => {
     const g = ++gen;
     const tab = await loadOrbits();
     const a = await orbitPositions(Date.now());
     if (!on || g !== gen) return;
-    const feats: GeoJSON.Feature[] = [], off = new Set(ops.get().satOff);
+    const feats: GeoJSON.Feature[] = [], off = new Set(ops.get().satOff), onlyObs = ops.get().satObs;
     for (let i = 0; i < a.length; i += 4) {
       const row = tab.byId.get(a[i]);
-      if (!row || (off.size && off.has(groupOf(row.family)))) continue;
+      if (!row) continue;
+      const obs = OBSERVERS.has(a[i]);
+      if (onlyObs ? !obs : off.size && off.has(groupOf(row.family))) continue;
       const big = NOTABLE.has(row.family) && row.family !== "geostationary" && row.family !== "amateur";
       feats.push({ type: "Feature", id: a[i], geometry: { type: "Point", coordinates: [a[i + 1], a[i + 2]] },
-        properties: { id: a[i], c: familyColor(row.family), big, alt: Math.round(a[i + 3]) } });
+        properties: { id: a[i], c: familyColor(row.family), big, obs: onlyObs && obs, alt: Math.round(a[i + 3]) } });
     }
     (map.getSource("ops-orbits") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feats });
     ops.count("orbits", feats.length);
@@ -112,24 +123,29 @@ export function installOrbits(map: MLMap, before?: string): () => void {
     const want = ops.get().layers.orbits;
     if (want === on) return;
     on = want;
-    for (const id of ["ops-orbits", "ops-orbit-track"]) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+    for (const id of LAYERS) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
     window.clearInterval(timer);
     if (on) { tick(); timer = window.setInterval(tick, REFRESH_MS); }
     else { (map.getSource("ops-orbits") as GeoJSONSource).setData(EMPTY); ops.count("orbits", 0); }
   };
-  for (const id of ["ops-orbits", "ops-orbit-track"]) map.setLayoutProperty(id, "visibility", "none");
-  map.on("click", "ops-orbits", (e) => {
-    const id = Number(e.features?.[0]?.properties?.id);
+  for (const id of LAYERS) map.setLayoutProperty(id, "visibility", "none");
+  // one tap, one object: the visible dot first, else the observer's wider target
+  map.on("click", (e) => {
+    if (!on) return;
+    const hit = map.queryRenderedFeatures(e.point, { layers: ["ops-orbits"] })[0] ?? map.queryRenderedFeatures(e.point, { layers: ["ops-orbits-hit"] })[0];
+    const id = Number(hit?.properties?.id);
     if (Number.isFinite(id)) ops.set({ orbit: id });
   });
-  map.on("mouseenter", "ops-orbits", () => { map.getCanvas().style.cursor = "pointer"; });
-  map.on("mouseleave", "ops-orbits", () => { map.getCanvas().style.cursor = ""; });
-  let lastOrbit: number | null = null, lastOff = ops.get().satOff;
+  for (const l of ["ops-orbits", "ops-orbits-hit"]) {
+    map.on("mouseenter", l, () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", l, () => { map.getCanvas().style.cursor = ""; });
+  }
+  let lastOrbit: number | null = null, lastOff = ops.get().satOff, lastObs = ops.get().satObs;
   const unsub = ops.subscribe(() => {
     apply();
     const o = ops.get().orbit;
     if (o !== lastOrbit) { lastOrbit = o; drawTrack(o); }
-    if (ops.get().satOff !== lastOff) { lastOff = ops.get().satOff; if (on) tick(); }
+    if (ops.get().satOff !== lastOff || ops.get().satObs !== lastObs) { lastOff = ops.get().satOff; lastObs = ops.get().satObs; if (on) tick(); }
   });
   apply();
   return () => { unsub(); window.clearInterval(timer); };

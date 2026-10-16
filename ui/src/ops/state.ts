@@ -38,6 +38,8 @@ export interface OpsState {
   orbit: number | null;
   /** Orbital categories turned off (CelesTrak groups, config orbits.groups); empty = all shown. */
   satOff: string[];
+  /** SAT VIEW preset: only the observing spacecraft whose own imagery NEXUM can show (config satview.json). */
+  satObs: boolean;
   /** The operational features under a tap (news, AIS, hotspot, cable, imported): the card says what they are. */
   feat: { c: [number, number]; fs: { l: string; p: Record<string, any> }[] } | null;
   /** UI accent preset (style studio). */
@@ -67,7 +69,7 @@ function initial(): OpsState {
     base: fromHash.base ?? (saved.base as BaseMode) ?? "map",
     projection: fromHash.projection ?? (saved.projection as Projection) ?? "globe",
     layers: { ...DEFAULT_LAYERS, ...(saved.layers ?? {}), ...(fromHash.layers ?? {}) },
-    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false,
+    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false,
   };
 }
 

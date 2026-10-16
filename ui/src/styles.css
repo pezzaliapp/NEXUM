@@ -714,6 +714,12 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .sat-fig { margin: 6px 0; } .sat-fig img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
 .sat-class { font: 10px/1.4 var(--mono); padding: 0 4px; border: 1px solid var(--line-strong); }
 .sat-class.nrt { color: var(--accent); } .sat-class.historical { color: var(--dim); }
+/* SAT VIEW (2026-10-15): the four classes, told apart by word first, colour second */
+.sat-class.live { color: #ff4d4d; border-color: #ff4d4d; font-weight: 600; } .sat-class.latest { color: var(--accent); border-color: var(--accent); }
+.sat-class.none { color: var(--warn, #b26a00); border-color: currentColor; }
+.satview { padding: 0 10px; margin: 6px 0; } .satview .sat-fig img { max-height: 46vh; object-fit: contain; background: #000; }
+.satview .chip, .satview button.xs { min-height: 32px; } .touch .satview .chip { min-height: 40px; }
+.satview-field { margin-top: 6px; } .ops-card .satview button, .ops-card .satview label { scroll-margin-top: 48px; } .ops-sat-obs { padding-left: 0; }
 .cmp { width: 100%; border-collapse: collapse; font-size: var(--fs-s); } .cmp td { padding: 2px 4px; border-bottom: 1px solid var(--line); }
 .cmp td.num { text-align: right; white-space: nowrap; } .cmp tr.on td { background: var(--accent-dim); }
 .cmp-scroll { max-height: 320px; overflow-y: auto; } .cmp-q { width: 100%; margin: 6px 0; box-sizing: border-box; }
@@ -865,6 +871,10 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .ops-card { max-height: calc(100% - 34px - 40px); overflow-y: auto; overscroll-behavior: contain; }
 .ops-card > .ops-ph { position: sticky; top: 0; z-index: 1; background: inherit; }
 .touch .ops-card { position: fixed; z-index: 91; left: 8px; right: 8px; width: auto; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 8px); max-height: 50dvh; overflow-y: auto; background: var(--panel); box-shadow: 0 -4px 24px #000a; }
+/* short, wide screens (phone in landscape): the card is a side panel, like the tools' sheet — the map stays in view (2026-10-15) */
+@media (max-height: 520px) and (min-width: 600px) {
+  .touch .ops-card { left: auto; right: 0; width: min(400px, 46vw); top: var(--cmd-h); bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); max-height: none; border-radius: 0 0 0 12px; }
+}
 .ops-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; z-index: 6; display: flex; align-items: center; gap: 12px;
   padding: 0 10px; background: #0D1012D9; border-top: 1px solid var(--line); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; }
 .ops-scale { display: inline-flex; align-items: center; gap: 4px; font: var(--fs-xs) var(--mono); color: var(--dim); }

@@ -8,6 +8,7 @@ import { licenceVerdict } from "./licence";
 import { lazyStale } from "../lib/stale";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
+import SV from "../config/satview.json";
 import NEWS from "../config/news.json";
 import OPS from "../config/ops.json";
 import { spaceWeather as SW } from "../config/ops-space.json";
@@ -23,10 +24,13 @@ import { bboxOf, compass, bearing, fmtKm, fmtKm2, fmtLatLng, haversine, inRing, 
 import { draw, download, NAMES, shapesGeoJSON, toCSV, type DrawMode, type Shape } from "./draw";
 import { CHANNELS, highlight, IMPORT_COLORS, importedData, tableMeta } from "./overlays";
 import { feed, KINDS, SOURCE_NAME, type AlertKind, type Feed } from "./alerts";
-import { familyColor, familyLabel, groupOf, GROUPS, loadOrbits, orbitDetail } from "./orbits";
+import { familyColor, familyLabel, groupOf, GROUPS, loadOrbits, OBSERVERS, orbitDetail } from "./orbits";
+import { epochAgeDays } from "./satgeo";
+import SATVIEW from "../config/satview.json";
 import { applyTheme, THEMES } from "./theme";
 
 const Sky = lazyStale(() => import("./Sky"));
+const SatView = lazyStale(() => import("./SatView"));
 const Ai = lazyStale(() => import("./Ai"));
 const TITLES = Object.fromEntries(TOOLS.map((t) => [t.id, t.label])) as Record<Tool, string>;
 const SHORT = Object.fromEntries(TOOLS.map((t) => [t.id, t.short])) as Partial<Record<Tool, string>>;
@@ -37,7 +41,7 @@ export default function Panels({ map, tool }: { map: MLMap; tool: Tool | null })
   return (
     <>
       {tool && <ToolSheet map={map} tool={tool} />}
-      {orbit != null && <OrbitCard id={orbit} />}
+      {orbit != null && <OrbitCard id={orbit} map={map} />}
       {feat && <FeatCard map={map} feat={feat} />}
     </>);
 }
@@ -200,6 +204,7 @@ const LAYER_GROUPS: [string, (keyof OpsLayers)[] | "maritime"][] = [
 ];
 function LayersPanel({ map }: { map: MLMap }) {
   const layers = useOps((s) => s.layers);
+  const satObs = useOps((s) => s.satObs);
   const counts = useOps((s) => s.counts);
   return (
     <>
@@ -212,7 +217,7 @@ function LayersPanel({ map }: { map: MLMap }) {
             <input type="checkbox" className="ops-switch" checked={layers[l.k]} data-testid={`ops-layer-${l.k}`} onChange={() => ops.layer(l.k)} />
             <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}</span>
             {counts[l.k] ? <span className="mono xs dim">{counts[l.k].toLocaleString("it-IT")}</span> : null}
-          </label>{l.k === "orbits" && layers.orbits && <SatGroups />}</li>))}
+          </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}</li>))}
           </ul></div>))}
       <p className="xs warn" data-testid="ops-airtraffic-blocked">{OPS.orbits.airTraffic}</p>
       <div className="hl-h">Viste</div>
@@ -220,6 +225,16 @@ function LayersPanel({ map }: { map: MLMap }) {
         {OPS.presets.map((p) => <button key={p.id} type="button" className="chip" onClick={() => { showMap(); map.flyTo({ center: p.c as [number, number], zoom: p.z, duration: 900 }); }}>{p.label}</button>)}
       </div>
     </>);
+}
+
+/** SAT VIEW preset: only the observing spacecraft whose own imagery NEXUM shows in their card (turns the
+ *  satellites on; off again gives back every category as it was). */
+function SatObservers() {
+  const on = useOps((s) => s.satObs && s.layers.orbits);
+  return (
+    <label className="row xs ops-sub ops-sat-obs"><input type="checkbox" className="ops-switch" checked={on} data-testid="ops-sat-observers"
+      onChange={() => { ops.set({ satObs: !on }); if (!on) ops.layer("orbits", true); }} />
+      <span className="grow">Satelliti osservatori <span className="faint">· {OBSERVERS.size}: {SV.text.presetHint}</span></span></label>);
 }
 
 /** Orbital categories (CelesTrak's groups): a switch and the count of each, all on by default. */
@@ -1419,7 +1434,7 @@ function HelpPanel() {
 }
 
 // ── ORBIT CARD ────────────────────────────────────────────────────────────
-function OrbitCard({ id }: { id: number }) {
+function OrbitCard({ id, map }: { id: number; map: MLMap }) {
   const [row, setRow] = useState<any>(null);
   const [now, setNow] = useState<{ lng: number; lat: number; alt: number; v: number } | null>(null);
   useEffect(() => {
@@ -1432,13 +1447,20 @@ function OrbitCard({ id }: { id: number }) {
   }, [id]);
   if (!row) return null;
   const period = 1440 / row.mm;
+  const age = epochAgeDays(String(row.epoch), Date.now());
+  const stale = age != null && age > SATVIEW.stale_days;
   return (
-    <aside className="ops-card" data-testid="ops-orbit-card">
+    <aside className="ops-card" data-testid="ops-orbit-card" data-observer={OBSERVERS.has(id) || undefined}>
       <header className="ops-ph"><b className="grow ellipsis">{row.name}</b><button type="button" className="xs" aria-label="Chiudi" onClick={() => ops.set({ orbit: null })}>×</button></header>
       <p className="xs"><span className="ops-swatch" style={{ background: familyColor(row.family) }} /> {familyLabel(row.family)} · NORAD {row.norad} · COSPAR {row.cospar}</p>
-      {now && <p className="mono xs" data-testid="ops-orbit-now">{fmtLatLng(now.lat, now.lng, 2)} · quota {Math.round(now.alt).toLocaleString("it-IT")} km · {now.v.toFixed(2)} km/s</p>}
+      {now && <p className="mono xs" data-testid="ops-orbit-now">{fmtLatLng(now.lat, now.lng, 2)} · quota {Math.round(now.alt).toLocaleString("it-IT")} km · {now.v.toFixed(2)} km/s
+        <span className="dim"> · posizione CALCOLATA</span></p>}
       <p className="xs">Periodo {period >= 120 ? `${(period / 60).toFixed(1)} h` : `${period.toFixed(1)} min`} · inclinazione {row.inc.toFixed(1)}° · eccentricità {row.ecc.toFixed(4)}</p>
-      <p className="xs dim">Elementi dell'epoca {String(row.epoch).replace("T", " ").slice(0, 16)} UTC. {OPS.orbits.note}</p>
+      <p className="xs dim" data-testid="ops-orbit-epoch" data-age={age ?? ""}>Elementi dell'epoca {String(row.epoch).replace("T", " ").slice(0, 16)} UTC{age != null ? ` (${age === 0 ? "di oggi" : age === 1 ? "di ieri" : `${age} giorni fa`})` : ""}. {OPS.orbits.note}</p>
+      {stale && <p className="xs warn" data-testid="ops-orbit-stale">Elementi orbitali vecchi di {age} giorni: posizione, traccia e campo sono APPROSSIMATIVI (l'errore cresce con l'età degli elementi e dopo ogni manovra).</p>}
+      {OBSERVERS.has(id)
+        ? <Suspense fallback={<p className="xs dim">…</p>}><SatView map={map} id={id} /></Suspense>
+        : <p className="xs dim" data-testid="ops-orbit-noimage"><b className="sat-class none">NON DISPONIBILE</b> NEXUM mostra immagini solo dei satelliti osservatori di cui una fonte pubblica pubblica le acquisizioni proprie.</p>}
       <div className="row xs"><button type="button" className="xs" onClick={() => ops.set({ tool: "sky" })}>✦ Passaggi sopra un punto</button>
         <button type="button" className="xs" onClick={() => store.get() && call<any>("/search", { q: String(row.norad), b: { max_items: 3 } }).then((r) => { const it = r.data.groups?.flatMap((g: any) => g.items)?.[0]; if (it) store.select(it.id, "ops-orbit"); })}>Scheda NEXUM</button></div>
       <p className="xs"><a href={OPS.orbits.n2yo.replace("{norad}", String(row.norad))} target="_blank" rel="noopener noreferrer" data-testid="ops-orbit-n2yo">Traccia su N2YO ↗</a>

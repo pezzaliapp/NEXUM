@@ -622,7 +622,7 @@ export function MapView() {
           const rt = String(it.reason ?? "").startsWith("relation:") ? store.get().types.get(String(it.reason).slice(9)) : undefined;
           if (rt?.map_line === false) continue;   // a relation the vocabulary keeps off the map (graph and card only)
           const to = store.entity(it.$ref);
-          // an explorable area (a country) holds the focus: its point is its bbox centre, off the territory for France,
+          // an explorable area (a nation-sized one) holds the focus: its point is its bbox centre, off the territory for France,
           // the USA, Russia… (2026-10-12, Toulon → Sahel); the relation stays in the card and the graph
           if (store.get().types.get(to?.type ?? "")?.explore) continue;
           const p = to?.point;
