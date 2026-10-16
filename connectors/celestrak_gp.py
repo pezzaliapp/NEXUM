@@ -24,7 +24,7 @@ VERSION = "1.0.0"
 GP = "https://celestrak.org/NORAD/elements/gp.php?GROUP={}&FORMAT=csv"
 # the thematic sets (as many small downloads as CelesTrak recommends, each once per update; the large "active" set is
 # rate-limited by CelesTrak) → the family each set stands for; debris: the four large debris fields
-SETS = {"stations": "station", "visual": None, "gps-ops": "navigation", "glonass-operational": "navigation",
+SETS = {"stations": "station", "visual": None, "gps-ops": "navigation", "glo-ops": "navigation",
         "galileo": "navigation", "beidou": "navigation", "weather": "weather", "resource": "earth_observation",
         "science": "science", "geo": "geostationary", "oneweb": "oneweb",
         "iridium-NEXT": "iridium", "globalstar": "globalstar", "orbcomm": "orbcomm", "amateur": "amateur",
@@ -87,6 +87,16 @@ def rows(data):
     if not text.startswith("OBJECT_NAME"):
         return []
     return [r for r in csv.DictReader(io.StringIO(text)) if r.get("NORAD_CAT_ID")]
+
+
+def usable(data: bytes) -> bool:
+    """A payload the published table may use: the OMM CSV with every field SGP4 needs (a set with no object is the
+    header alone, and is usable). CelesTrak answers an unknown or rate-limited query with a 200 and a line of text
+    (2026-10-04: 'Invalid query: "GROUP=glonass-operational&FORMAT=csv" (GROUP=glonass-operational not found)'): never
+    usable, so the set's previous payload stays published."""
+    text = data.decode("utf-8-sig", errors="replace")
+    head = next(csv.reader(io.StringIO(text.split("\n", 1)[0])), []) if text.startswith("OBJECT_NAME") else []
+    return set(FIELDS) <= set(h.strip() for h in head)
 
 
 def parse(data: bytes, meta: dict):

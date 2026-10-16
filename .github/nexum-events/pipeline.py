@@ -48,6 +48,10 @@ SNAP = ROOT / "data" / "snapshot"
 WEB = ROOT / "data" / "deploy" / "web"
 # phase 1 (2026-10-11): the natural events that move fastest; other sources are added one by one, by decision
 PHASE1 = ("usgs.earthquakes", "nasa.eonet", "cems.rapid_mapping")
+# the daily publish only (2026-10-16, option C): CelesTrak's orbital elements, one request per set, through the
+# dedicated runner (no retry, no redirect, stop at the first anomaly); the update runs stay as they are
+PUBLISH_ONLY = ("celestrak.gp",)
+RUNNERS = {"celestrak.gp": pathlib.Path(__file__).resolve().parent / "orbits.py"}
 # USGS: the current year's FDSN window (M ≥ 5.5, one request) closes any gap the 7-day feed cannot reach, then the feed
 MODES = {"usgs.earthquakes": ("backfill", "incremental")}
 FETCH_TIMEOUT_S = 1200
@@ -243,8 +247,9 @@ def acquire(sources, break_sources=()) -> dict:
             if s in break_sources:          # recovery test only: this source cannot reach the network
                 env.update(HTTPS_PROXY="http://127.0.0.1:9", HTTP_PROXY="http://127.0.0.1:9")
             try:
-                rc, so, se, secs = sh([sys.executable, "-m", "nexum.cli", "live", "fetch", "--source", s, "--mode", mode],
-                                      timeout=FETCH_TIMEOUT_S, env=env)
+                cmd = ([sys.executable, str(RUNNERS[s])] if s in RUNNERS else
+                       [sys.executable, "-m", "nexum.cli", "live", "fetch", "--source", s, "--mode", mode])
+                rc, so, se, secs = sh(cmd, timeout=FETCH_TIMEOUT_S, env=env)
             except subprocess.TimeoutExpired:
                 steps.append({"mode": mode, "status": "failed", "error": f"timeout after {FETCH_TIMEOUT_S} s"})
                 continue
@@ -369,7 +374,7 @@ def production_check(url: str, snap_live: pathlib.Path) -> dict:
 
 
 def run(a) -> int:
-    allow = tuple(x for x in (a.sources or ",".join(PHASE1)).split(",") if x)
+    allow = tuple(x for x in (a.sources or ",".join(PHASE1 + (PUBLISH_ONLY if a.publish else ()))).split(",") if x)
     out = pathlib.Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     rep = {"started_utc": now_utc(), "mode": "publish" if a.publish else "update", "sources": list(allow), "phases": {}}

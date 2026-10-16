@@ -394,15 +394,27 @@ class Service:
         src = next((s for s in self.sources.values() if (s.options or {}).get("published_table") == name), None)
         if src is None:
             raise ApiError(404, "not_found", f"no published table {name!r}")
+        mod = importlib.import_module(src.connector)
         conn = sqlite3.connect(pathlib.Path(self.cfg.db_path).resolve().as_uri() + "?mode=ro", uri=True)
         try:
-            latest = conn.execute(
-                "SELECT r.resource_key, r.sha256, r.fetched_ms, r.url FROM raw_record r JOIN (SELECT resource_key, MAX(fetched_ms) AS f "
-                "FROM raw_record WHERE source_id=? GROUP BY resource_key) l ON l.resource_key=r.resource_key AND l.f=r.fetched_ms "
-                "WHERE r.source_id=? ORDER BY r.resource_key", (src.id, src.id)).fetchall()
+            if hasattr(mod, "usable"):
+                # a connector that can tell a usable payload (usable(bytes)): each resource's newest USABLE one, so an
+                # answer that is not the data (a 200 with an error text) never replaces the last good payload; a
+                # resource with none is left out
+                latest, done = [], set()
+                for k, sha, fetched, url in conn.execute(
+                        "SELECT resource_key, sha256, fetched_ms, url FROM raw_record WHERE source_id=? "
+                        "ORDER BY resource_key, fetched_ms DESC", (src.id,)):
+                    if k not in done and mod.usable(self.raw.store.get(sha)):
+                        latest.append((k, sha, fetched, url))
+                        done.add(k)
+            else:
+                latest = conn.execute(
+                    "SELECT r.resource_key, r.sha256, r.fetched_ms, r.url FROM raw_record r JOIN (SELECT resource_key, MAX(fetched_ms) AS f "
+                    "FROM raw_record WHERE source_id=? GROUP BY resource_key) l ON l.resource_key=r.resource_key AND l.f=r.fetched_ms "
+                    "WHERE r.source_id=? ORDER BY r.resource_key", (src.id, src.id)).fetchall()
         finally:
             conn.close()
-        mod = importlib.import_module(src.connector)
         payloads = [(k, self.raw.store.get(sha), fetched, url) for k, sha, fetched, url in latest]
         t = mod.table(payloads)
         data = {"table": name, "source_id": src.id, "fields": t["fields"], "rows": t["rows"], "notes": t.get("notes"),
