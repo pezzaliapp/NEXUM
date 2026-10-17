@@ -10,7 +10,7 @@ import { recompute } from "../lib/confidence";
 import { conf, duration, km, num, utc } from "../lib/format";
 import { S } from "../lib/strings";
 import { store, useEntity, useStore } from "../store";
-import { Conf, ErrorNote, Ref, Section, Support, useFetch, WhyButton } from "../components/common";
+import { Conf, ErrorNote, Ref, Section, sourceName, Support, useFetch, WhyButton } from "../components/common";
 import { ConnectionsBlock } from "../components/Connections";
 import { ObservationRecord, ObservationsBlock } from "../components/Observations";
 import { TenuresBlock } from "../components/Tenures";
@@ -341,7 +341,7 @@ export function EvidenceItem({ ev }: { ev: any }) {
     <li data-evidence={ev.evidence_id}>
       <div className="row">
         <span className="mono xs dim">{ev.role}</span>
-        <span className="grow ellipsis small">{s.$ref ? <Ref id={s.$ref} /> : <>{s.source_id} · <span className="mono">{s.native_id}</span></>}</span>
+        <span className="grow ellipsis small">{s.$ref ? <Ref id={s.$ref} /> : <><span className="ev-src" data-source={s.source_id}>{sourceName(s.source_id)}</span> · <span className="mono xs dim">{s.native_id}</span></>}</span>
         <span className="mono xs dim" title="gruppo di indipendenza">{ev.independence_group}</span>
         {ev.weight != null && <span className="badge">{conf(ev.weight)}</span>}
       </div>

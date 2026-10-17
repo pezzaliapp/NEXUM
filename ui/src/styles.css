@@ -1020,3 +1020,30 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .app.touch .topbar { padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right)); }
 .app.touch .tabs, .touch.as-sheet .insp { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 .app.touch .card-strip { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+
+/* GRAPH · what a line is (2026-10-17): legend, edge panel, the rows above the graph — graph/edgeStyle.ts */
+.link-glyph { flex: none; display: inline-block; vertical-align: middle; }
+.graph-legend { background: #13171Af0; border: 1px solid var(--line-strong); padding: 4px 8px; font-size: var(--fs-s);
+  max-width: 300px; pointer-events: auto; }
+.graph-legend > summary { cursor: pointer; color: var(--dim); min-height: 24px; display: flex; align-items: center; }
+.graph-legend[open] > summary { color: var(--text); }
+.graph-legend ul { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 6px; }
+.graph-legend .lg-links li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; }
+.graph-legend .lg-links .link-glyph { margin-top: 5px; }
+.graph-legend .lg-links strong { font-weight: 600; display: block; }
+.graph-legend .lg-note { display: block; color: var(--dim); font-size: 11px; line-height: 1.35; margin: 0; }
+.graph-legend .lg-shapes { grid-template-columns: 1fr; gap: 2px; border-top: 1px solid var(--line); padding-top: 4px; }
+.graph-legend .lg-shape { display: inline-block; width: 22px; color: var(--dim); }
+/* touch: in the side column above the card (never in the statements' flow: the drawing keeps its room) */
+.app.touch .graph-legend[open] { width: min(300px, calc(100vw - 16px)); max-width: none; max-height: 50vh; overflow-y: auto; }
+.app.touch .graph-legend > summary { min-height: 44px; }
+.edgepanel .ep-type { color: var(--dim); }
+.edgepanel .ep-note { margin: 4px 0; color: var(--dim); font-size: 12px; line-height: 1.4; }
+.edgepanel .caution { color: var(--accent); font-size: 12px; margin: 4px 0; }
+.edgepanel .ep-why { margin-top: 4px; gap: 6px; flex-wrap: wrap; }
+.app.touch .edgepanel { bottom: calc(var(--card-h, 0px) + 8px); max-height: 50vh; overflow-y: auto; }
+.why .stmt .kind-note { font-size: var(--fs-s); color: var(--dim); margin: 4px 0; }
+.why .stmt .kind-note[data-kind="inferred"] { color: var(--accent); }
+.why .src-plain { margin: 0 0 6px; }
+.ev-src { font-weight: 500; }
+.edgepanel .ep-ends { flex-wrap: wrap; row-gap: 2px; }   /* both ends always readable, never one cut to "…" */

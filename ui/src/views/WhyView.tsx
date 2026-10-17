@@ -7,7 +7,7 @@ import { recompute } from "../lib/confidence";
 import { conf, duration, km, num } from "../lib/format";
 import { S } from "../lib/strings";
 import { store, useStore } from "../store";
-import { Conf, ErrorNote, Ref, Support, useFetch, WhyButton } from "../components/common";
+import { Conf, ErrorNote, Ref, sourceName, Support, useFetch, WhyButton } from "../components/common";
 import { typeLabelOf, useSummaries } from "../components/Highlights";
 import { sentence, summaryOf } from "../lib/summary";
 import { EvidenceItem } from "./ObjectMode";
@@ -59,9 +59,12 @@ export function WhyView({ id }: { id: string }) {
           <>
             <div className="stmt">
               <div className="xs dim" style={{ textTransform: "uppercase", letterSpacing: ".06em" }}>
-                {d.kind === "insight" ? S.whyFound : `${S.kinds.relation} · ${det?.nature ?? ""}`}
+                {d.kind === "insight" ? S.whyFound : `${S.kinds.relation} · ${S.nature[det?.nature] ?? det?.nature ?? ""}`}
               </div>
               <div style={{ margin: "4px 0" }}><Ref id={id} origin="why" /></div>
+              {/* what this statement is, before anything else: recorded by sources, or inferred by a rule */}
+              <p className="kind-note" data-testid="why-kind" data-kind={d.kind === "insight" ? "inferred" : det?.nature === "spatial" ? "geo" : "documented"}>
+                {d.kind === "insight" ? S.whyInferred : det?.nature === "spatial" ? S.whyGeo : S.whyDocumented}</p>
               {sent && <p className="ins-sentence" data-testid="why-sentence">{sent}</p>}
               <blockquote data-testid="why-explanation">{d.explanation?.text}</blockquote>
               {d.explanation?.origin === "generated_from_refs" && <div className="xs faint">{S.explanationGenerated}</div>}
@@ -77,7 +80,8 @@ export function WhyView({ id }: { id: string }) {
               </Block>
             )}
             <Block title={S.whyIndependent} name="independent">
-              <p className="small" data-testid="why-independent-count">{d.independent_sources?.count} gruppi indipendenti</p>
+              <p className="small src-plain" data-testid="why-sources-plain">{sourcesPlain(d)}</p>
+              <p className="xs dim" data-testid="why-independent-count">{d.independent_sources?.count} gruppi indipendenti</p>
               <table><thead><tr><th style={{ width: 110 }}>gruppo</th><th>fonti</th><th className="n">migliore</th><th className="n">evid.</th></tr></thead>
                 <tbody>{(d.independent_sources?.groups ?? []).map((g: any) => (
                   <Fragment key={g.independence_group}>
@@ -220,6 +224,15 @@ export function WhyView({ id }: { id: string }) {
       </div>
     </div>
   );
+}
+
+/** The sources of a statement in one sentence, by their published names (the table below keeps the groups). */
+function sourcesPlain(d: any): string {
+  const groups: any[] = d.independent_sources?.groups ?? [];
+  const n: number = d.independent_sources?.count ?? groups.length;
+  if (!n) return S.whyNoSources;
+  const names = [...new Set(groups.flatMap((g) => g.sources ?? []))].map(sourceName).join(", ");
+  return d.kind === "insight" ? S.whyMembersSourcesPlain(n, names) : S.whySourcesPlain(n, names);
 }
 
 function MemberEvidence({ role, id }: { role: string; id: string }) {

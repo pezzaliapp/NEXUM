@@ -8,7 +8,6 @@ import Sigma from "sigma";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { call, isSuperseded } from "../lib/api";
 import { band } from "../lib/confidence";
-import { conf } from "../lib/format";
 import { bandOpacity, colorOf, SHAPE, TOKENS } from "../lib/palette";
 import { edgeTypeLabel } from "../lib/connections";
 import { S } from "../lib/strings";
@@ -16,7 +15,9 @@ import { store, useStore } from "../store";
 import { radialSectors, type LNode } from "../graph/layout";
 import { planBoxes, planLabels, type LabelCandidate, type Placement, type Rect } from "../graph/labels";
 import { NodeShapeProgram } from "../graph/shapeProgram";
-import { Ref, WhyButton } from "../components/common";
+import { EdgeDashedProgram } from "../graph/dashedEdge";
+import { LINK_STYLE, linkClass, rowClass, type LinkClass } from "../graph/edgeStyle";
+import { Ref, Support, WhyButton } from "../components/common";
 import { useConnections, useExcluded } from "../components/Connections";
 import { typeLabelOf, useSummaries } from "../components/Highlights";
 import { shortLabel, summaryOf } from "../lib/summary";
@@ -129,6 +130,7 @@ export function GraphView() {
     };
     const s = new Sigma(g, canvasBox.current, {
       nodeProgramClasses: { shape: NodeShapeProgram },
+      edgeProgramClasses: { dashed: EdgeDashedProgram },   // links a rule inferred (graph/edgeStyle.ts)
       defaultNodeType: "shape",
       defaultEdgeColor: "#3A444B",
       labelColor: { color: TOKENS.text },
@@ -191,12 +193,16 @@ export function GraphView() {
         if (st.hidden.has(`${attrs.edge_kind}:${attrs.etype}`)) out.hidden = true;
         const [a, b] = graph.current.extremities(id);
         if (st.outOfWindow.has(a) || st.outOfWindow.has(b)) out.hidden = true;
-        if (!st.showIns && attrs.edge_kind === "insight_member") out.hidden = true;
+        if (!st.showIns && (attrs.edge_kind === "insight_member" || attrs.edge_kind === "hypothesis")) out.hidden = true;
         if (st.path && !st.path.none) {
           const i = st.path.ids.indexOf(a), j = st.path.ids.indexOf(b);
           if (i >= 0 && j >= 0 && Math.abs(i - j) === 1) { out.color = TOKENS.accent; out.size = 2.5; out.zIndex = 2; }
           else out.color = "#22292E";
-        } else if (a === st.focus || b === st.focus) out.color = "#56636B";
+        } else if (a === st.focus || b === st.focus) {
+          // the focus's own links: drawn stronger, each keeping the look of its kind (never one grey for all)
+          out.size = attrs.size * 1.35; out.zIndex = 1;
+          if (!attrs.cls) out.color = "#56636B";
+        }
         return out;
       },
     });
@@ -230,10 +236,10 @@ export function GraphView() {
   }, []);
 
   useEffect(() => { sigmaRef.current?.refresh(); }, [focus, secondary, showIns, hidden, path, outOfWindow]);
-  useEffect(() => {   // make sure the relation/insight behind a selected edge is in the store (for its label)
+  useEffect(() => {   // the relation/insight behind a selected edge, with its details (sources, evidence) for the panel
     const id = edge?.ref_id;
-    if (id && /^(rel|ins)_/.test(id) && !store.entity(id))
-      call<any>(`/entities/${id}`, { lod: "refs" }).then((r) => store.normalize(r.data)).catch(() => {});
+    if (id && /^(rel|ins)_/.test(id) && !store.entity(id)?.details)
+      call<any>(`/entities/${id}`).then((r) => store.normalize(r.data)).catch(() => {});
   }, [edge]);
 
   // ── building the graph ──────────────────────────────────────────────────
@@ -264,9 +270,13 @@ export function GraphView() {
     if (!g.hasNode(e.src) || !g.hasNode(e.dst) || g.size >= MAX_EDGES) return;
     const key = `${e.src}|${e.dst}|${e.edge_kind}|${e.type}|${e.ref_id}`;
     if (g.hasEdge(key)) return;
-    g.addDirectedEdgeWithKey(key, e.src, e.dst, { edge_kind: e.edge_kind, etype: e.type, ref_id: e.ref_id,
-      confidence: e.confidence, size: e.edge_kind === "insight_member" ? 0.6 : 1,
-      color: e.edge_kind === "insight_member" ? "#4A4436" : "#3A444B" });
+    // the look says what the link is (graph/edgeStyle.ts); a recorded support makes it more or less opaque, like nodes
+    const nature = e.nature ?? store.get().types.get(e.type)?.nature ?? null;
+    const cls = linkClass(e.edge_kind, e.type, nature);
+    const st = cls ? LINK_STYLE[cls] : null;
+    const color = !st ? "#3A444B" : cls !== "geo" && e.confidence != null ? alpha(st.color, bandOpacity[band(e.confidence)]) : st.color;
+    g.addDirectedEdgeWithKey(key, e.src, e.dst, { edge_kind: e.edge_kind, etype: e.type, ref_id: e.ref_id, nature, cls,
+      confidence: e.confidence, size: st?.size ?? 1, color, ...(st?.dashed ? { type: "dashed" } : {}) });
   };
 
   // the rendered graph never exceeds the node budget, aggregate nodes included (W25): the most recently added
@@ -502,7 +512,8 @@ export function GraphView() {
           {say && none && <p className="gs-none">{say}</p>}
           {say && !none && conn && <div className={`gs-rows${narrow ? " compact" : ""}`} data-testid="graph-conn">
             {conn.rows.filter((r) => g.hasNode(r.target)).slice(0, sayRows).map((r) => (
-              <p key={`${r.cat}-${r.target}`} className="gs-row">
+              <p key={`${r.cat}-${r.target}`} className="gs-row" data-link={rowClass(r.cat)}>
+                <LinkGlyph cls={rowClass(r.cat)} />
                 {!narrow && <span className="conn-phrase">{r.phrase[0].toUpperCase() + r.phrase.slice(1)} →</span>}
                 {narrow ? <ShortRef id={r.target} /> : <Ref id={r.target} origin="graph" />}{r.why && <WhyButton id={r.why} />}</p>))}
             {drawn > sayRows && <p className="gs-row xs dim">{say}</p>}
@@ -549,20 +560,71 @@ export function GraphView() {
           </div>
         )}
         {msg && <span className="chip acc">{msg}</span>}
+        {g.order > 0 && <GraphLegend />}
       </div>
-      {edge && (
-        <div className="edgepanel" data-testid="edge-panel">
-          <div className="row"><strong className="grow">{edgeLabel(edge.edge_kind, edge.etype)}</strong>
-            <button type="button" onClick={() => setEdge(null)}>×</button></div>
-          <div className="row small"><Ref id={edge.ext[0]} origin="graph" /> → <Ref id={edge.ext[1]} origin="graph" /></div>
-          {edge.confidence != null && <div className="xs dim">confidenza {conf(edge.confidence)}</div>}
-          {/^(rel|ins)_/.test(edge.ref_id ?? "") && <div className="row" style={{ marginTop: 4 }}>
-            <Ref id={edge.ref_id} origin="graph" /><WhyButton id={edge.ref_id} /></div>}
-          {edge.edge_kind === "participation" && <div className="xs dim">{S.graph.edgeKinds.participation}: {edgeLabel(edge.edge_kind, edge.etype)}</div>}
-        </div>
-      )}
+      {edge && <EdgePanel edge={edge} onClose={() => setEdge(null)} />}
     </>
   );
+}
+
+/** A short line drawn like the graph's links of a kind (legend, edge panel, the rows above the graph). */
+function LinkGlyph({ cls }: { cls: LinkClass | null }) {
+  if (!cls) return null;
+  const st = LINK_STYLE[cls];
+  return (
+    <svg className="link-glyph" width="22" height="8" viewBox="0 0 22 8" aria-hidden data-link={cls}>
+      <line x1="1" y1="4" x2="21" y2="4" stroke={st.color} strokeWidth={Math.max(1.2, st.size * 1.4)}
+        strokeDasharray={st.dashed ? "4 3" : undefined} strokeLinecap="butt" />
+    </svg>);
+}
+
+const LEGEND: LinkClass[] = ["documented", "role", "inferred", "geo"];
+const LEGEND_KEY = "nexum.graph.legend";
+/** What the lines and the shapes of the graph mean, in plain words. Closed at first (it would lie over the drawing);
+ * opened once, it stays open for this viewer (a convenience of this browser only). */
+function GraphLegend() {
+  const [open] = useState(() => { try { return localStorage.getItem(LEGEND_KEY) === "1"; } catch { return false; } });
+  return (
+    <details className="graph-legend" data-testid="graph-legend" open={open}
+      onToggle={(e) => { try { localStorage.setItem(LEGEND_KEY, (e.currentTarget as HTMLDetailsElement).open ? "1" : "0"); } catch { /* storage unavailable */ } }}>
+      <summary>{S.graph.legend}</summary>
+      <ul className="lg-links">{LEGEND.map((c) => (
+        <li key={c} data-link={c}><LinkGlyph cls={c} /><span><strong>{S.graph.link[c]}</strong>
+          <span className="lg-note">{S.graph.linkNote[c]}</span></span></li>))}</ul>
+      <ul className="lg-shapes">{S.graph.legendShapes.map(([g, t]) => <li key={g}><span className="lg-shape">{g}</span>{t}</li>)}</ul>
+      <p className="lg-note">{S.graph.legendFaint}</p>
+    </details>);
+}
+
+/** The link under the finger or the pointer: what kind of link it is, what the Core recorded about it (sources,
+ * evidence, support), and the way to its proofs. Only recorded facts: a missing value is said missing. */
+function EdgePanel({ edge, onClose }: { edge: any; onClose: () => void }) {
+  useStore((s) => s.rev);
+  const cls: LinkClass | null = edge.cls ?? null;
+  const ref: string | null = /^(rel|ins)_/.test(edge.ref_id ?? "") ? edge.ref_id : null;
+  const det = ref ? store.entity(ref)?.details : null;
+  const hyp = edge.edge_kind === "hypothesis";
+  const counts = cls === "documented" && det ? [det.independent_sources != null ? S.graph.edgeSources(det.independent_sources) : null,
+    det.evidence_count != null ? S.graph.edgeEvidence(det.evidence_count) : null].filter(Boolean).join(" · ") : "";
+  return (
+    <div className="edgepanel" data-testid="edge-panel" data-link={cls ?? ""}>
+      <div className="row"><LinkGlyph cls={cls} />
+        <strong className="grow" data-testid="edge-kind">{cls ? S.graph.link[cls] : edgeLabel(edge.edge_kind, edge.etype)}</strong>
+        <button type="button" onClick={onClose} aria-label={S.graph.edgeClose}>×</button></div>
+      {cls && <div className="small ep-type">{edgeLabel(edge.edge_kind, edge.etype)}{edge.nature && S.nature[edge.nature] && cls === "documented"
+        ? ` · ${S.nature[edge.nature]}` : ""}</div>}
+      <div className="row small ep-ends"><Ref id={edge.ext[0]} origin="graph" /> → <Ref id={edge.ext[1]} origin="graph" /></div>
+      {cls && <p className="ep-note" data-testid="edge-note">{hyp ? S.graph.hypothesisNote : S.graph.linkNote[cls]}</p>}
+      {counts && <div className="small" data-testid="edge-sources">{counts}</div>}
+      {cls && cls !== "geo" && <div className="row xs"><span className="dim">{S.graph.edgeSupport}</span>
+        {edge.confidence != null ? <Support value={edge.confidence} /> : <span className="dim">{S.graph.edgeNoSupport}</span>}</div>}
+      {cls === "inferred" && <div className="caution">⚠ {S.causal}</div>}
+      {/* the proofs: a connection found by a rule is named (it is an element of its own); a relation is the line itself */}
+      {ref && <div className="row ep-why">{cls === "inferred" && !hyp && !edge.ext.includes(ref) ? <><span className="xs dim">{S.graph.edgeConnection}</span>
+        <Ref id={ref} origin="graph" /></> : null}<WhyButton id={ref} /></div>}
+      {edge.edge_kind === "participation" && <div className="row xs ep-why"><span className="dim">{S.graph.edgeOpenEvent}</span>
+        <Ref id={edge.ext[0]} origin="graph" /></div>}
+    </div>);
 }
 
 const tl = (t: string) => store.get().types.get(t)?.label ?? t.replace(/[._]/g, " ");

@@ -36,6 +36,12 @@ export function Support({ value }: { value: number | null | undefined }) {
   return <span className={`support s${b}`} data-support={b} title={`${S.bandLabel[b]} (${conf(value)})`}>{S.bandLabel[b]}</span>;
 }
 
+/** A source's name as the world declares it (GET /status), else its id: never a name that was not published. */
+export function sourceName(id: string | null | undefined): string {
+  if (!id) return "";
+  return store.get().status?.sources.find((s) => s.source_id === id)?.name || id;
+}
+
 export function WhyButton({ id }: { id: string }) {
   return <button type="button" className="whybtn" data-why={id} onClick={() => store.why(id)} title={S.whyTitle}>
     {S.why}</button>;
