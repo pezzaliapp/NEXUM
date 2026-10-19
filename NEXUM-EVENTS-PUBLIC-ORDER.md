@@ -1,5 +1,11 @@
 # NEXUM — protests, violence and public order in the news (GDELT in the browser)
 
+**Published (2026-10-19, author's GO alla pubblicazione):** commit d7d6aa1, build 202610192001-kgyd, snapshot
+live-1016-20261019T195354Z-7cc15369, Cloudflare deployment 7773d032; reference world prod-1016-20261019T2002Z
+(world-1004 + Natural Earth names + the 11 episodes, review = author). Rollback: deployment cdf5c024 (build saof,
+live-949). The automatic publish's production check fails on three storm exposure types since world 996
+(Super Typhoon Champi, run 39227742776): pre-existing, independent of this release, not changed.
+
 **Status (2026-10-18):** implemented and tested LOCALLY by the author's GO of 2026-10-18 ("GO sviluppo locale"):
 no commit, no push, no deploy. Production (`nexum.pezzalihub.app`) is unchanged.
 

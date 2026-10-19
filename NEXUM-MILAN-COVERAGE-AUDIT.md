@@ -1,5 +1,11 @@
 # NEXUM — Milan, 17–18 October 2026: are the documented episodes in GDELT and in NEXUM?
 
+**Published (2026-10-19, author's GO alla pubblicazione):** commit d7d6aa1, build 202610192001-kgyd, snapshot
+live-1016-20261019T195354Z-7cc15369, Cloudflare deployment 7773d032; reference world prod-1016-20261019T2002Z
+(world-1004 + Natural Earth names + the 11 episodes, review = author). Rollback: deployment cdf5c024 (build saof,
+live-949). The automatic publish's production check fails on three storm exposure types since world 996
+(Super Typhoon Champi, run 39227742776): pre-existing, independent of this release, not changed.
+
 **Status (2026-10-19):** verification only (no change to the Core, no commit/push/deploy). GDELT files: every 15-minute
 export and mention file of 17 October and of 18 October up to 20:15 UTC, standard and multilingual streams (the files
 NEXUM's browser reads). NEXUM's rules applied exactly as in `ui/src/ops/gdeltcore.ts`. Times are UTC (Milan = UTC+2).
