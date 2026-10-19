@@ -1,0 +1,577 @@
+{
+ "_comment": "DOCUMENTED PUBLIC-ORDER EPISODES, curated by hand (2026-10-19, author's authorisation for a LOCAL example: Milan, 17–18 October 2026). Every line is NEXUM's own short wording of what the cited sources say, never their text; every figure is a claim with who gave it and who reported it; statements and accusations are said as such and never become facts; no person is an element (office holders are named only as the authors of a public statement); organisers are linked only to the event they are documented to have called, never to the violence. Sources were opened and read on 2026-10-19 and read again for the editorial check of the same day; URLs are the publishers' own, without tracking parameters. review = author: approved for publication by the author on 2026-10-19 (GO alla pubblicazione), not checked by a second person.",
+ "curated_at": "2026-10-19",
+ "review": "author",
+ "city": {
+  "ne_place": "1159151315",
+  "wikidata": "Q490",
+  "label": "Milano"
+ },
+ "places": {
+  "Q490": "Milano",
+  "Q51108": "piazza del Duomo",
+  "Q131622567": "via Broletto",
+  "Q2783782": "corso Vittorio Emanuele II",
+  "Q2071624": "piazza Cordusio",
+  "Q102132696": "via Torino",
+  "Q124005172": "largo Cairoli",
+  "Q56323576": "via della Moscova"
+ },
+ "sources": {
+  "ilpost-1017": {
+   "outlet": "Il Post",
+   "title": "Gli scontri a Milano intorno a piazza del Duomo",
+   "published": "2026-10-17",
+   "url": "https://www.ilpost.it/2026/10/17/scontri-milano-manifestazione-carovita/"
+  },
+  "ilgiorno-1017": {
+   "outlet": "Il Giorno",
+   "title": "Corteo a Milano, devastata ed evacuata piazza Duomo: decine di fermi e una ventina di feriti",
+   "published": "2026-10-17",
+   "url": "https://www.ilgiorno.it/milano/cronaca/corteo-scontri-yms2d0bu"
+  },
+  "sole-1017": {
+   "outlet": "Il Sole 24 Ore",
+   "title": "Milano, dopo la devastazione la polizia disperde i manifestanti violenti tra il Duomo e piazza San Babila: decine di fermati",
+   "published": "2026-10-17",
+   "url": "https://www.ilsole24ore.com/art/corteo-milano-lancio-sassi-contro-polizia-AJTvn3mB"
+  },
+  "ansa-1017-idranti": {
+   "outlet": "ANSA",
+   "title": "Scontri in Duomo, Polizia avanza con gli idranti",
+   "published": "2026-10-17T19:07",
+   "url": "https://www.ansa.it/lombardia/notizie/2026/10/17/scontri-in-duomo-polizia-avanza-con-gli-idranti_3d281642-eba5-4348-af36-eba8a046cb34.html"
+  },
+  "ansa-1017-saccheggi": {
+   "outlet": "ANSA",
+   "title": "A Milano saccheggiati negozi in corso Vittorio Emanuele",
+   "published": "2026-10-17T21:14",
+   "url": "https://www.ansa.it/lombardia/notizie/2026/10/17/a-milano-saccheggiati-negozi-in-corso-vittorio-emanuele_76070633-9072-4bb3-9181-bc3c7f3f1715.html"
+  },
+  "ansa-1017-fermati": {
+   "outlet": "ANSA",
+   "title": "Scontri a Milano, circa 50 fermati, quasi la metà minorenni",
+   "published": "2026-10-17T22:30",
+   "url": "https://www.ansa.it/sito/notizie/topnews/2026/10/17/scontri-a-milano-circa-50-fermati-quasi-la-meta-minorenni_672f523e-6b66-434f-b44d-ae835af7cc8b.html"
+  },
+  "sky-1018": {
+   "outlet": "Sky TG24",
+   "title": "Guerriglia a Milano e in altre città, cosa sappiamo sugli scontri e sui ragazzi in piazza",
+   "published": "2026-10-18",
+   "url": "https://tg24.sky.it/cronaca/2026/10/18/scontri-guerriglia-milano-torino-bologna-cosa-e-successo"
+  },
+  "ilgiorno-1018-diretta": {
+   "outlet": "Il Giorno (diretta)",
+   "title": "Guerriglia a Milano, negozi distrutti e saccheggiati. In Duomo la situazione torna calma",
+   "published": "2026-10-18",
+   "url": "https://www.ilgiorno.it/milano/cronaca/guerriglia-urbana-duomo-oggi-diretta-lrgscvuk"
+  },
+  "lapresse-1018": {
+   "outlet": "LaPresse",
+   "title": "Scontri a Milano, giovani incappucciati devastano un supermercato in Via Torino",
+   "published": "2026-10-18T18:11",
+   "url": "https://www.lapresse.it/cronaca/2026/10/18/scontri-a-milano-giovani-incappucciati-devastano-un-supermercato-in-via-torino/"
+  }
+ },
+ "actors": {
+  "italia-in-piazza": {
+   "type": "civil.movement",
+   "label": "Italia in piazza",
+   "note": "Movimento che ha promosso online i cortei contro il carovita del 17 ottobre 2026; si definisce «apartitico» (Il Post). Collegato solo al corteo, come organizzatore secondo le fonti: NEXUM non gli attribuisce le violenze.",
+   "sources": [
+    "ilpost-1017",
+    "ilgiorno-1017",
+    "sole-1017",
+    "sky-1018"
+   ]
+  },
+  "polizia-di-stato": {
+   "type": "gov.public_safety",
+   "label": "Polizia di Stato",
+   "note": "Forza di polizia nazionale. Le fonti scrivono per lo più «polizia»; Il Giorno nomina esplicitamente la Polizia di Stato (un suo dirigente ferito negli scontri del 17 ottobre, un primo dirigente di nuovo in piazza il 18).",
+   "sources": [
+    "ansa-1017-idranti",
+    "ilpost-1017",
+    "ilgiorno-1017",
+    "ilgiorno-1018-diretta"
+   ]
+  },
+  "questura-di-milano": {
+   "type": "gov.public_safety",
+   "label": "Questura di Milano",
+   "note": "Autorità provinciale di pubblica sicurezza: le sue cifre sono note solo come riportate dalla stampa (nessun comunicato trovato online).",
+   "sources": [
+    "ilgiorno-1018-diretta"
+   ]
+  }
+ },
+ "episodes": [
+  {
+   "id": "mi-20261017-corteo",
+   "date": "2026-10-17",
+   "place": "Q51108",
+   "place_detail": "piazza del Duomo; percorso annunciato verso il Cimitero Monumentale",
+   "category": "march",
+   "verification": "concordant",
+   "label": "Milano, 17 ottobre 2026: corteo «Italia in piazza» contro il carovita",
+   "summary": "Corteo contro il carovita indetto da «Italia in piazza», partito da piazza del Duomo.",
+   "facts": [
+    {
+     "text": "Il corteo contro il carovita e i salari bassi è stato indetto da «Italia in piazza», un movimento organizzato online che si definisce apartitico.",
+     "sources": [
+      "ilpost-1017",
+      "ilgiorno-1017",
+      "sole-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "text": "Partenza da piazza del Duomo; il percorso annunciato arrivava al Cimitero Monumentale passando da via Broletto e largo Cairoli.",
+     "sources": [
+      "ilgiorno-1017"
+     ]
+    }
+   ],
+   "figures": [
+    {
+     "text": "circa 5.000 partecipanti",
+     "by": "stima riportata senza indicarne la fonte",
+     "reported_by": [
+      "ilpost-1017",
+      "ilgiorno-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "text": "oltre 5.000 manifestanti",
+     "by": "stima riportata senza indicarne la fonte",
+     "reported_by": [
+      "sole-1017"
+     ]
+    }
+   ],
+   "roles": [
+    {
+     "role": "organizer_reported",
+     "actor": "italia-in-piazza",
+     "sources": [
+      "ilpost-1017",
+      "ilgiorno-1017",
+      "sole-1017",
+      "sky-1018"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mi-20261017-scontri",
+   "date": "2026-10-17",
+   "place": "Q131622567",
+   "place_detail": "via Broletto, piazza dei Mercanti, piazza Cordusio, piazza del Duomo, corso Vittorio Emanuele II, piazza San Babila",
+   "category": "clashes",
+   "verification": "concordant",
+   "label": "Milano, 17 ottobre 2026: scontri tra via Broletto, piazza del Duomo e San Babila",
+   "summary": "Lanci di sassi, bombe carta e oggetti contro la polizia, cariche, idranti e lacrimogeni nel centro.",
+   "facts": [
+    {
+     "text": "In via Broletto gruppi di manifestanti, molti a volto coperto, hanno lanciato sassi e oggetti contro la polizia; il corteo è stato diviso e ci sono state cariche.",
+     "sources": [
+      "ilgiorno-1017",
+      "sole-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "text": "Gli scontri si sono estesi a piazza Cordusio, piazza del Duomo, corso Vittorio Emanuele II e piazza San Babila, con lanci di sassi, sampietrini, transenne e bombe carta.",
+     "sources": [
+      "ilpost-1017",
+      "ilgiorno-1017",
+      "sole-1017"
+     ]
+    },
+    {
+     "text": "La polizia ha usato idranti e lacrimogeni per liberare piazza del Duomo, poi è avanzata lungo corso Vittorio Emanuele II.",
+     "sources": [
+      "ansa-1017-idranti",
+      "ilgiorno-1017",
+      "sole-1017",
+      "ilpost-1017"
+     ]
+    },
+    {
+     "text": "Un'auto dei Carabinieri è stata danneggiata, e pensiline dei mezzi pubblici e vetrine distrutte.",
+     "sources": [
+      "ilgiorno-1017",
+      "sole-1017",
+      "sky-1018"
+     ]
+    }
+   ],
+   "statements": [
+    {
+     "nature": "testimonianza",
+     "text": "Testimoni hanno detto che lacrimogeni sarebbero stati sparati anche nel mezzanino della metropolitana: riportato come affermazione, non verificato.",
+     "reported_by": [
+      "ilgiorno-1017"
+     ]
+    }
+   ],
+   "roles": [
+    {
+     "role": "authority_intervened",
+     "actor": "polizia-di-stato",
+     "sources": [
+      "ansa-1017-idranti",
+      "ilpost-1017",
+      "ilgiorno-1017"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mi-20261017-incendi",
+   "date": "2026-10-17",
+   "place": "Q51108",
+   "place_detail": "piazza del Duomo",
+   "category": "fire",
+   "verification": "reported",
+   "label": "Milano, 17 ottobre 2026: incendi in piazza del Duomo (bagno chimico, cantiere)",
+   "summary": "Dati alle fiamme un bagno chimico e un cantiere in piazza del Duomo.",
+   "facts": [
+    {
+     "text": "È stato dato fuoco a un bagno chimico in piazza del Duomo.",
+     "sources": [
+      "ilpost-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "text": "È stato incendiato un cantiere in piazza del Duomo.",
+     "sources": [
+      "sole-1017",
+      "ilgiorno-1017"
+     ]
+    }
+   ],
+   "notes": [
+    "Il Giorno cita il cantiere incendiato solo nel titolo."
+   ]
+  },
+  {
+   "id": "mi-20261017-saccheggi",
+   "date": "2026-10-17",
+   "place": "Q2783782",
+   "place_detail": "corso Vittorio Emanuele II, piazza San Babila",
+   "category": "looting",
+   "verification": "concordant",
+   "label": "Milano, 17 ottobre 2026: negozi saccheggiati in corso Vittorio Emanuele II",
+   "summary": "Negozi saccheggiati o danneggiati tra corso Vittorio Emanuele II e San Babila.",
+   "facts": [
+    {
+     "text": "Saccheggiato il negozio Foot Locker; danneggiati il negozio Nike e la Rinascente.",
+     "sources": [
+      "ansa-1017-saccheggi",
+      "sole-1017"
+     ]
+    },
+    {
+     "text": "Tra corso Vittorio Emanuele II e San Babila un gruppo ha rotto le vetrine di un Foot Locker e una piccola folla ha provato a entrare per prendere la merce.",
+     "sources": [
+      "ilgiorno-1017",
+      "sky-1018"
+     ]
+    }
+   ],
+   "roles": []
+  },
+  {
+   "id": "mi-20261017-cifre",
+   "date": "2026-10-18",
+   "time": "14:30",
+   "place": "Q490",
+   "place_detail": "Milano (cifre riferite ai fatti del 17 ottobre)",
+   "category": "figures",
+   "verification": "attributed",
+   "label": "Milano, cifre sui fatti del 17 ottobre 2026 (attribuite, discordanti)",
+   "summary": "Persone accompagnate in Questura, arresti, denunce e feriti: cifre diverse a seconda della fonte e dell'ora.",
+   "figures": [
+    {
+     "text": "72 persone accompagnate in Questura, 16 arrestate e 22 denunciate; 104 operatori delle forze dell'ordine medicati («dato ancora parziale»)",
+     "by": "nota della Questura di Milano",
+     "reported_by": [
+      "ilgiorno-1018-diretta"
+     ],
+     "as_of": "2026-10-18T14:30"
+    },
+    {
+     "text": "72 persone in Questura, 17 arrestate (9 minorenni) e almeno 22 denunciate; 104 agenti feriti",
+     "by": "fonte non indicata",
+     "reported_by": [
+      "sky-1018"
+     ],
+     "as_of": "2026-10-18"
+    },
+    {
+     "text": "circa 50 fermati, quasi la metà minorenni",
+     "by": "«fonti qualificate» non nominate",
+     "reported_by": [
+      "ansa-1017-fermati"
+     ],
+     "as_of": "2026-10-17T22:30"
+    },
+    {
+     "text": "50 arresti; 15 agenti e 25 manifestanti feriti",
+     "by": "fonte non indicata",
+     "reported_by": [
+      "ilpost-1017"
+     ],
+     "as_of": "2026-10-17"
+    },
+    {
+     "text": "almeno 40 manifestanti fermati e due agenti feriti (primo bilancio)",
+     "by": "sindacato di polizia Coisp",
+     "reported_by": [
+      "sole-1017"
+     ],
+     "as_of": "2026-10-17"
+    }
+   ],
+   "notes": [
+    "Le cifre non coincidono tra le fonti e cambiano nel tempo: nessuna è unificata con le altre. Nessun comunicato della Questura è stato trovato online."
+   ],
+   "roles": [
+    {
+     "role": "figures_from",
+     "actor": "questura-di-milano",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    }
+   ],
+   "when_note": "cifre diffuse tra la sera del 17 ottobre e il 18 ottobre (ultimo aggiornamento citato: 14:30), riferite ai fatti del 17"
+  },
+  {
+   "id": "mi-20261018-carrefour",
+   "date": "2026-10-18",
+   "time": "15:05",
+   "place": "Q102132696",
+   "place_detail": "via Torino",
+   "category": "looting",
+   "verification": "concordant",
+   "label": "Milano, 18 ottobre 2026: supermercato Carrefour saccheggiato in via Torino",
+   "summary": "Gruppi di giovani incappucciati hanno assaltato e saccheggiato il Carrefour di via Torino.",
+   "facts": [
+    {
+     "text": "Centinaia di giovani si sono spostati da piazza del Duomo a via Torino rompendo vetrine e pensiline; il supermercato Carrefour è stato assaltato e saccheggiato.",
+     "sources": [
+      "ilgiorno-1018-diretta",
+      "lapresse-1018"
+     ]
+    },
+    {
+     "text": "Lanciati tavolini e sedie contro le vetrine di altri negozi di via Torino.",
+     "sources": [
+      "ilgiorno-1018-diretta",
+      "lapresse-1018"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mi-20261018-duomo",
+   "date": "2026-10-18",
+   "time": "15:42",
+   "place": "Q51108",
+   "place_detail": "piazza del Duomo, via Orefici, piazza Cordusio",
+   "category": "clashes",
+   "verification": "two_sources",
+   "label": "Milano, 18 ottobre 2026: nuovi scontri in piazza del Duomo, via Orefici e Cordusio",
+   "summary": "Nuovi lanci di bottiglie, petardi e sassi; idranti e lacrimogeni; negozi saccheggiati in via Orefici.",
+   "facts": [
+    {
+     "text": "In piazza del Duomo gruppi hanno lanciato bottiglie, petardi e sassi; polizia e carabinieri hanno risposto con idranti e lacrimogeni.",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    },
+    {
+     "text": "In via Orefici, vicino a Cordusio, due negozi sono stati forzati e saccheggiati.",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    },
+    {
+     "text": "In piazza Cordusio sono stati dati alle fiamme alcuni cassonetti.",
+     "sources": [
+      "lapresse-1018"
+     ]
+    },
+    {
+     "text": "Rotta una vetrina della Rinascente in piazza del Duomo.",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    }
+   ],
+   "roles": [
+    {
+     "role": "authority_intervened",
+     "actor": "polizia-di-stato",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mi-20261018-decathlon",
+   "date": "2026-10-18",
+   "time": "16:41",
+   "place": "Q124005172",
+   "place_detail": "largo Cairoli / piazza Castello (le fonti indicano l'uno o l'altro)",
+   "category": "looting",
+   "verification": "two_sources",
+   "label": "Milano, 18 ottobre 2026: negozio Decathlon saccheggiato tra largo Cairoli e piazza Castello",
+   "summary": "Vetrine rotte e merce portata via dal Decathlon vicino al Castello Sforzesco.",
+   "facts": [
+    {
+     "text": "Un gruppo ha rotto le vetrine del Decathlon ed è fuggito con la merce.",
+     "sources": [
+      "ilgiorno-1018-diretta",
+      "lapresse-1018"
+     ]
+    }
+   ],
+   "notes": [
+    "Il Giorno colloca il negozio in piazza Castello (aggiornamento delle 16:41) e in piazza Cairoli (riepilogo); LaPresse in piazza Cairoli."
+   ]
+  },
+  {
+   "id": "mi-20261018-moscova",
+   "date": "2026-10-18",
+   "time": "17:50",
+   "place": "Q56323576",
+   "place_detail": "largo La Foppa, via della Moscova, corso Garibaldi",
+   "category": "damage",
+   "verification": "single_source",
+   "label": "Milano, 18 ottobre 2026: locali danneggiati e negozi saccheggiati in Moscova e corso Garibaldi",
+   "summary": "Tensioni tra largo La Foppa, via della Moscova e corso Garibaldi, prima dell'arrivo della polizia.",
+   "facts": [
+    {
+     "text": "Gruppi vestiti di nero hanno danneggiato alcuni locali e saccheggiato negozi prima dell'arrivo della polizia.",
+     "sources": [
+      "ilgiorno-1018-diretta"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mi-20261018-cifre",
+   "date": "2026-10-18",
+   "time": "20:21",
+   "place": "Q490",
+   "place_detail": "Milano (cifre del 18 ottobre)",
+   "category": "figures",
+   "verification": "attributed",
+   "label": "Milano, persone fermate il 18 ottobre 2026 (cifre preliminari)",
+   "summary": "Il numero delle persone portate in Questura il 18 ottobre è cresciuto nel corso della giornata: cifre preliminari e attribuite.",
+   "figures": [
+    {
+     "text": "60 giovani accompagnati in Questura per accertamenti, controllati in zona Duomo già prima dei nuovi disordini",
+     "by": "fonte non indicata",
+     "reported_by": [
+      "lapresse-1018"
+     ],
+     "as_of": "2026-10-18T18:11"
+    },
+    {
+     "text": "circa 160 persone fermate, oltre l'80% minorenni",
+     "by": "Adnkronos, da fonti non nominate",
+     "reported_by": [
+      "ilgiorno-1018-diretta"
+     ],
+     "as_of": "2026-10-18T17:26"
+    },
+    {
+     "text": "oltre 200 persone fermate e portate in Questura, circa l'80% minori",
+     "by": "riunione del ministro dell'Interno con i vertici della Polizia, «a quanto si apprende» (oltre 200); la quota di minori senza fonte indicata",
+     "reported_by": [
+      "ilgiorno-1018-diretta"
+     ],
+     "as_of": "2026-10-18T18:59"
+    }
+   ],
+   "notes": [
+    "Cifre preliminari, non confermate da un comunicato ufficiale trovato online."
+   ],
+   "when_note": "cifre diffuse il 18 ottobre tra le 17:26 e le 20:21, riferite alle persone fermate quel giorno"
+  },
+  {
+   "id": "mi-20261017-dichiarazioni",
+   "date": "2026-10-17",
+   "place": "Q490",
+   "place_detail": "Milano",
+   "category": "statements",
+   "verification": "statement",
+   "label": "Milano, 17–18 ottobre 2026: dichiarazioni pubbliche sugli scontri",
+   "summary": "Dichiarazioni di esponenti del governo, del sindaco e del ministero dell'Interno: sono dichiarazioni riportate dalla stampa, non fatti accertati.",
+   "statements": [
+    {
+     "nature": "dichiarazione",
+     "by": "Presidente del Consiglio (Giorgia Meloni), su X",
+     "text": "Ha condannato le violenze e chiesto all'opposizione di condannarle «senza ambiguità».",
+     "reported_by": [
+      "ilpost-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "nature": "dichiarazione",
+     "by": "Sindaco di Milano (Giuseppe Sala)",
+     "text": "Ha definito le violenze «ingiustificabili», pur dicendo comprensibili le ragioni della protesta.",
+     "reported_by": [
+      "ilpost-1017",
+      "sky-1018"
+     ]
+    },
+    {
+     "nature": "accusa",
+     "by": "Vicepresidente del Consiglio (Antonio Tajani)",
+     "text": "Ha accusato parte del centrosinistra di alimentare le tensioni.",
+     "reported_by": [
+      "sky-1018"
+     ]
+    },
+    {
+     "nature": "accusa",
+     "by": "Vicepresidente del Consiglio (Matteo Salvini)",
+     "text": "Ha attribuito le violenze a «centri sociali, maranza e marciume sinistro avariato» (sue parole).",
+     "reported_by": [
+      "sky-1018"
+     ]
+    },
+    {
+     "nature": "dichiarazione",
+     "by": "Vicepresidente del Consiglio (Matteo Salvini)",
+     "text": "Ha annunciato che la Lega riproporrà in Parlamento una garanzia finanziaria a carico degli organizzatori di manifestazioni a rischio, a copertura di eventuali danni: una proposta politica, non un'attribuzione di responsabilità agli organizzatori del 17 ottobre.",
+     "reported_by": [
+      "sky-1018"
+     ]
+    },
+    {
+     "nature": "dichiarazione",
+     "by": "Ministero dell'Interno (riunione del ministro Matteo Piantedosi), «a quanto si apprende»",
+     "text": "Le azioni violente del 18 ottobre sarebbero state «provocate da gruppi di teppisti, in maggior parte minorenni, autoconvocatisi improvvisamente e spontaneamente via social»: una descrizione di un'autorità riportata dalla stampa, non un accertamento giudiziario e non riferita a un soggetto identificato.",
+     "reported_by": [
+      "ilgiorno-1018-diretta"
+     ]
+    }
+   ],
+   "notes": [
+    "Le accuse sono riportate come dichiarazioni politiche: non sono responsabilità accertate e non collegano nessun soggetto agli episodi.",
+    "Chi ha rilasciato una dichiarazione è nominato solo come suo autore: non è collegato agli episodi come soggetto coinvolto."
+   ],
+   "when_note": "dichiarazioni del 17 e del 18 ottobre, come riportate dalle testate citate"
+  }
+ ]
+}

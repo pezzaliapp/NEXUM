@@ -6,6 +6,7 @@ import { applyNow, updateState } from "../lib/update";
 import { SNAPSHOT } from "../lib/api";
 import * as web from "@nexum/web";
 import { S } from "../lib/strings";
+import { useStore } from "../store";
 
 type Info = { version: string; built_utc: string };
 
@@ -33,10 +34,12 @@ const utcMinute = (iso: string) => iso.replace("T", " ").slice(0, 16);
 /** Snapshot identity and age (status bar on desktop and tablet, map attribution line on phone). */
 export function SnapshotAge({ compact = false }: { compact?: boolean }) {
   const { info, age } = useSnapshot();
+  const received = useStore((s) => (s.status as any)?.data_received_ms as number | null ?? null);
   if (!SNAPSHOT || !info) return null;
+  const src = received != null ? `${S.web.sourcesAt(utcMinute(new Date(received).toISOString()))} · ` : "";
   return (
     <span className="mono" data-testid="snapshot-age" data-version={info.version} title={`${S.web.snapshot} ${info.version}`}>
-      {compact ? `${S.web.snapshot} · ${age}` : `${S.web.snapshot} · ${S.web.builtAt(utcMinute(info.built_utc), age)}`}
+      {compact ? `${S.web.snapshot} · ${age}` : `${S.web.snapshot} · ${src}${S.web.builtAt(utcMinute(info.built_utc), age)}`}
     </span>
   );
 }

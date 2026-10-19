@@ -8,13 +8,19 @@
 import OPS from "../config/ops.json";
 import NEWS from "../config/news.json";
 import { call } from "../lib/api";
+import ORDER from "../config/publicorder.json";
+import { dedupeById, fromTable, groupRows, toReports, type OrderCfg, type Report } from "./gdeltcore";
+import { liveNews, slotMs } from "./gdelt";
+import { ops } from "./state";
 
 export type AlertKind = "news" | "geo" | "gdacs" | "nws";
 export interface Alert {
   id: string; kind: AlertKind; verified: boolean; title: string; place: string; t: number | null; c: [number, number] | null;
   src: string; url: string | null; level?: string; n?: number; links?: string[]; props: Record<string, any>;
 }
-export interface Feed { items: Alert[]; fetched: number; error?: string; meta?: any }
+/** `raw` (news only): the reports out of the public-order filter (gdeltcore relevanceOf) — never on the map, never
+ *  counted, listed apart as raw data. */
+export interface Feed { items: Alert[]; fetched: number; error?: string; meta?: any; raw?: Alert[] }
 
 const A = OPS.alerts as any;
 const cache = new Map<AlertKind, { at: number; p: Promise<Feed> }>();
@@ -25,45 +31,95 @@ async function json(url: string, init?: RequestInit) {
   try { const r = await fetch(url, { ...init, signal: c.signal }); if (!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json(); }
   finally { clearTimeout(t); }
 }
-const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
+
+// NEWS (2026-10-18, D7 option A): GDELT asked by the browser for the chosen window (ops state newsWindow); when GDELT
+// cannot be reached or read, the snapshot's published table — an ARCHIVE of one past hour, said as such with its date.
+// Both go through the same rules (gdeltcore.ts): categories of the public-order lens, how sure the place is, which rows
+// are one report. A feed's meta says which it is: mode "live" (the newest GDELT slot and its time) or "archive".
+const REPORT_CTX = (() => {
+  const byName = new Map<string, string>();
+  try {
+    const dn = new Intl.DisplayNames(["en"], { type: "region" });
+    for (let a = 65; a < 91; a++) for (let b = 65; b < 91; b++) {
+      const c = String.fromCharCode(a, b), n = dn.of(c);
+      if (n && n !== c) byName.set(n.toLowerCase(), c);
+    }
+  } catch { /* no names: no place is confirmed by its outlet's nation */ }
+  for (const [n, c] of Object.entries(ORDER.nationAliases as Record<string, string>)) byName.set(n, c);
+  const a2a3 = Object.fromEntries(Object.entries(NEWS.a3a2 as Record<string, string>).map(([a3, a2]) => [a2, a3]));
+  return { cfg: ORDER as unknown as OrderCfg, base: NEWS.base as Record<string, string>, roots: OPS.news.roots as Record<string, string>,
+    hotRoots: OPS.news.conflict as string[], byName, a2a3, armedRoles: ORDER.armedRoles as string[] };
+})();
+// the cities NEXUM knows, per nation (the snapshot's places index: settlements with their nation's name), for the
+// "another city is named" check; read once, empty when the index cannot be read (the check is then not made)
+let gazetteerP: Promise<Map<string, string[]>> | null = null;
+function gazetteer(): Promise<Map<string, string[]>> {
+  return gazetteerP ??= call<any>("/places-index", undefined, { channel: "places-index-news" }).then((r) => {
+    const m = new Map<string, string[]>();
+    for (const p of (r.data.places ?? []) as any[]) {
+      if (p[1] !== "place.settlement" || !p[6]) continue;
+      const a2 = REPORT_CTX.byName.get(String(p[6]).toLowerCase());
+      if (!a2) continue;
+      const l = m.get(a2) ?? [];
+      for (const n of [p[2], ...(p[3] ?? [])]) if (n && !l.includes(n)) l.push(n);
+      m.set(a2, l);
+    }
+    return m;
+  }, () => { gazetteerP = null; return new Map<string, string[]>(); });
+}
+
+function asAlerts(reps: Report[], mode: "live" | "archive"): Alert[] {
+  return reps.map((g) => ({
+    id: g.key, kind: "news" as const, verified: false, title: g.title, place: g.place, t: g.t, c: g.c, src: "GDELT", url: g.links[0] ?? null,
+    n: g.arts, links: g.links,
+    props: { root: g.root, code: g.code, place: g.place, t: new Date(g.first).toISOString().slice(0, 16), added: new Date(g.t).toISOString().slice(0, 16),
+      gold: g.gold, n: g.arts, tone: g.tone, url: g.links[0] ?? null, rows: g.rows, quad: g.quad,
+      a1c: g.actors[0], a1t: g.actors[1], a1g: g.actors[2], a2c: g.actors[3], a2t: g.actors[4], a2g: g.actors[5],
+      sources: g.sources, mentions: g.mentions, links: JSON.stringify(g.links), urls: g.links.length, hosts: g.hosts,
+      eids: g.eids.join(" "), hot: g.hot, cats: JSON.stringify(g.cats), rule: g.rule ?? "", codes: JSON.stringify(g.codes),
+      geo: g.geo, geo_ok: g.geo === "confirmed", precision: g.precision, same_nation: g.sameNation, named: g.named, nation: g.nation ?? "",
+      other_named: JSON.stringify(g.otherNamed), flags: JSON.stringify(g.flags), lang: g.lang ?? "", seen: g.seen ?? "",
+      nation_name: g.place.split(",").pop()?.trim() ?? "", city: g.precision === "city" ? g.place.split(",")[0].trim() : "",
+      day: g.day, streams: g.streams.join(" "), secondary: g.secondary, mode, relevance: g.relevance, rel_words: JSON.stringify(g.relWords) } }));
+}
+/** The public-order reports, and the raw data apart. */
+const split = (xs: Alert[]) => ({ items: xs.filter((x) => x.props.relevance !== "raw"), raw: xs.filter((x) => x.props.relevance === "raw") });
+
+// 1 hour by default: the density of points the map had (a longer window is the person's choice, its size said)
+let newsHours = 1;
+/** The window of the news feed (hours): a new choice is downloaded at the next request. */
+export function setNewsWindow(h: number) { if (h !== newsHours) { newsHours = h; cache.delete("news"); } }
+export const newsWindow = () => newsHours;
 
 async function news(): Promise<Feed> {
+  const f = await loadNews();
+  const m = f.meta ?? {};
+  ops.set({ newsStatus: { mode: m.mode, latestMs: m.latest_ms ?? null, from: m.notes?.from ?? null, to: m.notes?.to ?? null, hours: m.hours ?? newsHours,
+    error: m.mode === "archive" ? m.liveError ?? null
+      : [m.files?.failed ? `${m.files.failed} file su ${m.files.total} non scaricati` : "", ...(m.errors ?? []).filter((e: string) => e.startsWith("flusso"))].filter(Boolean).join(" · ") || null,
+    files: m.files ?? null, bytes: m.bytes ?? null, fetched: f.fetched } });
+  return f;
+}
+async function loadNews(): Promise<Feed> {
+  let liveError: string | null = null;
+  try {
+    const L = await liveNews(newsHours);
+    const rows = dedupeById(L.rows);
+    const items = asAlerts(toReports(groupRows(rows), L.links, { ...REPORT_CTX, gazetteer: await gazetteer(), meta: L.meta }), "live");
+    const added = rows.map((r) => r.added).sort();
+    return { ...split(items), fetched: L.fetched, meta: { mode: "live", table: null, source_id: "gdelt.events", attribution: ORDER.attribution, license_id: "gdelt-open",
+      fetched_ms: L.fetched, latest: L.latest, latest_ms: Math.max(slotMs(L.latest.en) ?? 0, slotMs(L.latest.tr) ?? 0) || null, hours: newsHours,
+      files: L.files, bytes: L.bytes, errors: L.errors.slice(0, 6), notes: { from: added[0] ?? null, to: added.at(-1) ?? null, mentions: true } } };
+  } catch (e: any) { liveError = String(e?.message ?? e); }
+  // the archive: the snapshot's table (one past hour), never presented as current
   const r = await call<any>("/tables/newsevents", undefined, { channel: "newsevents-feed" });
-  const d = r.data, roots = OPS.news.roots as Record<string, string>, groups = new Map<string, Alert>();
-  const F = d.fields as string[], at = (x: any[], f: string) => { const i = F.indexOf(f); return i < 0 ? null : x[i]; };
-  const ACT = F.findIndex((f) => f.startsWith("actor"));   // the six actor codes, in the table's order (1: where/role/group, 2: same)
-  for (const x of d.rows as any[]) {
-    const [lon, lat, root, code, place, added, gold, arts, tone, url] = x;
-    // ONE EVENT (2026-10-06, physical acceptance): rows are the same event only when GDELT coded the same action (full
-    // CAMEO code) at the same place (its feature id) between the same actors (their codes) in the same hour —
-    // never merely because they are near each other or of the same broad kind
-    const actors = [0, 1, 2, 3, 4, 5].map((i) => (F[ACT + i]?.startsWith("actor") ? x[ACT + i] ?? "" : ""));
-    const k = [code, at(x, "feature_id") || String(place).toLowerCase(), ...actors].join("|");
-    const links: string[] = Array.isArray(at(x, "links")) ? at(x, "links") : url ? [url] : [];
-    const g = groups.get(k);
-    const t = Date.parse(`${added}:00Z`);
-    if (g) {
-      g.n = (g.n ?? 0) + arts; g.props.rows += 1; g.props.sources += Number(at(x, "sources") ?? 0); g.props.tones.push(tone);
-      for (const u of links) if (u && !g.links!.includes(u)) g.links!.push(u);
-      g.props.eids.push(at(x, "event_id"));
-      if (t > (g.t ?? 0)) g.t = t;
-      continue;
-    }
-    groups.set(k, { id: `news:${k}`, kind: "news", verified: false, title: (NEWS.base as Record<string, string>)[String(code).slice(0, 3)] ?? roots[root] ?? `CAMEO ${root}`, place, t, c: [lon, lat],
-      src: "GDELT", url, n: arts, links: [...links], props: { root, code, place, t: added, gold, n: arts, tone, url, rows: 1,
-        quad: at(x, "quad"), a1c: actors[0], a1t: actors[1], a1g: actors[2], a2c: actors[3], a2t: actors[4], a2g: actors[5],
-        sources: Number(at(x, "sources") ?? 0), mentions: Number(at(x, "mentions") ?? 0), tones: [tone], eids: [at(x, "event_id")],
-        hot: (OPS.news.conflict as string[]).includes(root) } });
-  }
-  const items = [...groups.values()];
-  for (const g of items) {
-    const p = g.props;
-    p.n = g.n; p.links = JSON.stringify(g.links!.slice(0, 12)); p.urls = g.links!.length; p.hosts = [...new Set(g.links!.map(host))].length;
-    p.tone = Math.round((p.tones as number[]).reduce((s, v) => s + v, 0) / p.tones.length * 10) / 10;
-    p.added = g.t != null ? new Date(g.t).toISOString().slice(0, 16) : p.t;
-    p.eids = (p.eids as any[]).filter(Boolean).join(" "); delete p.tones;
-  }
-  return { items, fetched: d.fetched_ms ?? Date.now(), meta: d };
+  const d = r.data, F = d.fields as string[];
+  const rows = (d.rows as any[]).map((x) => fromTable(F, x));
+  const links = new Map<string, string[]>();
+  const LI = F.indexOf("links");
+  if (LI >= 0) (d.rows as any[]).forEach((x, i) => { if (Array.isArray(x[LI])) links.set(rows[i].id, x[LI]); });
+  const items = asAlerts(toReports(groupRows(rows), links, { ...REPORT_CTX, gazetteer: await gazetteer() }), "archive");
+  return { ...split(items), fetched: d.fetched_ms ?? Date.now(), meta: { ...d, mode: "archive", liveError, latest_ms: d.fetched_ms ?? null } };
 }
 async function geoEvents(): Promise<Feed> {
   const d = await json(A.geoFeed);

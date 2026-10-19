@@ -11,6 +11,7 @@ import { useStore, store } from "../store";
 import { DESK_W, registerLayer } from "../lib/layers";
 import { spaceWeather } from "../config/ops-space.json";
 import { call } from "../lib/api";
+import { shownHealth } from "../lib/freshness";
 import { ops, PERMALINK, useOps, type BaseMode, type OpsState, type Tool } from "./state";
 import { fmtLatLng, scaleFor } from "./geo";
 import { applyTheme } from "./theme";
@@ -23,7 +24,8 @@ const SeaRoutePanel = lazyStale(() => import("./SeaRoutePanel"));
 export const TOOLS: { id: Tool; short: string; group: string; icon: string; label: string; key?: string }[] = [
   { id: "layers", short: "Livelli", group: "map", icon: "≡", label: "Livelli", key: "L" },
   { id: "draw", short: "Disegno e misure", group: "map", icon: "✎", label: "Disegno e misure", key: "D" },
-  { id: "alerts", short: "Allerte", group: "world", icon: "⚠", label: "Allerte dal vivo", key: "A" },
+  { id: "alerts", short: "Allerte", group: "world", icon: "⚠", label: "Allerte e notizie", key: "A" },
+  { id: "news", short: "Notizie", group: "world", icon: "☰", label: "Notizie e ordine pubblico" },
   { id: "cams", short: "Telecamere", group: "see", icon: "◉", label: "Telecamere", key: "C" },
   { id: "live", short: "Dirette", group: "see", icon: "▶", label: "Dirette (canali ufficiali, spazio, notizie)", key: "V" },
   { id: "sky", short: "Cielo", group: "see", icon: "✦", label: "Cielo da un punto", key: "Y" },
@@ -165,7 +167,7 @@ function Hud({ map, touch }: { map: MLMap; touch: boolean }) {
   const info = useStore((s) => s.mapInfo);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
-  const ok = status ? status.sources.filter((s) => s.health === "ok").length : 0;
+  const ok = status ? status.sources.filter((s) => shownHealth(s) === "ok").length : 0;
   const nSources = status?.sources.length ?? 0;
   const nLayers = 1 + Object.values(layers).filter(Boolean).length;   // NEXUM's own layer + the operational ones on
   const entities = (info?.returned ?? 0) + Object.values(counts).reduce((a, b) => a + b, 0);

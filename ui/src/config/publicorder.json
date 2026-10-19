@@ -1,0 +1,426 @@
+{
+ "_doc": "PROTESTS, VIOLENCE AND PUBLIC ORDER in the GDELT news (2026-10-18, author's GO for local development). Data, not UI code. Every category is a declared set of CAMEO codes (CAMEO 1.1b3, the codebook GDELT uses); the original code and its description always stay visible. A category says how GDELT CODED what the news reported — never that it happened, never who is to blame. Categories the codes cannot tell apart are declared as such (fire), never guessed.",
+ "categories": [
+  {
+   "id": "protest",
+   "label": "Manifestazione o protesta",
+   "short": "Protesta",
+   "codes": [
+    "140",
+    "141",
+    "1411",
+    "1412",
+    "1413",
+    "1414",
+    "142",
+    "1421",
+    "1422",
+    "1423",
+    "1424",
+    "143",
+    "1431",
+    "1432",
+    "1433",
+    "1434",
+    "144",
+    "1441",
+    "1442",
+    "1443",
+    "1444"
+   ],
+   "note": "Codici CAMEO 140–144: manifestazioni, scioperi, boicottaggi, blocchi. La codifica non indica violenza."
+  },
+  {
+   "id": "riot",
+   "label": "Scontri e disordini",
+   "short": "Scontri",
+   "codes": [
+    "145",
+    "1451",
+    "1452",
+    "1453",
+    "1454"
+   ],
+   "note": "Codice CAMEO 145 «protesta violenta, disordini»; anche l'uso della forza (19x) fra polizia e manifestanti, lavoratori, studenti o civili dello stesso paese (regola «forza fra polizia e civili»)."
+  },
+  {
+   "id": "assault",
+   "label": "Aggressione e violenza fisica",
+   "short": "Aggressione",
+   "codes": [
+    "180",
+    "181",
+    "182",
+    "1821",
+    "1822",
+    "1823",
+    "183",
+    "1831",
+    "1832",
+    "1833",
+    "1834",
+    "184",
+    "185",
+    "186"
+   ],
+   "note": "Famiglia CAMEO 18 («assault»): il codice esatto dice quale azione."
+  },
+  {
+   "id": "damage",
+   "label": "Danneggiamento di beni",
+   "short": "Danneggiamento",
+   "codes": [
+    "171",
+    "1712"
+   ],
+   "note": "CAMEO 171 «sequestro o danneggiamento di beni» (non distingue i due) e 1712 «distruzione di beni». Il vandalismo non ha un codice proprio."
+  },
+  {
+   "id": "enforcement",
+   "label": "Intervento di polizia o di autorità",
+   "short": "Polizia/autorità",
+   "codes": [
+    "151",
+    "153",
+    "1711",
+    "172",
+    "1721",
+    "1722",
+    "1723",
+    "1724",
+    "173",
+    "174",
+    "175"
+   ],
+   "note": "CAMEO 151/153 (allerta e mobilitazione della polizia), 1711 (confisca), 172 (restrizioni amministrative), 173 (arresto, fermo, incriminazione), 174 (espulsione), 175 (repressione violenta). Un arresto può riguardare qualsiasi reato: il codice non dice che sia legato a una protesta."
+  },
+  {
+   "id": "armed",
+   "label": "Uso della forza (codice CAMEO militare)",
+   "short": "Forza (cod. militare)",
+   "codes": [
+    "190",
+    "191",
+    "192",
+    "193",
+    "194",
+    "195",
+    "1951",
+    "1952",
+    "196",
+    "200",
+    "201",
+    "202",
+    "203",
+    "204",
+    "2041",
+    "2042"
+   ],
+   "note": "Famiglie CAMEO 19 e 20 («uso della forza militare convenzionale», «violenza di massa»). Il codice NON dice che sia intervenuto l'esercito: GDELT lo usa anche per scontri di piazza e talvolta per proteste. Quando nessun attore ha un ruolo armato, NEXUM segnala la classificazione come ambigua."
+  }
+ ],
+ "notDistinguishable": [
+  {
+   "id": "fire",
+   "label": "Incendi collegati a disordini",
+   "note": "CAMEO non ha un codice per gli incendi dolosi o appiccati durante disordini: GDELT non permette di distinguerli. NEXUM non li deduce dalle parole degli articoli."
+  }
+ ],
+ "civilForce": {
+  "id": "forza-fra-polizia-e-civili",
+  "rule": "Un'azione codificata 19x (uso della forza militare) è mostrata fra «Scontri e disordini» solo se GDELT ha codificato entrambi gli attori con un ruolo: uno polizia, l'altro opposizione, lavoratori, studenti o civili; e il paese di ciascun attore, quando è indicato, è il paese del luogo. Il codice originale resta visibile.",
+  "policeRoles": [
+   "COP"
+  ],
+  "crowdRoles": [
+   "OPP",
+   "LAB",
+   "EDU",
+   "CVL"
+  ]
+ },
+ "subcodes": {
+  "1411": "Manifestazione per un cambio di leadership",
+  "1412": "Manifestazione per un cambiamento di politica",
+  "1413": "Manifestazione per diritti",
+  "1414": "Manifestazione per un cambiamento istituzionale",
+  "1421": "Sciopero della fame per un cambio di leadership",
+  "1422": "Sciopero della fame per un cambiamento di politica",
+  "1423": "Sciopero della fame per diritti",
+  "1424": "Sciopero della fame per un cambiamento istituzionale",
+  "1431": "Sciopero o boicottaggio per un cambio di leadership",
+  "1432": "Sciopero o boicottaggio per un cambiamento di politica",
+  "1433": "Sciopero o boicottaggio per diritti",
+  "1434": "Sciopero o boicottaggio per un cambiamento istituzionale",
+  "1441": "Blocco per un cambio di leadership",
+  "1442": "Blocco per un cambiamento di politica",
+  "1443": "Blocco per diritti",
+  "1444": "Blocco per un cambiamento istituzionale",
+  "1451": "Protesta violenta per un cambio di leadership",
+  "1452": "Protesta violenta per un cambiamento di politica",
+  "1453": "Protesta violenta per diritti",
+  "1454": "Protesta violenta per un cambiamento istituzionale",
+  "1711": "Confisca di beni",
+  "1712": "Distruzione di beni",
+  "1721": "Restrizioni alle libertà politiche",
+  "1722": "Messa al bando di partiti o politici",
+  "1723": "Coprifuoco",
+  "1724": "Stato d'emergenza o legge marziale",
+  "1821": "Aggressione sessuale",
+  "1822": "Tortura",
+  "1823": "Uccisione per aggressione fisica",
+  "1831": "Attentato suicida",
+  "1832": "Attentato con veicolo",
+  "1833": "Ordigno lungo una strada",
+  "1834": "Attentato contro un luogo",
+  "1951": "Munizioni aeree a guida di precisione",
+  "1952": "Munizioni aeree a pilotaggio remoto",
+  "2041": "Uso di armi chimiche, biologiche o radiologiche",
+  "2042": "Detonazione di un ordigno nucleare"
+ },
+ "geo": {
+  "confirmed": "Luogo confermato: città indicata da GDELT, nominata nell'indirizzo dell'articolo e riportata da una testata dello stesso paese; l'indirizzo non nomina altre città del paese.",
+  "unconfirmed": "Luogo suggerito da GDELT, non verificato: nulla lo conferma (una testata di un altro paese o di dominio generico, o l'indirizzo dell'articolo non nomina la città). Un nome può indicare città diverse (es. Rome negli Stati Uniti e Roma in Italia). Non è un punto sulla mappa: è contato nel gruppo del paese.",
+  "ambiguous": "Luogo ambiguo: GDELT indica questa città, ma l'indirizzo dell'articolo nomina anche {others}. NEXUM non sposta l'evento in un'altra città e non lo mette sulla mappa come punto.",
+  "region": "GDELT indica solo la regione (il centro dell'area): non è una città.",
+  "nation": "GDELT indica solo il paese (il centro del paese): non è una città.",
+  "note": "NEXUM usa solo il luogo assegnato da GDELT: non lo sposta in un'altra città citata dall'articolo e non ne aggiunge. Un luogo non confermato non è collegato a un luogo di NEXUM.",
+  "short": {
+   "confirmed": "luogo confermato",
+   "unconfirmed": "luogo suggerito da GDELT, non verificato",
+   "ambiguous": "luogo ambiguo"
+  },
+  "limit": "Le città sono riconosciute con i nomi dell'indice dei luoghi di NEXUM (Natural Earth, in inglese): un nome nella lingua locale che l'indice non ha (es. Torino, Firenze, Napoli) non viene riconosciuto come «altra città»."
+ },
+ "streams": {
+  "en": "GDELT 2.0 · flusso standard (testate in inglese)",
+  "tr": "GDELT 2.0 · flusso multilingue (articoli in altre lingue, tradotti automaticamente da GDELT)",
+  "snap": "Archivio dello snapshot NEXUM (flusso standard)"
+ },
+ "windows": [
+  {
+   "h": 1,
+   "label": "1 ora",
+   "note": "tutte le azioni codificate, con gli articoli che le riportano; circa 0,5–1 MB"
+  },
+  {
+   "h": 6,
+   "label": "6 ore",
+   "note": "l'ultima ora completa, più proteste, violenza e ordine pubblico delle 5 ore prima; circa 2–3 MB"
+  },
+  {
+   "h": 24,
+   "label": "24 ore",
+   "note": "come 6 ore, per 24 ore; circa 6–9 MB: meglio in Wi-Fi"
+  }
+ ],
+ "retention": "Le segnalazioni restano solo in questa pagina, per la finestra scelta: chiudendo o ricaricando la pagina spariscono, e a ogni aggiornamento quelle fuori finestra sono tolte. NEXUM non salva nulla sul dispositivo (la cache del browser conserva i file GDELT per al massimo un'ora, come indicano i server di GDELT).",
+ "reliability": {
+  "auto": "Codifica automatica di articoli giornalistici (GDELT): non è un fatto verificato né una dichiarazione ufficiale.",
+  "one": "riportato da 1 testata",
+  "many": "riportato da {n} testate diverse (secondo GDELT): più fonti giornalistiche, non una verifica",
+  "tolls": "NEXUM non riporta bilanci di feriti, arresti o danni: se ci sono, sono negli articoli, con l'attribuzione delle testate."
+ },
+ "attribution": "News events: The GDELT Project (gdeltproject.org), automatic coding of news media",
+ "nationAliases": {
+  "czech republic": "CZ",
+  "ivory coast": "CI",
+  "cote d'ivoire": "CI",
+  "burma": "MM",
+  "myanmar": "MM",
+  "democratic republic of the congo": "CD",
+  "republic of the congo": "CG",
+  "macedonia": "MK",
+  "swaziland": "SZ",
+  "east timor": "TL",
+  "vatican city": "VA",
+  "palestine": "PS",
+  "gaza strip": "PS",
+  "west bank": "PS",
+  "turkey": "TR",
+  "cape verde": "CV",
+  "the bahamas": "BS",
+  "bahamas, the": "BS",
+  "the gambia": "GM",
+  "gambia, the": "GM",
+  "hong kong": "HK",
+  "macau": "MO"
+ },
+ "secondary": "Menzione secondaria: l'azione non è nel paragrafo iniziale dell'articolo (GDELT: IsRootEvent = 0).",
+ "flags": {
+  "force-no-armed": "Classificazione ambigua: codice di uso della forza militare (CAMEO 19x/20x) senza alcun attore armato codificato. GDELT usa questo codice anche per scontri di piazza o proteste: non indica che sia intervenuto l'esercito.",
+  "mixed": "Lo stesso articolo ha codici di categorie diverse (una protesta e un'azione violenta): la codifica non dice se descrivono lo stesso episodio, né quale.",
+  "secondary": "Menzione secondaria: l'azione non è nel paragrafo iniziale dell'articolo (GDELT: IsRootEvent = 0); può riguardare un fatto passato o diverso.",
+  "other-city": "L'indirizzo dell'articolo nomina anche un'altra città: il luogo è ambiguo."
+ },
+ "sentence": {
+  "confirmed": "Evento riportato dai media a {place}: {act}.",
+  "other": "Segnalazione dei media: {act}. Luogo suggerito da GDELT, non verificato: {place}."
+ },
+ "armedRoles": [
+  "MIL",
+  "REB",
+  "INS",
+  "SEP",
+  "UAF",
+  "SPY"
+ ],
+ "noInference": "NEXUM non deduce dai codici feriti, arresti, saccheggi, responsabilità o gravità.",
+ "actors": {
+  "intro": "Ruoli codificati automaticamente da GDELT (categorie CAMEO come polizia, opposizione, studenti, con il paese): non sono organizzazioni o persone identificate.",
+  "none": "Nessuna attribuzione documentata disponibile.",
+  "why": "GDELT non indica organizzatori, promotori, partecipanti, rivendicazioni o responsabili: i codici attore sono categorie, non nomi di movimenti o organizzazioni. NEXUM non legge il testo degli articoli e non ne estrae nomi; le attribuzioni, se ci sono, sono negli articoli originali, con la responsabilità delle testate."
+ },
+ "connections": {
+  "intro": "Solo collegamenti dichiarati dai dati; le coincidenze sono indicate come tali, mai come relazioni.",
+  "sameArticle": "Stesso articolo: altre segnalazioni che GDELT ha ricavato da questo stesso articolo",
+  "sameEvent": "Stesso evento GDELT: righe che GDELT ha codificato come la stessa azione (unite in questa segnalazione)",
+  "sameOutlet": "Stessa testata nella finestra (coincidenza: non è un collegamento fra gli eventi)",
+  "samePlace": "Stesso luogo confermato nella finestra (coincidenza di luogo: non è un collegamento)",
+  "actors": "Stessi attori identificati in modo attendibile: non disponibile (GDELT dà solo categorie di attori)"
+ },
+ "sourcesNote": "I siti esterni possono chiedere cookie, consenso o abbonamento: dipende da loro, non da NEXUM. Il titolo è ricavato dall'indirizzo dell'articolo (il titolo originale dell'editore non è nei file GDELT usati); non è tradotto.",
+ "panel": {
+  "title": "Notizie e ordine pubblico",
+  "count": "{n} segnalazioni (articoli codificati da GDELT, non episodi indipendenti)",
+  "confirmedAt": "Luogo confermato a {city}",
+  "suggestedAt": "GDELT le associa a {city}: luogo non verificato o ambiguo",
+  "empty": "Nessuna segnalazione con questi filtri.",
+  "onMap": "Sulla mappa",
+  "toList": "Vedi nell'elenco"
+ },
+ "aggregate": {
+  "title": "{n} segnalazioni con luogo non verificato · {nation}",
+  "note": "Segnalazioni che GDELT associa a questo paese senza un luogo confermato (città non confermata, ambigua, o solo regione/paese). Non hanno un punto preciso: questo cerchio è al centro del paese.",
+  "open": "Apri l'elenco"
+ },
+ "placeNews": {
+  "open": "Notizie e ordine pubblico: {place}",
+  "note": "segnalazioni dei media che GDELT associa a questo luogo, nelle ultime 24 ore (1 e 6 ore restano disponibili); luoghi confermati e suggeriti in due elenchi separati (non è una relazione del luogo).",
+  "cityType": "place.settlement",
+  "nationType": "place.country",
+  "nationProp": "country_name",
+  "cityHours": 24,
+  "noteNation": "segnalazioni dei media che GDELT associa a questo paese; luoghi confermati e suggeriti in due elenchi separati (non è una relazione del luogo)."
+ },
+ "episodes": {
+  "type": "civil.public_order_event",
+  "title": "Episodi documentati",
+  "intro": "Episodi redatti da NEXUM leggendo gli articoli di stampa citati, distinti dalle segnalazioni automatiche di GDELT: riportano ciò che scrivono le testate, non sono una verifica indipendente né una certificazione ufficiale.",
+  "none": "Nessun episodio documentato per questo luogo.",
+  "review": {
+   "draft": "Bozza locale: non revisionata da una seconda persona, non pubblicata.",
+   "author": "Pubblicato con l'approvazione dell'autore (19 ottobre 2026): non revisionato da una seconda persona."
+  },
+  "reviewList": "Pubblicati con l'approvazione dell'autore (19 ottobre 2026), non revisionati da una seconda persona.",
+  "sections": {
+   "what": "Cosa è successo",
+   "where": "Dove e quando",
+   "figures": "Cifre (attribuite)",
+   "statements": "Dichiarazioni, testimonianze e accuse",
+   "who": "Ruoli documentati dalle fonti",
+   "attrib": "Responsabilità accertate",
+   "notes": "Note",
+   "sources": "Fonti originali",
+   "context": "Contesto istituzionale (non è un collegamento con l'episodio)"
+  },
+  "verification": "Stato della verifica",
+  "figureBy": "secondo",
+  "reportedBy": "riportato da",
+  "asOf": "dato del",
+  "nature": {
+   "dichiarazione": "DICHIARAZIONE",
+   "accusa": "ACCUSA (non un fatto accertato)",
+   "testimonianza": "TESTIMONIANZA (non verificata)"
+  },
+  "roles": {
+   "organizer_reported": "ha indetto il corteo, secondo le fonti · ruolo limitato all'organizzazione: NEXUM non gli attribuisce le violenze",
+   "authority_intervened": "intervenuta, secondo le fonti",
+   "figures_from": "cifre attribuite a questa autorità, come riportate dalla stampa"
+  },
+  "attribNone": "Nessuna responsabilità accertata: nessun atto giudiziario o comunicato ufficiale citato attribuisce le violenze a un soggetto identificato. Accuse e descrizioni di esponenti politici o autorità, dove presenti, sono riportate come dichiarazioni.",
+  "noPersons": "Nessuna persona è collegata agli episodi come soggetto coinvolto: i titolari di cariche pubbliche sono nominati solo come autori di dichiarazioni riportate dalla stampa, o nel contesto istituzionale.",
+  "verificationNote": "Lo stato dice quante testate riportano ciascun fatto: non è una verifica indipendente di NEXUM, e nessuna testata è una certificazione ufficiale.",
+  "rolesNone": "Nessun movimento, organizzazione o autorità ha un ruolo documentato dalle fonti in questo episodio.",
+  "contextNote": "Titolari delle cariche pubbliche alla data dell'episodio, da Wikidata: è un contesto temporale e istituzionale, non un ruolo nell'episodio. Le fonti dell'episodio non li collegano agli scontri; chi ha rilasciato una dichiarazione la trova nella sezione delle dichiarazioni, con le sue fonti."
+ },
+ "relevance": {
+  "_doc": "WHICH REPORTS ARE PUBLIC-ORDER NEWS (2026-10-19, author's request after a false positive: a «statement» coded from a student newspaper's food column, placed in Rome). Only the data GDELT gives are used — the CAMEO code and the article's own address — never the article's text, which NEXUM does not read. ORDER: a code of the categories above. ADDRESS: a generic code (statement, appeal, consultation, disapproval, negotiation…) but the address of the article GDELT coded from has one of these words (whole words, accents ignored). RAW: neither — out of the main list, the map and the counts, still listed apart as raw data.",
+  "words": [
+   "scontri",
+   "scontro",
+   "guerriglia",
+   "protesta",
+   "proteste",
+   "corteo",
+   "cortei",
+   "manifestazione",
+   "manifestazioni",
+   "manifestanti",
+   "sciopero",
+   "scioperi",
+   "disordini",
+   "tafferugli",
+   "saccheggi",
+   "saccheggio",
+   "saccheggiati",
+   "saccheggiato",
+   "devastazione",
+   "devastazioni",
+   "lacrimogeni",
+   "idranti",
+   "sassaiola",
+   "violenze",
+   "protest",
+   "protests",
+   "protesters",
+   "protestors",
+   "demonstration",
+   "demonstrations",
+   "demonstrators",
+   "riot",
+   "riots",
+   "rioters",
+   "rioting",
+   "clash",
+   "clashes",
+   "unrest",
+   "looting",
+   "teargas",
+   "manifestation",
+   "manifestations",
+   "manifestants",
+   "emeutes",
+   "affrontements",
+   "protestas",
+   "protestos",
+   "manifestaciones",
+   "manifestacoes",
+   "manifestantes",
+   "disturbios",
+   "enfrentamientos",
+   "confrontos",
+   "saqueos",
+   "krawalle",
+   "ausschreitungen",
+   "demonstranten"
+  ],
+  "label": {
+   "order": "Ordine pubblico (codice CAMEO)",
+   "address": "Codice generico · indirizzo pertinente",
+   "raw": "Dato grezzo: non classificato come ordine pubblico"
+  },
+  "badge": {
+   "address": "codice generico",
+   "raw": "dato grezzo"
+  },
+  "card": {
+   "order": "Inclusa perché GDELT l'ha codificata con un codice CAMEO dell'ordine pubblico (categorie sopra). La codifica può sbagliare: NEXUM non ha letto l'articolo.",
+   "address": "Nessun codice CAMEO dell'ordine pubblico (GDELT: {code}); inclusa perché l'indirizzo dell'articolo contiene {words}. NEXUM non ha letto l'articolo: la pertinenza è dedotta solo dall'indirizzo.",
+   "raw": "Esclusa dall'elenco principale e dalla mappa: codice generico ({code}) e nessuna parola dell'ordine pubblico nell'indirizzo dell'articolo. Può non riguardare l'ordine pubblico: è mostrata solo come dato grezzo di GDELT."
+  },
+  "rawTitle": "Dati grezzi GDELT esclusi dal filtro · {n}",
+  "rawNote": "Azioni codificate da GDELT con codici generici (dichiarazioni, appelli, consultazioni, disapprovazioni, negoziati, cooperazione…) il cui indirizzo non contiene parole dell'ordine pubblico: escluse dall'elenco principale, dalla mappa e dai conteggi. NEXUM non legge gli articoli: alcune possono comunque parlare di disordini, altre di tutt'altro.",
+  "filterNote": "Elenco principale: codici CAMEO dell'ordine pubblico, oppure codici generici con parole dell'ordine pubblico nell'indirizzo dell'articolo. Gli altri sono in fondo, fra i dati grezzi."
+ }
+}

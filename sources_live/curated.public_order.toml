@@ -1,0 +1,37 @@
+id = "curated.public_order"
+name = "Episodi di ordine pubblico (redatti da NEXUM dagli articoli di stampa citati; coordinate da Wikidata)"
+owner = "NEXUM (curated) · Wikidata"
+verdict = "adopt"
+reliability_tier = "T3"
+verified_at = "2026-10-19"
+independence_group = "nexum_curated"
+connector = "connectors.curated_public_order"
+
+# Documented public-order episodes (2026-10-19, author's authorisation, LOCAL example only: Milan, 17–18 October 2026).
+# Written by hand from the press articles that were read (each line cites them; figures attributed; statements said as
+# such); the place's coordinates from Wikidata (CC0). Never fetched by the automation (not in the pipeline's sources):
+# approved for publication by the author on 2026-10-19 (review = "author"; not checked by a second person). Brought
+# into the reference world by hand, once, with that release (the automation's update runs never touch it).
+[license]
+id = "CC0-1.0"
+url = "https://www.wikidata.org/wiki/Wikidata:Licensing"
+attribution = "Episodi: redazione NEXUM da articoli di stampa citati con collegamento, non una verifica indipendente né una fonte ufficiale; coordinate: Wikidata (CC0)"
+redistribution = "allowed"
+commercial_use = "allowed"
+
+[access]
+type = "json"
+auth = "none"
+allowed_hosts = ["www.wikidata.org"]
+
+[politeness]
+min_interval_s = 2592000
+max_rps = 0.2
+conditional_get = true
+respect_retry_after = true
+
+[updates]
+mode = "bulk"
+min_poll_interval_s = 2592000
+
+[options]

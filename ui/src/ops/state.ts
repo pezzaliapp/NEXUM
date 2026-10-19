@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
 export type BaseMode = "map" | "sat" | "today";
 export type Projection = "globe" | "flat";
 export type Tool = "layers" | "draw" | "alerts" | "markets" | "route" | "cams" | "live" | "sky" | "space" | "import"
-  | "scenes" | "net" | "dossier" | "style" | "share" | "help" | "point" | "ai" | "registers";
+  | "scenes" | "net" | "dossier" | "style" | "share" | "help" | "point" | "ai" | "registers" | "news";
 
 export interface OpsLayers {
   orbits: boolean; terrain: boolean; hillshade: boolean; buildings: boolean; clouds: boolean; precip: boolean;
@@ -41,7 +41,7 @@ export interface OpsState {
   /** SAT VIEW preset: only the observing spacecraft whose own imagery NEXUM can show (config satview.json). */
   satObs: boolean;
   /** The operational features under a tap (news, AIS, hotspot, cable, imported): the card says what they are. */
-  feat: { c: [number, number]; fs: { l: string; p: Record<string, any> }[] } | null;
+  feat: { c: [number, number]; fs: { l: string; p: Record<string, any> }[]; more?: number } | null;
   /** UI accent preset (style studio). */
   theme: string;
   /** Header readings (the geomagnetic Kp index; null until known). */
@@ -55,6 +55,19 @@ export interface OpsState {
   /** Turn-by-turn navigation is running (device position read, instructions spoken): said on screen wherever the person
    *  is, with its stop; set by the route panel's navigation, ended by either. Never saved. */
   navigating: boolean;
+  /** The news feed as last loaded (GDELT from the browser, or the snapshot's archive): what the layer and the panels
+   *  say about its freshness. null until the feed is first asked. Never saved. */
+  newsStatus: NewsStatus | null;
+  /** The news list's filters (Notizie e ordine pubblico): nation and city names as GDELT gives them, a category, the
+   *  place's certainty (confirmed / uncertain). Never saved. */
+  newsFilter: NewsFilter;
+}
+export interface NewsFilter { nation: string; city: string; cat: string; geo: "" | "confirmed" | "uncertain";
+  /** the other names of the city chosen from a NEXUM place (e.g. Milano for Milan): GDELT uses both */
+  cityAlt?: string[] }
+export interface NewsStatus {
+  mode: "live" | "archive"; latestMs: number | null; from: string | null; to: string | null; hours: number;
+  error: string | null; files: { ok: number; failed: number; total: number } | null; bytes: number | null; fetched: number;
 }
 
 const LS = "nexum.ops.v1";
@@ -69,7 +82,7 @@ function initial(): OpsState {
     base: fromHash.base ?? (saved.base as BaseMode) ?? "map",
     projection: fromHash.projection ?? (saved.projection as Projection) ?? "globe",
     layers: { ...DEFAULT_LAYERS, ...(saved.layers ?? {}), ...(fromHash.layers ?? {}) },
-    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false,
+    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false, newsStatus: null, newsFilter: { nation: "", city: "", cat: "", geo: "" },
   };
 }
 
@@ -97,7 +110,7 @@ export const PERMALINK = readHash();
 export const TOOL_CLASS: Record<Tool, "map" | "hybrid" | "info"> = {
   draw: "map", point: "map", route: "map", sky: "map", dossier: "map",
   layers: "hybrid", cams: "hybrid", alerts: "hybrid", scenes: "hybrid", import: "hybrid",
-  live: "info", space: "info", markets: "info", registers: "info", net: "info", ai: "info", style: "info", share: "info", help: "info",
+  news: "hybrid", live: "info", space: "info", markets: "info", registers: "info", net: "info", ai: "info", style: "info", share: "info", help: "info",
 };
 let state: OpsState = initial();
 const subs = new Set<() => void>();

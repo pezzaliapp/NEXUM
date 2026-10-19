@@ -7,6 +7,7 @@
 // The media come from the real publishers (no mock): a publisher that fails is said as such by the viewer, and the
 // test says which. Camera records: the live world's own ids.
 import { expect, test, type Page } from "@playwright/test";
+import { gdelt } from "../gdelt.shared";
 
 const CAM = {
   live: { id: "obj_bftkjvw5ykudnbsfefwhim76gy", at: [14.9934, 37.751], label: "Etna (live)", host: "garr.tv/static/streaming-playlists/hls/c6c70a03" },
@@ -19,6 +20,9 @@ const CAM = {
 async function open(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  // GDELT answers from real files of 17 October 2026, frozen (tests/gdelt.shared.ts): the golden checks stay deterministic
+  // (2026-10-18, author's review); the behaviour with the current GDELT is tested apart (tests/web/gdelt-live.spec.ts)
+  await gdelt(page);
   await page.goto("/");
   await page.waitForFunction(() => performance.getEntriesByName("nexum:ready").length > 0, null, { timeout: 90_000 });
   await page.waitForFunction(() => (window as any).__nexum.ops, null, { timeout: 30_000 });

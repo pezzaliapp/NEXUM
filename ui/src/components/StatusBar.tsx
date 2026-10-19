@@ -1,4 +1,5 @@
 import { S } from "../lib/strings";
+import { shownHealth } from "../lib/freshness";
 import { useStore } from "../store";
 import { SnapshotAge } from "./WebNotes";
 
@@ -8,7 +9,7 @@ export function StatusBar() {
   const info = useStore((s) => s.mapInfo);
   const credits = useStore((s) => s.mapCredits);
   if (!status) return <footer className="statusbar" />;
-  const ok = status.sources.filter((s) => s.health === "ok").length;
+  const ok = status.sources.filter((s) => shownHealth(s) === "ok").length;
   // the third-party tiles drawn now first (their terms ask a visible credit), then the data and the map's own
   const attrs = [...new Set([...credits, ...status.sources.map((s) => s.attribution)])];
   if (status.has_geometry && status.basemap?.["nexum:attribution"] && !attrs.includes(status.basemap["nexum:attribution"]))
@@ -18,7 +19,7 @@ export function StatusBar() {
     <footer className="statusbar" data-testid="statusbar">
       <span className="mono" title={`${S.status.version} · build ${__NEXUM_BUILD__}`} data-testid="status-build" data-build={__NEXUM_BUILD__}>v {wv}</span>
       <SnapshotAge />
-      <span title={status.sources.map((s) => `${s.name}: ${S.health[s.health] ?? s.health}`).join("\n")}>
+      <span title={status.sources.map((s) => `${s.name}: ${S.health[shownHealth(s)] ?? s.health}`).join("\n")}>
         <span style={{ color: ok === status.sources.length ? "#86A07A" : "var(--accent)" }}>●</span>{" "}
         {S.status.sourcesOk(ok, status.sources.length)}</span>
       {info && (

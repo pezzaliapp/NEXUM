@@ -23,11 +23,19 @@ import { sheetDrag, sheetRoom } from "../lib/sheetdrag";
 import { bboxOf, compass, bearing, fmtKm, fmtKm2, fmtLatLng, haversine, inRing, type LngLat } from "./geo";
 import { draw, download, NAMES, shapesGeoJSON, toCSV, type DrawMode, type Shape } from "./draw";
 import { CHANNELS, highlight, IMPORT_COLORS, importedData, tableMeta } from "./overlays";
-import { feed, KINDS, SOURCE_NAME, type AlertKind, type Feed } from "./alerts";
+import { feed, KINDS, newsWindow, setNewsWindow, SOURCE_NAME, type AlertKind, type Feed } from "./alerts";
+import ORDER from "../config/publicorder.json";
+import { newsState } from "./newsstatus";
+import { filterNews, isConfirmed, nationGroups } from "./newsmap";
+import type { NewsFilter } from "./state";
+import { staleDays } from "../lib/freshness";
+import { dayLabel } from "../lib/period";
 import { familyColor, familyLabel, groupOf, GROUPS, loadOrbits, OBSERVERS, orbitDetail } from "./orbits";
 import { epochAgeDays } from "./satgeo";
 import SATVIEW from "../config/satview.json";
 import { applyTheme, THEMES } from "./theme";
+// which reports are public-order news, and the raw data apart (2026-10-19)
+const REL = (ORDER as any).relevance as { label: Record<string, string>; badge: Record<string, string>; card: Record<string, string>; rawTitle: string; rawNote: string; filterNote: string };
 
 const Sky = lazyStale(() => import("./Sky"));
 const SatView = lazyStale(() => import("./SatView"));
@@ -42,7 +50,7 @@ export default function Panels({ map, tool }: { map: MLMap; tool: Tool | null })
     <>
       {tool && <ToolSheet map={map} tool={tool} />}
       {orbit != null && <OrbitCard id={orbit} map={map} />}
-      {feat && <FeatCard map={map} feat={feat} />}
+      {feat && <FeatCard map={map} feat={feat} beside={!!tool && innerWidth >= DESK_W} />}
     </>);
 }
 
@@ -54,12 +62,15 @@ function ToolSheet({ map, tool }: { map: MLMap; tool: Tool }) {
     space: () => <SpacePanel />, import: () => <ImportPanel map={map} />, scenes: () => <ScenesPanel map={map} />,
     net: () => <NetPanel />, point: () => <PointPanel map={map} />, style: () => <StylePanel />, share: () => <SharePanel map={map} />,
     help: () => <HelpPanel />, dossier: () => <PointPanel map={map} />,
-    registers: () => <RegistersPanel />,
+    registers: () => <RegistersPanel />, news: () => <NewsPanel map={map} />,
     ai: () => <Suspense fallback={<p className="xs dim">…</p>}><Ai /></Suspense>,
   };
   const touch = innerWidth < DESK_W;
   const sheet = useOps((s) => s.sheet);
   const pickOn = useOps((s) => s.pick);
+  // touch: a card opened from this panel (or the map) is the surface in use — the sheet waits under it, hidden, and is
+  // back as it was when the card closes (never half a list showing around a card)
+  const underCard = useOps((s) => !!s.feat);
   // touch: the compact sheet covers the bottom of the map — the map's padding makes "centre", fly-to and fit-to mean
   // the part still visible above it; removed when the sheet closes
   const ref = useRef<HTMLElement | null>(null);
@@ -94,7 +105,7 @@ function ToolSheet({ map, tool }: { map: MLMap; tool: Tool }) {
   return (
     <>
       <section ref={ref} className={`ops-panel${touch ? " ov ops-sheet" : ""}`} data-testid={`ops-panel-${tool}`} aria-label={TITLES[tool]}
-        data-sheet={touch ? sheet : undefined} data-class={TOOL_CLASS[tool]}>
+        data-sheet={touch ? sheet : undefined} data-class={TOOL_CLASS[tool]} data-under-card={touch && underCard ? "1" : undefined}>
         {touch && <div className="sheet-handle ops-grip" data-testid="ops-sheet-handle" role="button" tabIndex={0} aria-label="Trascina per ridimensionare il pannello" {...grip}>
           <span className="grip" aria-hidden /></div>}
         <header className="ops-ph">
@@ -198,7 +209,7 @@ const LAYER_LIST: { k: keyof OpsLayers; label: string; note?: string }[] = [
 ];
 /** Livelli by group (physical test: what exists must be found where one looks for it). */
 const LAYER_GROUPS: [string, (keyof OpsLayers)[] | "maritime"][] = [
-  ["Spazio", ["orbits"]], ["Marittimo", "maritime"], ["Avvisi in diretta", ["quakes", "gdacs", "nws", "news"]],
+  ["Spazio", ["orbits"]], ["Marittimo", "maritime"], ["Avvisi e notizie", ["quakes", "gdacs", "nws", "news"]],
   ["Terra e clima", ["hotspots", "clouds", "precip", "aurora"]], ["Telecamere e dirette", ["channels", "camPreviews"]],
   ["Mappa", ["streets", "terrain", "hillshade", "buildings", "spin", "imported"]],
 ];
@@ -206,6 +217,16 @@ function LayersPanel({ map }: { map: MLMap }) {
   const layers = useOps((s) => s.layers);
   const satObs = useOps((s) => s.satObs);
   const counts = useOps((s) => s.counts);
+  const newsSt = useOps((s) => s.newsStatus);
+  const status = useStore((s) => s.status);
+  // what each layer's data are now: the news feed's own state; a published table whose source stopped is said as such
+  const fresh = (k: keyof OpsLayers): { cls: string; text: string } | null => {
+    if (k === "news") { const n = newsState(newsSt, Date.now()); return { cls: n.cls === "archive" || n.cls === "late" ? "warn" : "faint", text: n.text }; }
+    const sid = ({ hotspots: "nasa.firms" } as Record<string, string>)[k];
+    const src = sid ? status?.sources.find((x) => x.source_id === sid) : undefined;
+    const d = staleDays(src);
+    return d != null && src?.last_success_ms ? { cls: "warn", text: `dati del ${dayLabel(src.last_success_ms)}, non aggiornati da ${d} giorni` } : null;
+  };
   return (
     <>
       <p className="xs dim">I livelli di NEXUM (luoghi, eventi, infrastrutture, telecamere…) si scelgono nel pannello a sinistra; qui i livelli operativi.</p>
@@ -215,9 +236,10 @@ function LayersPanel({ map }: { map: MLMap }) {
             {ks.map((k) => LAYER_LIST.find((x) => x.k === k)!).map((l) => (
           <li key={l.k}><label className="row">
             <input type="checkbox" className="ops-switch" checked={layers[l.k]} data-testid={`ops-layer-${l.k}`} onChange={() => ops.layer(l.k)} />
-            <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}</span>
+            <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}
+              {(() => { const f = fresh(l.k); return f ? <span className={`xs ${f.cls}`} data-testid={`ops-layer-${l.k}-state`}> · {f.text}</span> : null; })()}</span>
             {counts[l.k] ? <span className="mono xs dim">{counts[l.k].toLocaleString("it-IT")}</span> : null}
-          </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}</li>))}
+          </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}{l.k === "news" && layers.news && <NewsWindow />}</li>))}
           </ul></div>))}
       <p className="xs warn" data-testid="ops-airtraffic-blocked">{OPS.orbits.airTraffic}</p>
       <div className="hl-h">Viste</div>
@@ -225,6 +247,21 @@ function LayersPanel({ map }: { map: MLMap }) {
         {OPS.presets.map((p) => <button key={p.id} type="button" className="chip" onClick={() => { showMap(); map.flyTo({ center: p.c as [number, number], zoom: p.z, duration: 900 }); }}>{p.label}</button>)}
       </div>
     </>);
+}
+
+/** The news window (2026-10-18): how many hours of GDELT the browser downloads, with the measured size of each; what
+ *  NEXUM keeps (nothing on the device) is said with it. */
+function NewsWindow() {
+  const [h, setH] = useState(newsWindow());
+  const W = ORDER.windows;
+  const choose = (x: number) => { setNewsWindow(x); setH(x); window.dispatchEvent(new CustomEvent("nexum:news-window")); };
+  return (
+    <div className="ops-sub xs" data-testid="ops-news-window">
+      <div className="seg" role="group" aria-label="Finestra delle notizie">{W.map((w) => (
+        <button key={w.h} type="button" aria-pressed={h === w.h} data-testid={`ops-news-window-${w.h}`} onClick={() => choose(w.h)}>{w.label}</button>))}</div>
+      <p className="faint" data-testid="ops-news-window-note">{W.find((w) => w.h === h)?.note}</p>
+      <p className="faint">{ORDER.retention}</p>
+    </div>);
 }
 
 /** SAT VIEW preset: only the observing spacecraft whose own imagery NEXUM shows in their card (turns the
@@ -354,6 +391,94 @@ function ShapeRow({ s, map }: { s: Shape; map: MLMap }) {
     </li>);
 }
 
+// ── NEWS AND PUBLIC ORDER (2026-10-18, review): ONE simple list of the GDELT reports of the chosen window — by nation,
+// city, category and how sure the place is, newest first; a report opens its card; "Sulla mappa" shows a confirmed
+// place, or the nation's circle for an uncertain one. A city's confirmed reports and the ones GDELT only suggests there
+// are two separate lists. Counts are of REPORTS (coded articles), never of independent episodes. ──
+/** Open the news list with these filters (from a card, a nation's circle, "more" on a crowded tap). */
+export function openNewsList(f: Partial<NewsFilter>) {
+  ops.set({ newsFilter: { nation: "", city: "", cat: "", geo: "", ...f }, tool: "news", palette: false, pick: null, sheet: "half", feat: null });
+}
+function NewsPanel({ map }: { map: MLMap }) {
+  const flt = useOps((s) => s.newsFilter), st = useOps((s) => s.newsStatus);
+  const [f, setF] = useState<Feed | null>(null);
+  const [more, setMore] = useState(60), [moreRaw, setMoreRaw] = useState(60);
+  useEffect(() => {
+    let on = true; const load = () => feed("news").then((x) => on && setF(x));
+    load(); const t = setInterval(load, 5 * 60_000); window.addEventListener("nexum:news-window", load);
+    return () => { on = false; clearInterval(t); window.removeEventListener("nexum:news-window", load); };
+  }, []);
+  useEffect(() => { setMore(60); setMoreRaw(60); }, [flt]);
+  const set = (p: Partial<NewsFilter>) => ops.set({ newsFilter: { ...flt, ...p } });
+  const items = (f?.items ?? []) as Row[];
+  const count = (xs: Row[], k: string) => { const m = new Map<string, number>(); for (const x of xs) { const v = x.props?.[k]; if (v) m.set(v, (m.get(v) ?? 0) + 1); } return [...m].sort((a, b) => b[1] - a[1]); };
+  const nations = count(items, "nation_name");
+  // the nations with raw data only: still choosable (their raw data are listed apart), said as such
+  const rawOnly = count((f?.raw ?? []) as Row[], "nation_name").filter(([n]) => !nations.some(([m]) => m === n));
+  const inNation = flt.nation ? items.filter((x) => x.props?.nation_name === flt.nation) : [];
+  const cities = count(inNation, "city");
+  const conf = (city: string) => inNation.filter((x) => x.props?.city === city && isConfirmed(x as any)).length;
+  if (flt.city && !cities.some(([c]) => c === flt.city)) cities.unshift([flt.city, 0]);   // a place chosen in NEXUM, with no report yet
+  const rows = filterNews(items as any, flt) as Row[];
+  // the raw data apart: the same nation, city and place filters (they have no public-order category)
+  const raw = filterNews((f?.raw ?? []) as any, { ...flt, cat: "" }) as Row[];
+  const ns = newsState(st, Date.now());
+  const show = (r: Row) => {
+    if (!ops.get().layers.news) ops.layer("news", true);
+    if (isConfirmed(r as any) && r.c) { fly(map, r.c, 7); setTimeout(() => highlight(r.c!), 700); return; }
+    const g = nationGroups(items as any).find((x) => x.nation === r.props?.nation_name);
+    if (g) { fly(map, g.c, 4); setTimeout(() => highlight(g.c), 700); }
+  };
+  const open = (r: Row) => ops.set({ feat: { c: (r.c ?? [0, 0]) as [number, number], fs: [{ l: "ops-news", p: { ...r.props, aid: r.id } }] } });
+  const item = (r: Row) => { const g = r.props?.geo, l = parseJ<string[]>(r.props?.links, [])[0], rel = r.props?.relevance ?? "order";
+    return (
+      <li key={r.id} data-testid="news-item" data-geo={g} data-place={r.place} data-relevance={rel}>
+        <button type="button" className="ops-alert" onClick={() => open(r)}>
+          <span className={`ops-badge ${g === "confirmed" ? "ver" : "rep"}`}>{g === "confirmed" ? "LUOGO CONFERMATO" : g === "ambiguous" ? "LUOGO AMBIGUO" : "LUOGO NON VERIFICATO"}</span>
+          <span className="grow"><b>{r.title}</b> · {r.place}
+            <span className="xs dim"> · {r.t ? ago(r.t) : "senza ora"}{l ? ` · ${host(l)}` : ""}{r.props?.lang ? ` · ${langName(r.props.lang)}` : ""}{REL.badge[rel] ? ` · ${REL.badge[rel]}` : ""}</span></span>
+        </button>
+        {/* raw data are not on the map */}
+        {rel !== "raw" && <button type="button" className="xs" data-testid="news-item-map" onClick={() => show(r)}>{PO.panel.onMap}</button>}
+      </li>); };
+  const list = (xs: Row[], id: string) => <ul className="ops-list" data-testid={id}>{xs.slice(0, more).map(item)}</ul>;
+  const split = !!flt.city && !flt.geo;
+  return (
+    <div data-testid="news-panel">
+      <p className={`xs ${ns.cls === "archive" || ns.cls === "late" ? "warn" : "dim"}`} data-testid="news-panel-state">GDELT · {ns.text}</p>
+      <p className="xs dim">{ORDER.reliability.auto}</p>
+      <NewsWindow />
+      <div className="news-filters xs" data-testid="news-filters">
+        <label>Paese <select value={flt.nation} data-testid="news-f-nation" onChange={(e) => set({ nation: e.target.value, city: "", cityAlt: [] })}>
+          <option value="">Tutti ({items.length})</option>{nations.map(([n, k]) => <option key={n} value={n}>{n} ({k})</option>)}
+          {rawOnly.map(([n, k]) => <option key={n} value={n}>{n} (0 · {k} solo dati grezzi)</option>)}</select></label>
+        <label>Città <select value={flt.city} disabled={!flt.nation} data-testid="news-f-city" onChange={(e) => set({ city: e.target.value, cityAlt: [] })}>
+          <option value="">Tutte</option>{cities.map(([c, k]) => <option key={c} value={c}>{c} ({k} · {conf(c)} confermate)</option>)}</select></label>
+        <label>Categoria <select value={flt.cat} data-testid="news-f-cat" onChange={(e) => set({ cat: e.target.value })}>
+          <option value="">Tutte</option>{ORDER.categories.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}<option value="other">{REL.label.address}</option></select></label>
+        <label>Luogo <select value={flt.geo} data-testid="news-f-geo" onChange={(e) => set({ geo: e.target.value as NewsFilter["geo"] })}>
+          <option value="">Tutti</option><option value="confirmed">Confermato</option><option value="uncertain">Non verificato o ambiguo</option></select></label>
+      </div>
+      <p className="xs" data-testid="news-count-line">{PO.panel.count.replace("{n}", rows.length.toLocaleString("it-IT"))}</p>
+      <p className="xs dim" data-testid="news-filter-note">{REL.filterNote}</p>
+      {!f ? <p className="xs dim">…</p> : !rows.length ? <p className="xs dim" data-testid="news-empty">{PO.panel.empty}</p>
+        : split ? <>
+          <div className="hl-h" data-testid="news-h-confirmed">{PO.panel.confirmedAt.replace("{city}", flt.city)} · {rows.filter((r) => isConfirmed(r as any)).length}</div>
+          {list(rows.filter((r) => isConfirmed(r as any)), "news-list-confirmed")}
+          <div className="hl-h" data-testid="news-h-suggested">{PO.panel.suggestedAt.replace("{city}", flt.city)} · {rows.filter((r) => !isConfirmed(r as any)).length}</div>
+          {list(rows.filter((r) => !isConfirmed(r as any)), "news-list-suggested")}</>
+        : list(rows, "news-list")}
+      {rows.length > more && <button type="button" className="xs" data-testid="news-more" onClick={() => setMore(more + 100)}>Mostra altre {Math.min(100, rows.length - more)} di {rows.length - more}</button>}
+      {f && raw.length > 0 && <details className="news-raw" data-testid="news-raw">
+        <summary className="xs">{REL.rawTitle.replace("{n}", raw.length.toLocaleString("it-IT"))}</summary>
+        <p className="xs dim">{REL.rawNote}</p>
+        <ul className="ops-list" data-testid="news-list-raw">{raw.slice(0, moreRaw).map(item)}</ul>
+        {raw.length > moreRaw && <button type="button" className="xs" data-testid="news-raw-more" onClick={() => setMoreRaw(moreRaw + 100)}>Mostra altri {Math.min(100, raw.length - moreRaw)} di {raw.length - moreRaw}</button>}</details>}
+      <p className="xs faint">{PO.geo.limit}</p>
+      <Credit>{OPS.news.credit}</Credit>
+    </div>);
+}
+
 // ── ALERTS ────────────────────────────────────────────────────────────────
 // ── LIVE ALERTS (master pass): one list from every source, each item saying whether it is REPORTED by the media or
 // VERIFIED by an institution; tabs, search, "only in view", groups by age; a card locates and marks its place and opens
@@ -361,7 +486,8 @@ function ShapeRow({ s, map }: { s: Shape; map: MLMap }) {
 const LAYER_OF: Record<AlertKind, string> = { news: "ops-news", geo: "ops-quakes", gdacs: "ops-gdacs", nws: "ops-nws" };
 const LAYER_KEY: Record<AlertKind, keyof OpsLayers> = { news: "news", geo: "quakes", gdacs: "gdacs", nws: "nws" };
 type Row = { id: string; kind: AlertKind | "nexum"; verified: boolean; title: string; place: string; t: number | null; c: [number, number] | null; src: string; url: string | null; n?: number; level?: string; props?: any; ref?: string };
-const TABS = [["all", "Tutti"], ["verified", "Verificati"], ["reported", "Riportati dai media"], ["geo", "Terremoti"], ["nexum", "NEXUM"]] as const;
+const TABS = [["all", "Tutti"], ["verified", "Verificati"], ["reported", "Riportati dai media"], ["order", "Proteste e ordine pubblico"], ["geo", "Terremoti"], ["nexum", "NEXUM"]] as const;
+const catsOf = (r: { props?: any }): string[] => { try { return JSON.parse(r.props?.cats ?? "[]"); } catch { return []; } };
 const ageOf = (t: number | null) => t == null ? 3 : (Date.now() - t) / 3.6e6 < 1 ? 0 : (Date.now() - t) / 3.6e6 < 6 ? 1 : (Date.now() - t) / 3.6e6 < 24 ? 2 : 3;
 const AGE = ["Ultima ora", "1–6 ore", "6–24 ore", "Più vecchi"];
 function AlertsPanel({ map }: { map: MLMap }) {
@@ -371,9 +497,16 @@ function AlertsPanel({ map }: { map: MLMap }) {
   const [tab, setTab] = useState<(typeof TABS)[number][0]>("all");
   const [q, setQ] = useState("");
   const [inView, setInView] = useState(false);
+  const [cat, setCat] = useState<string | null>(null);
   const [, tick] = useState(0);
+  const newsSt = useOps((s) => s.newsStatus);
   const load = (fresh = false) => { for (const k of KINDS) feed(k, fresh).then((f) => setFeeds((o) => ({ ...o, [k]: f }))); };
-  useEffect(() => { load(); const a = setInterval(() => load(), 5 * 60_000), b = setInterval(() => tick((x) => x + 1), 30_000); return () => { clearInterval(a); clearInterval(b); }; }, []);
+  useEffect(() => {
+    load(); const a = setInterval(() => load(), 5 * 60_000), b = setInterval(() => tick((x) => x + 1), 30_000);
+    const w = () => feed("news").then((f) => setFeeds((o) => ({ ...o, news: f })));
+    window.addEventListener("nexum:news-window", w);
+    return () => { clearInterval(a); clearInterval(b); window.removeEventListener("nexum:news-window", w); };
+  }, []);
   const nexum: Row[] = useMemo(() => {
     const seen = new Set<string>();
     return [...(hl?.recent ?? []), ...(hl?.strongest ?? [])].filter((r: any) => !seen.has(r.$ref) && !!seen.add(r.$ref)).map((r: any) => {
@@ -384,10 +517,13 @@ function AlertsPanel({ map }: { map: MLMap }) {
   }, [hl]);
   const all: Row[] = [...KINDS.flatMap((k) => (feeds[k]?.items ?? []) as Row[]), ...nexum];
   const b = inView ? map.getBounds() : null, low = q.trim().toLowerCase();
-  const keep = (r: Row) => (tab === "all" || (tab === "verified" && r.verified) || (tab === "reported" && !r.verified) || r.kind === tab)
+  const inTab = (r: Row, k: string) => k === "all" || (k === "verified" && r.verified) || (k === "reported" && !r.verified)
+    || (k === "order" && r.kind === "news" && catsOf(r).length > 0) || r.kind === k;
+  const keep = (r: Row) => inTab(r, tab) && (tab !== "order" || !cat || catsOf(r).includes(cat))
     && (!low || `${r.title} ${r.place} ${r.src}`.toLowerCase().includes(low)) && (!b || (!!r.c && b.contains(r.c)));
   const rows = all.filter(keep).sort((x, y) => (y.t ?? 0) - (x.t ?? 0));
-  const count = (k: string) => all.filter((r) => k === "all" || (k === "verified" && r.verified) || (k === "reported" && !r.verified) || r.kind === k).length;
+  const count = (k: string) => all.filter((r) => inTab(r, k)).length;
+  const ns = newsState(newsSt, Date.now());
   const choose = (r: Row) => {
     if (r.ref) { store.select(r.ref, "ops-alerts"); if (r.c) fly(map, r.c, 6); return; }
     if (!r.c || r.kind === "nexum") return;
@@ -401,6 +537,7 @@ function AlertsPanel({ map }: { map: MLMap }) {
   return (
     <>
       <div className="ops-srcs xs" data-testid="ops-alerts-sources">{KINDS.map((k) => { const f = feeds[k];
+        if (k === "news" && f && !f.error) return <span key={k} className={ns.cls === "archive" || ns.cls === "late" ? "warn" : ""} data-testid="ops-alerts-news-state">{SOURCE_NAME[k]} {f.items.length} · {ns.text}</span>;
         return <span key={k} className={f?.error ? "warn" : ""} title={f?.error ?? ""}>{SOURCE_NAME[k]} {f ? (f.error ? "non raggiungibile" : `${f.items.length} · ${ago(f.fetched)}`) : "…"}</span>; })}
         <button type="button" className="xs" data-testid="ops-alerts-refresh" onClick={() => load(true)}>Aggiorna</button></div>
       <div className="seg" role="tablist">{TABS.map(([k, label]) => <button key={k} type="button" role="tab" aria-pressed={tab === k} data-testid={`ops-alerts-tab-${k}`} onClick={() => setTab(k)}>{label} {count(k)}</button>)}</div>
@@ -413,6 +550,14 @@ function AlertsPanel({ map }: { map: MLMap }) {
         return `Ultime 24 ore: ${day.length} elementi · terremoti M 5+: ${q5} · allerte GDACS rosse in corso: ${red} · avvisi NWS estremi: ${ext} · notizie raggruppate: ${rep}.`;
       })()}</p>
       <p className="xs dim">{CARD.alertsNote}</p>
+      {(tab === "reported" || tab === "order") && <NewsWindow />}
+      {tab === "order" && <div data-testid="ops-alerts-cats">
+        <div className="ops-chips">{[null, ...ORDER.categories.map((c) => c.id)].map((id) => {
+          const c = ORDER.categories.find((x) => x.id === id);
+          return <button key={id ?? "all"} type="button" className="chip" aria-pressed={cat === id} title={c?.note ?? ""} data-testid={`ops-alerts-cat-${id ?? "all"}`}
+            onClick={() => setCat(id)}>{c ? c.short : "Tutte"} {all.filter((r) => inTab(r, "order") && (!id || catsOf(r).includes(id))).length}</button>; })}</div>
+        <p className="xs faint" data-testid="ops-alerts-cat-note">{cat ? ORDER.categories.find((x) => x.id === cat)?.note : ORDER.notDistinguishable.map((x) => `${x.label}: ${x.note}`).join(" ")} {ORDER.reliability.auto}</p>
+      </div>}
       <div data-testid="ops-alerts-list">{groups.map(([g, xs]) => (
         <section key={g}><div className="hl-h">{AGE[g]} · {xs.length}</div>
           <ul className="ops-list">{xs.map((r) => (
@@ -420,6 +565,8 @@ function AlertsPanel({ map }: { map: MLMap }) {
               <button type="button" className="ops-alert" onClick={() => choose(r)}>
                 <span className={`ops-badge ${r.verified ? "ver" : "rep"}`}>{r.verified ? "VERIFICATO" : "RIPORTATO"}</span>
                 <span className="grow"><b>{r.title}</b>{r.place ? ` · ${r.place}` : ""}
+                  {r.kind === "news" && r.props?.geo !== "confirmed" && <span className="xs warn" data-testid="ops-alert-geo"> · {(PO.geo.short as Record<string, string>)[r.props?.geo] ?? "luogo non verificato"}</span>}
+                  {r.kind === "news" && r.props?.mode === "archive" && <span className="xs warn"> · archivio</span>}
                   <span className="xs dim"> · {r.t ? ago(r.t) : "senza ora"} · {r.src}{r.n ? ` · ${r.n} articoli` : ""}{r.level ? ` · ${r.level}` : ""}</span></span>
               </button>{r.url && <a className="xs" href={r.url} target="_blank" rel="noopener noreferrer">fonte ↗</a>}</li>))}</ul></section>))}
         {!rows.length && <p className="xs dim" data-testid="ops-alerts-empty">Nessun elemento con questi filtri.</p>}</div>
@@ -1537,34 +1684,90 @@ export function titleFromUrl(u: string): string | null {
   const t = best.join(" ");
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
+const parseJ = <T,>(x: any, d: T): T => { try { return x == null ? d : typeof x === "string" ? JSON.parse(x) : x; } catch { return d; } };
+const fmtDay = (d: string) => /^\d{8}$/.test(d) ? new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8))).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : null;
+const fmtUtc = (s: string) => { const t = Date.parse(`${s}:00Z`); return Number.isFinite(t) ? `${new Date(t).toLocaleString("it-IT", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC · ${ago(t)}` : null; };
+// (2026-10-18, review) the card in sections — what happened, where and when, who is involved, attributions and their
+// verification, the connections the data declare, the original sources — each saying what kind of information it is.
+// A place GDELT suggested but nothing confirms is never written as where the event happened.
+const langName = (() => { try { const d = new Intl.DisplayNames(["it"], { type: "language" }); return (c: string) => { try { return d.of(c) ?? c; } catch { return c; } }; } catch { return (c: string) => c; } })();
+const PO = ORDER as any;
 function NewsBody({ p, meta, where }: { p: any; meta: any; where: string | null }) {
-  const links: string[] = (() => { try { return JSON.parse(p.links ?? "[]"); } catch { return []; } })();
+  const links: string[] = parseJ(p.links, []);
+  const cats: string[] = parseJ(p.cats, []);
+  const codes: [string, string, number][] = parseJ(p.codes, []);
+  const flags: string[] = parseJ(p.flags, []);
+  const others: string[] = parseJ(p.other_named, []);
   const first = links[0] ?? p.url ?? null;
   const headline = first ? titleFromUrl(first) : null;
-  const t = Date.parse(`${p.added ?? p.t}:00Z`);
   const a1 = actorOf(p.a1c ?? "", p.a1t ?? "", p.a1g ?? ""), a2 = actorOf(p.a2c ?? "", p.a2t ?? "", p.a2g ?? "");
   const hosts = [...new Set(links.map(host))];
-  const act = actionOf(p);
-  const when = Number.isFinite(t) ? `${new Date(t).toLocaleString("it-IT", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC · ${ago(t)}` : null;
+  const C = (id: string) => ORDER.categories.find((c) => c.id === id);
+  const act = cats.length ? cats.map((c) => C(c)?.label ?? c).join(" e ") : actionOf(p);
+  const actLow = act.charAt(0).toLowerCase() + act.slice(1);
+  const when = fmtUtc(p.t ?? p.added), last = p.added && p.added !== p.t ? fmtUtc(p.added) : null, day = fmtDay(String(p.day ?? ""));
+  const seen = p.seen ? fmtUtc(p.seen) : null;
+  const confirmed = p.geo === "confirmed";
+  const geoText = (PO.geo[p.geo] ?? "").replace("{others}", others.join(", "));
+  const precText = p.precision && p.precision !== "city" ? PO.geo[p.precision] : null;
+  const streams = String(p.streams ?? "").split(" ").filter(Boolean).map((x) => (ORDER.streams as Record<string, string>)[x] ?? x);
+  const sentence = (confirmed ? PO.sentence.confirmed : PO.sentence.other).replace("{place}", p.place || "—").replace("{act}", actLow);
+  const H = ({ children }: { children: ReactNode }) => <h4 className="news-h">{children}</h4>;
   return (
     <div className="news-body" data-testid="news-body">
-      <p className="news-status" data-testid="news-status"><b>RIPORTATO DAI MEDIA</b> · non verificato · codifica automatica</p>
-      <p className="news-sentence" data-testid="news-sentence">Evento riportato dai media{p.place ? ` a ${p.place}` : ""}: {act.charAt(0).toLowerCase() + act.slice(1)}.</p>
-      {headline && <p className="news-head" data-testid="news-headline">«{headline}»<span className="xs dim"> — dal titolo nell'indirizzo dell'articolo ({host(first!)})</span></p>}
-      <dl className="news-dl">
-        <dt>Luogo</dt><dd data-testid="news-place">{p.place || "—"}</dd>
-        <dt>Quando</dt><dd data-testid="news-when">{when ?? "—"}</dd>
-        {(a1 || a2) && <><dt>Chi</dt><dd data-testid="news-actors">{[a1, a2].filter(Boolean).join(" → ")} <span className="xs dim">(ruoli e paesi come li codifica GDELT; nessun nome)</span></dd></>}
-        <dt>Fonti</dt><dd data-testid="news-count"><b>1 evento</b> · {links.length} {links.length === 1 ? "articolo" : "articoli"} · {hosts.length} {hosts.length === 1 ? "testata" : "testate"}
-          {p.rows > 1 ? <span className="xs dim"> (unisce {p.rows} righe GDELT: stessa azione, stesso luogo, stessi attori, stessa ora)</span> : null}</dd>
-      </dl>
-      {links.length > 0 && <details className="news-sources" data-testid="news-sources">
-        <summary>Mostra le fonti ({links.length})</summary>
-        <ul>{links.map((u) => { const tl = titleFromUrl(u); return (
-          <li key={u}><a href={u} target="_blank" rel="noopener noreferrer"><b>{host(u)}</b>{tl ? ` — ${tl}` : ""} ↗</a></li>); })}</ul>
-      </details>}
-      {first && <a className="primary news-open" data-testid="news-open" href={first} target="_blank" rel="noopener noreferrer">APRI FONTE ORIGINALE ↗</a>}
-      {first && <p className="xs faint">Si apre il sito di {host(first)}: pubblicità, cookie e abbonamenti sono del sito, non di NEXUM.</p>}
+      <section className="news-sec" data-testid="news-sec-what"><H>Cosa è successo</H>
+        <p className="news-status" data-testid="news-status"><b>RIPORTATO DAI MEDIA</b> · non verificato · codifica automatica{p.mode === "archive" ? " · ARCHIVIO, non in diretta" : ""}</p>
+        <p className="news-sentence" data-testid="news-sentence">{sentence}</p>
+        {headline && <p className="news-head" data-testid="news-headline">«{headline}»<span className="xs dim"> — dal titolo nell'indirizzo dell'articolo ({host(first!)}), non tradotto</span></p>}
+        <dl className="news-dl">
+          {cats.length > 0 && <><dt>Categoria NEXUM</dt><dd data-testid="news-category">{cats.map((c) => C(c)?.label ?? c).join(" · ")}
+            <span className="xs dim"> (interpretazione dei codici GDELT{p.rule ? `; regola «${ORDER.civilForce.id.replace(/-/g, " ")}»: ${ORDER.civilForce.rule}` : ""})</span></dd></>}
+          <dt>Codice originale</dt><dd data-testid="news-codes">{(codes.length ? codes : [[p.code, actionOf(p), 1] as [string, string, number]]).map(([c, l, n], i) =>
+            <span key={c}>{i ? " · " : ""}<span className="mono">CAMEO {c}</span> {l}{n > 1 ? ` (${n} righe)` : ""}</span>)}</dd>
+        </dl>
+        <p className={`xs ${p.relevance === "raw" ? "warn" : "dim"}`} data-testid="news-relevance" data-relevance={p.relevance ?? "order"}>
+          <b>{REL.label[p.relevance ?? "order"]}</b> — {(REL.card[p.relevance ?? "order"] ?? "").replace("{code}", `CAMEO ${p.code}`)
+            .replace("{words}", parseJ<string[]>(p.rel_words, []).map((w) => `«${w}»`).join(", "))}</p>
+        {flags.length > 0 && <ul className="news-flags xs warn" data-testid="news-flags">{flags.map((f) => <li key={f} data-flag={f}>{PO.flags[f] ?? f}</li>)}</ul>}
+        <p className="xs dim">{PO.noInference}</p>
+      </section>
+      <section className="news-sec" data-testid="news-sec-where"><H>Dove e quando</H>
+        <dl className="news-dl">
+          <dt>{confirmed ? "Luogo" : "Luogo suggerito"}</dt><dd data-testid="news-place" data-geo={p.geo ?? ""}>{p.place || "—"}
+            <span className={`xs ${confirmed ? "dim" : "warn"}`} data-testid="news-geo"> — {geoText}{precText ? ` ${precText}` : ""}
+              {p.precision === "city" ? ` (testata dello stesso paese: ${p.same_nation ? "sì" : "no"}; città nominata nell'indirizzo dell'articolo: ${p.named ? "sì" : "no"}${others.length ? `; altre città nominate: ${others.join(", ")}` : ""})` : ""}. {PO.geo.note}</span></dd>
+          {day && <><dt>Data dell'evento</dt><dd data-testid="news-day">{day} <span className="xs dim">(come la data GDELT)</span></dd></>}
+          <dt>Rilevato da GDELT</dt><dd data-testid="news-when">{when ?? "—"}</dd>
+          {last && <><dt>Ultimo aggiornamento</dt><dd data-testid="news-updated">{last}</dd></>}
+          {seen && <><dt>Articolo visto da GDELT</dt><dd data-testid="news-seen">{seen}</dd></>}
+        </dl>
+      </section>
+      <section className="news-sec" data-testid="news-sec-who"><H>Chi è coinvolto</H>
+        {(a1 || a2) ? <p className="xs" data-testid="news-actors">{[a1, a2].filter(Boolean).join(" → ")} <span className="dim">— {PO.actors.intro}</span></p>
+          : <p className="xs dim" data-testid="news-actors">Nessun attore codificato da GDELT.</p>}
+      </section>
+      <section className="news-sec" data-testid="news-sec-attrib"><H>Attribuzioni e stato della verifica</H>
+        <p className="xs" data-testid="news-attrib"><b>{PO.actors.none}</b> <span className="dim">{PO.actors.why}</span></p>
+        <p className="xs" data-testid="news-reliability">{ORDER.reliability.auto} {hosts.length > 1 ? ORDER.reliability.many.replace("{n}", String(hosts.length)) : ORDER.reliability.one}.</p>
+        <p className="xs dim" data-testid="news-tolls">{ORDER.reliability.tolls}</p>
+      </section>
+      <NewsConnections p={p} />
+      <section className="news-sec" data-testid="news-sec-sources"><H>Fonti originali</H>
+        <dl className="news-dl">
+          <dt>Fonti</dt><dd data-testid="news-count"><b>1 evento</b> · {links.length} {links.length === 1 ? "articolo" : "articoli"} · {hosts.length} {hosts.length === 1 ? "testata" : "testate"}
+            {p.rows > 1 ? <span className="xs dim"> (unisce {p.rows} righe GDELT: stesso articolo e luogo, o stessa azione, luogo, attori e ora)</span> : null}</dd>
+          {first && <><dt>Testata</dt><dd data-testid="news-outlet">{host(first)}</dd></>}
+          {p.lang && <><dt>Lingua</dt><dd data-testid="news-lang">{langName(p.lang)}{p.lang !== "eng" ? " (tradotto automaticamente da GDELT per la codifica)" : ""}</dd></>}
+          {streams.length > 0 && <><dt>Flusso</dt><dd data-testid="news-stream">{streams.join(" · ")}</dd></>}
+        </dl>
+        {links.length > 0 && <details className="news-sources" data-testid="news-sources">
+          <summary>Mostra le fonti ({links.length})</summary>
+          <ul>{links.map((u) => { const tl = titleFromUrl(u); return (
+            <li key={u}><a href={u} target="_blank" rel="noopener noreferrer"><b>{host(u)}</b>{tl ? ` — ${tl}` : ""} ↗</a></li>); })}</ul>
+        </details>}
+        {first && <a className="primary news-open" data-testid="news-open" href={first} target="_blank" rel="noopener noreferrer">APRI FONTE ORIGINALE ↗</a>}
+        <p className="xs faint" data-testid="news-sources-note">{PO.sourcesNote}</p>
+      </section>
       <details className="news-tech" data-testid="news-tech">
         <summary>Dettagli tecnici</summary>
         <dl className="news-dl xs">
@@ -1574,14 +1777,38 @@ function NewsBody({ p, meta, where }: { p: any; meta: any; where: string | null 
           <dt>Tono medio</dt><dd>{p.tone}</dd>
           {p.sources ? <><dt>Conteggi GDELT</dt><dd>{p.sources} fonti · {p.n} articoli · {p.mentions} menzioni nei 15 minuti</dd></> : <><dt>Articoli (GDELT)</dt><dd>{p.n}</dd></>}
           <dt>Aggiunto a GDELT</dt><dd>{String(p.t).replace("T", " ")} UTC</dd>
-          {where && <><dt>Coordinate</dt><dd>{where}</dd></>}
+          {where && <><dt>Coordinate</dt><dd>{confirmed ? where : `${where} (punto toccato; il luogo non è verificato)`}</dd></>}
           {meta?.notes?.from && <><dt>Finestra</dt><dd>{String(meta.notes.from).replace("T", " ")}–{String(meta.notes.to ?? "").replace("T", " ")} UTC</dd></>}
           <dt>Dataset</dt><dd>GDELT 2.0 Events{meta?.notes?.mentions ? " + Mentions" : ""} · licenza {meta?.license_id ?? "gdelt-open"}</dd>
-          {meta?.fetched_ms && <><dt>Dati scaricati</dt><dd>{fmtTime(meta.fetched_ms)} ({ago(meta.fetched_ms)})</dd></>}
+          {meta?.fetched_ms && <><dt>{p.mode === "archive" ? "Archivio scaricato" : "Dati scaricati"}</dt><dd>{fmtTime(meta.fetched_ms)} ({ago(meta.fetched_ms)})</dd></>}
           {p.eids && <><dt>ID eventi GDELT</dt><dd className="mono">{p.eids}</dd></>}
         </dl>
       </details>
     </div>);
+}
+
+/** The connections the data declare (same article, same GDELT event) and the coincidences said as such (same outlet,
+ *  same confirmed place) — counted in the loaded window; never a relation between events. */
+function NewsConnections({ p }: { p: any }) {
+  const [items, setItems] = useState<any[] | null>(null);
+  useEffect(() => { let on = true; feed("news").then((f) => on && setItems(f.items)); return () => { on = false; }; }, [p]);
+  const C = PO.connections, links: string[] = parseJ(p.links, []), own = links[0] ?? null, h = own ? host(own) : null;
+  const others = (items ?? []).filter((x) => x.id !== `${p.aid ?? ""}` && x.props?.eids !== p.eids);
+  const sameArticle = own ? others.filter((x) => (parseJ<string[]>(x.props?.links, [])[0] ?? null) === own) : [];
+  const sameOutlet = h ? others.filter((x) => { const l = parseJ<string[]>(x.props?.links, [])[0]; return l && host(l) === h; }).length : 0;
+  const samePlace = p.geo === "confirmed" ? others.filter((x) => x.props?.geo === "confirmed" && x.props?.place === p.place).length : null;
+  return (
+    <section className="news-sec" data-testid="news-sec-links"><h4 className="news-h">Connessioni documentate</h4>
+      <p className="xs dim">{C.intro}</p>
+      <ul className="xs news-links">
+        <li data-testid="news-link-article">{C.sameArticle}: <b>{items ? sameArticle.length : "…"}</b>
+          {sameArticle.length > 0 && <span className="dim"> ({sameArticle.slice(0, 4).map((x) => `${x.title} · ${x.place}`).join("; ")}{sameArticle.length > 4 ? "…" : ""})</span>}</li>
+        <li data-testid="news-link-event">{C.sameEvent}: <b>{p.rows ?? 1}</b> {p.rows > 1 ? "righe" : "riga"}</li>
+        <li data-testid="news-link-outlet">{C.sameOutlet}: <b>{items ? sameOutlet : "…"}</b></li>
+        {samePlace != null && <li data-testid="news-link-place">{C.samePlace}: <b>{items ? samePlace : "…"}</b></li>}
+        <li className="dim" data-testid="news-link-actors">{C.actors}</li>
+      </ul>
+    </section>);
 }
 
 // ── FEATURE CARD (pass #5): what an operational point, line or area on the map IS — its own fields only (none invented),
@@ -1590,7 +1817,8 @@ function NewsBody({ p, meta, where }: { p: any; meta: any; where: string | null 
 const ago = (ms: number) => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? "ora" : m < 90 ? `${m} min fa` : m < 2880 ? `${Math.round(m / 60)} h fa` : `${Math.round(m / 1440)} giorni fa`; };
 const CARD = OPS.card as Record<string, any>;
 const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
-function FeatCard({ map, feat }: { map: MLMap; feat: NonNullable<OpsState["feat"]> }) {
+/** `beside`: a tool's panel is open — on a wide screen the card sits beside it, never over it. */
+function FeatCard({ map, feat, beside = false }: { map: MLMap; feat: NonNullable<OpsState["feat"]>; beside?: boolean }) {
   const [i, setI] = useState(0);
   const [found, setFound] = useState<string | null>(null);
   useEffect(() => { setI(0); setFound(null); }, [feat]);
@@ -1601,7 +1829,7 @@ function FeatCard({ map, feat }: { map: MLMap; feat: NonNullable<OpsState["feat"
     return () => { l.off(); l.changed(); };
   }, []);
   const f = feat.fs[Math.min(i, feat.fs.length - 1)], p = f.p;
-  const meta = tableMeta[({ "ops-ports": "ports", "ops-choke": "choke", "ops-naval": "naval", "ops-news": "news", "ops-hotspots": "hotspots", "ops-cables": "cables", "ops-ais": "ais", "ops-quakes": "quakes", "ops-gdacs": "gdacs", "ops-nws": "nws" } as Record<string, string>)[f.l] ?? ""];
+  const meta = tableMeta[({ "ops-ports": "ports", "ops-choke": "choke", "ops-naval": "naval", "ops-news": "news", "ops-news-agg": "news", "ops-hotspots": "hotspots", "ops-cables": "cables", "ops-ais": "ais", "ops-quakes": "quakes", "ops-gdacs": "gdacs", "ops-nws": "nws" } as Record<string, string>)[f.l] ?? ""];
   const where = f.l.startsWith("ops-imported") && !f.l.endsWith("pt") ? null : fmtLatLng(feat.c[1], feat.c[0], 3);
   const placeInNexum = (q: string) => call<any>("/search", { q, b: { max_items: 3 } }).then((r) => {
     const it = r.data.groups?.flatMap((g: any) => g.items)?.[0];
@@ -1613,8 +1841,16 @@ function FeatCard({ map, feat }: { map: MLMap; feat: NonNullable<OpsState["feat"
     title = actionOf(p); kind = CARD.news;
     body = <NewsBody p={p} meta={meta} where={where} />;
     credit = OPS.news.credit;
-    const q = String(p.place ?? "").split(",").pop()?.trim();
-    nexum = q ? <button type="button" className="xs" data-testid="ops-feat-place" onClick={() => placeInNexum(q)}>Il luogo in NEXUM: {q}</button> : null;
+    // a NEXUM place is offered only for a confirmed place, said as a look-up (never a relation of the report)
+    const q = p.geo === "confirmed" ? String(p.place ?? "").split(",")[0]?.trim() : "";
+    nexum = <>{q ? <button type="button" className="xs" data-testid="ops-feat-place" onClick={() => placeInNexum(q)}>Cerca {q} fra i luoghi NEXUM (consultazione, non una relazione)</button> : null}
+      <button type="button" className="xs" data-testid="ops-feat-tolist" onClick={() => openNewsList({ nation: p.nation_name ?? "", city: p.city ?? "" })}>{PO.panel.toList}</button></>;
+  } else if (f.l === "ops-news-agg") {
+    title = PO.aggregate.title.replace("{n}", String(p.n)).replace("{nation}", p.nation_name); kind = CARD.news;
+    body = <div className="news-body" data-testid="news-agg"><p className="xs warn">{PO.aggregate.note}</p>
+      <p className="xs">{p.unconfirmed} non verificate · {p.ambiguous} ambigue · {p.coarse} solo regione o paese</p>
+      <button type="button" className="primary" data-testid="news-agg-open" onClick={() => openNewsList({ nation: p.nation_name, geo: "uncertain" })}>{PO.aggregate.open}</button></div>;
+    credit = OPS.news.credit;
   } else if (f.l === "ops-choke") {
     title = p.portname ?? p.fullname; kind = CARD.choke;
     const n = (k: string) => (p[k] != null ? Number(p[k]).toLocaleString("it-IT") : null);
@@ -1685,12 +1921,14 @@ function FeatCard({ map, feat }: { map: MLMap; feat: NonNullable<OpsState["feat"
       <p className="xs" data-testid="ops-feat-source"><b>Fonte</b> · {meta?.attribution ?? credit}{meta?.license_id ? ` · licenza ${meta.license_id}` : ""}
         {meta?.fetched_ms ? ` · dati aggiornati ${fmtTime(meta.fetched_ms)} (${ago(meta.fetched_ms)})` : ""}
         {meta?.notes?.from ? ` · finestra ${String(meta.notes.from).replace("T", " ")}–${String(meta.notes.to ?? "").replace("T", " ")} UTC` : ""}</p>
-      <p className="xs faint" data-testid="ops-feat-nexum">Non è un oggetto NEXUM: {f.l.startsWith("ops-imported") ? "un livello importato da te (solo in questo browser)" : meta?.table ? `riga della tabella pubblicata «${meta.table}»` : "dato in diretta dalla fonte"}, senza prove né spiegazioni (WHY) proprie.</p>
+      <p className="xs faint" data-testid="ops-feat-nexum">Non è un oggetto NEXUM: {f.l.startsWith("ops-imported") ? "un livello importato da te (solo in questo browser)" : meta?.table ? `riga della tabella pubblicata «${meta.table}»${meta?.mode === "archive" ? " (archivio, non in diretta)" : ""}`
+        : f.l === "ops-news" ? "notizia letta ora dal browser da GDELT, con i campi della tabella pubblicata «newsevents» (un file ogni 15 minuti, non in diretta)" : "dato in diretta dalla fonte"}, senza prove né spiegazioni (WHY) proprie.</p>
+      {feat.more ? <p className="xs warn" data-testid="ops-feat-more">Qui ci sono altre {feat.more} segnalazioni oltre le 20 della scheda: <button type="button" className="linklike xs" onClick={() => openNewsList({ nation: p.nation_name ?? "", city: p.city ?? "" })}>apri l'elenco</button></p> : null}
       {nexum && <div className="row xs">{nexum}</div>}
       {found && <p className="xs dim">{found}</p>}
       <div className="row xs"><button type="button" className="xs" onClick={() => fly(map, feat.c, Math.max(map.getZoom(), 6))}>Centra</button></div></>;
   return (
-    <aside className="ops-card ops-feat" data-testid="ops-feat-card" data-layer={f.l} aria-label={title}>
+    <aside className="ops-card ops-feat" data-testid="ops-feat-card" data-layer={f.l} data-beside={beside ? "1" : undefined} aria-label={title}>
       <header className="ops-ph"><b className="grow ellipsis" data-testid="ops-feat-title" style={{ minWidth: 0 }}>{title}</b>
         {feat.fs.length > 1 && <span className="xs dim" data-testid="ops-feat-n" style={{ display: "inline-flex", alignItems: "center", gap: 2, flex: "none", whiteSpace: "nowrap" }}>
           <button type="button" className="xs" aria-label="Precedente" onClick={() => setI((i + feat.fs.length - 1) % feat.fs.length)}>‹</button>

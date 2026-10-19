@@ -80,7 +80,7 @@ test("routing: Parma → Civitanova Marche — car, bicycle and on foot each the
 test("navigation: said before it starts; GPS and voice shown; an Italian voice speaks; the voice off on its own; stopping keeps the route", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, geolocation: { latitude: 44.8015, longitude: 10.328 }, permissions: ["geolocation"] });
   await ctx.addInitScript(() => { const L = ((window as any).__sp = [] as any[]); const sp = speechSynthesis.speak.bind(speechSynthesis);
-    speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { L.push({ text: u.text, lang: u.lang, voice: u.voice?.lang ?? null }); try { sp(u); } catch { /* no voice */ } }; });
+    speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { L.push({ text: u.text, lang: u.lang, voice: u.voice?.lang ?? null }); try { u.volume = 0; sp(u); } catch { /* no voice */ } }; });
   const page = await ctx.newPage();
   const errors = await open(page);
   await page.evaluate(() => (window as any).__nexum.ops.set({ tool: "route" }));

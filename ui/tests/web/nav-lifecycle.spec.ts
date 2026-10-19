@@ -15,7 +15,7 @@ async function start(browser: any, vp = { width: 1440, height: 900 }): Promise<{
   await ctx.addInitScript(() => {
     const L = ((window as any).__probe = { speech: [] as string[], watch: 0 });
     const sp = speechSynthesis.speak.bind(speechSynthesis);
-    speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { L.speech.push(u.text); try { sp(u); } catch { /* no voice */ } };
+    speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { L.speech.push(u.text); try { u.volume = 0; sp(u); } catch { /* no voice */ } };
     const g = navigator.geolocation, w = g.watchPosition.bind(g), c = g.clearWatch.bind(g);
     g.watchPosition = ((...a: any[]) => { L.watch++; return (w as any)(...a); }) as any;
     g.clearWatch = (id: number) => { L.watch--; return c(id); };

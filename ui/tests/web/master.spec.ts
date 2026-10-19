@@ -3,12 +3,16 @@
 // Some steps need the providers online (USGS, GDACS, NWS, FOSSGIS routing, ArcGIS Online, Overpass): their answers are
 // live data, so the checks are on structure and meaning, not on fixed values.
 import { expect, test, type Page } from "@playwright/test";
+import { gdelt } from "../gdelt.shared";
 
 const BASE = process.env.NEXUM_WEB ?? "http://127.0.0.1:8791/";
 
 async function open(page: Page, vp = { width: 1440, height: 900 }) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  // GDELT answers from real files of 17 October 2026, frozen (tests/gdelt.shared.ts): the golden checks stay deterministic
+  // (2026-10-18, author's review); the behaviour with the current GDELT is tested apart (tests/web/gdelt-live.spec.ts)
+  await gdelt(page);
   await page.setViewportSize(vp);
   await page.goto(BASE);
   await page.waitForFunction(() => performance.getEntriesByName("nexum:ready").length > 0, null, { timeout: 120_000 });
@@ -284,6 +288,8 @@ test("camera previews on the map: only when asked and at street scale; a still s
 
 test("navigation: off the route for more than 6 s → a new route from the device's position (emulated), screen kept on", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, geolocation: { latitude: 44.8015, longitude: 10.328 }, permissions: ["geolocation"] });
+  // the real voice API, silent in the tests (2026-10-18: the instructions were heard in the room)
+  await ctx.addInitScript(() => { const sp = speechSynthesis.speak.bind(speechSynthesis); speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { u.volume = 0; sp(u); }; });
   const page = await ctx.newPage();
   const errors = await open(page);
   await page.getByTestId("ops-tool-route").click();

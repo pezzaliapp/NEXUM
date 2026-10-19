@@ -1,0 +1,11 @@
+{
+"_doc": "SOURCE FRESHNESS (2026-10-18). The Core's health says only whether the LAST download of a source succeeded ('ok'); a source whose last success is old is still 'ok' there. For the sources whose data NEXUM presents as current (published tables of the last hour or day, the events refreshed by the scheduled update), the UI says 'non aggiornata' when the last successful download is older than the age declared here (hours). Other sources are periodic (monthly, yearly, reference data): their date is shown, never judged.",
+"maxAgeHours": {
+  "gdelt.events": 24,
+  "nasa.firms": 24,
+  "usgs.earthquakes": 48,
+  "nasa.eonet": 48,
+  "cems.rapid_mapping": 48,
+  "celestrak.gp": 48
+}
+}

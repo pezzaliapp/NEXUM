@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import { call } from "../lib/api";
 import { num, utc } from "../lib/format";
 import { S } from "../lib/strings";
+import { shownHealth } from "../lib/freshness";
 import { store, useStore } from "../store";
 import { ErrorNote, Ref, Section, Support, useFetch, WhyButton } from "../components/common";
 import { firstSentence } from "../lib/connections";
@@ -65,8 +66,8 @@ export function WorldSummary() {
         <ul className="list">
           {status?.sources.map((s) => (
             <li key={s.source_id}>
-              <div className="row"><span style={{ color: s.health === "ok" ? "#86A07A" : "var(--accent)" }}>●</span>
-                <span className="grow ellipsis">{s.name}</span><span className="xs dim">{S.health[s.health] ?? s.health}</span></div>
+              <div className="row"><span style={{ color: shownHealth(s) === "ok" ? "#86A07A" : "var(--accent)" }}>●</span>
+                <span className="grow ellipsis">{s.name}</span><span className="xs dim" data-health={shownHealth(s)}>{S.health[shownHealth(s)] ?? s.health}</span></div>
               <div className="xs dim">{s.attribution} · {s.license_id}{s.last_success_ms ? ` · ${S.lastUpdate} ${utc(s.last_success_ms, "day")}` : ""}</div>
             </li>
           ))}

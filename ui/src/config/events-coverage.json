@@ -1,26 +1,44 @@
 {
-  "_comment": "What the events of the published world cover, per source (2026-10-11). Data, not UI code: the source ids are those of the registry; the date of each one comes from the world (its last successful delivery). Organised violence (UCDP) has its own section, Sicurezza, with its own delay note.",
+  "_comment": "What the events of the published world cover, per source (2026-10-11). Data, not UI code: the source ids are those of the registry; the date of each one comes from the world (its last successful delivery). Organised violence (UCDP) has its own section, Sicurezza, with its own delay note. Partial (2026-10-18): what is covered only in part — public order by GDELT news (automatic coding, never verified), organised violence by UCDP — and what no source can tell apart. auto (2026-10-18): the sources the scheduled update refreshes (pipeline PHASE1); the others (NOAA NCEI) are updated by hand and get their own date in the line, never the whole line's.",
   "sources": [
     {
       "id": "usgs.earthquakes",
       "what": "Terremoti",
-      "src": "USGS · M 4,5 e oltre (dal 2015: M 5,5 e oltre)"
+      "src": "USGS · M 4,5 e oltre (dal 2015: M 5,5 e oltre)",
+      "auto": true
     },
     {
       "id": "nasa.eonet",
       "what": "Cicloni tropicali, incendi oltre 4 km², vulcani, alluvioni, frane",
-      "src": "NASA EONET"
+      "src": "NASA EONET",
+      "auto": true
     },
     {
       "id": "noaa.ncei_hazards",
       "what": "Eruzioni, tsunami, terremoti con danni o vittime",
-      "src": "NOAA NCEI"
+      "src": "NOAA NCEI",
+      "auto": false
     },
     {
       "id": "cems.rapid_mapping",
       "what": "Attivazioni Copernicus: mappature d'emergenza richieste da un'autorità, non tutti gli eventi",
-      "src": "Copernicus EMS"
+      "src": "Copernicus EMS",
+      "auto": true
     }
   ],
-  "live": "In diretta, letti dal browser e non conservati: solo «Allerte dal vivo» (terremoti USGS delle ultime 24 ore, allerte GDACS, avvisi NWS per gli Stati Uniti)."
+  "live": "Letti dal browser e non conservati: «Allerte e notizie» — terremoti USGS delle ultime 24 ore, allerte GDACS, avvisi NWS per gli Stati Uniti (in diretta dalle fonti) e notizie GDELT (un file ogni 15 minuti, non in diretta).",
+  "partial": [
+    {
+      "id": "gdelt.events",
+      "what": "Proteste, scontri, aggressioni, danneggiamenti, interventi di polizia",
+      "how": "Solo notizie GDELT codificate automaticamente, non fatti verificati: dal browser nel livello «Notizie dal mondo» e in «Allerte e notizie» (fino a 24 ore). Nel mondo pubblicato c'è solo un archivio di un'ora",
+      "archive": "archivio delle notizie al"
+    },
+    {
+      "id": "ucdp.candidate",
+      "what": "Violenza organizzata",
+      "how": "UCDP, mensile e con settimane di ritardo; solo eventi con almeno 5 morti in conflitti tra governi e gruppi organizzati (sezione Sicurezza)"
+    }
+  ],
+  "notDistinguishable": "Non distinguibili dalle fonti: incendi dolosi o appiccati durante disordini, vandalismo (salvo la «distruzione di beni» di CAMEO). Nessuna fonte di NEXUM dà bilanci di feriti, arresti o danni."
 }

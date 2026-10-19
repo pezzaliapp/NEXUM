@@ -1,0 +1,3 @@
+58417 0 http://data.gdeltproject.org/gdeltv2/20261017191500.export.CSV.zip
+77239 0 http://data.gdeltproject.org/gdeltv2/20261017191500.mentions.CSV.zip
+3291051 0 http://data.gdeltproject.org/gdeltv2/20261017191500.gkg.csv.zip

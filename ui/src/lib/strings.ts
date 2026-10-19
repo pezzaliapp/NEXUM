@@ -364,9 +364,12 @@ export const S = {
   // the sources themselves are data (config/events-coverage.json)
   evcov: {
     line: (day: string) => `Eventi naturali: dati al ${day}, non in diretta`,
+    // 2026-10-18: a source updated by hand (not by the scheduled update) is listed with its own date, never the whole line
+    manual: (list: string) => ` · aggiornate a mano: ${list}`,
     stale: (n: number) => ` · non aggiornati da ${n} ${n === 1 ? "giorno" : "giorni"}`,
-    missing: "Non monitorati: trombe d'aria e marine, tornado, grandine, raffiche, nubifragi e alluvioni locali",
+    missing: "Non monitorati: trombe d'aria e marine, tornado, grandine, raffiche, nubifragi e alluvioni locali. Proteste e ordine pubblico: solo notizie GDELT non verificate",
     more: "Fonti e copertura",
+    partial: "Coperti solo in parte",
     noDate: "data non registrata",
     at: (day: string) => `dati al ${day}`,
     archive: "NEXUM · archivio",
@@ -423,7 +426,9 @@ export const S = {
     brokenAll: "NEXUM non è riuscito a disegnarsi.",
     retry: "Riprova",
     snapshot: "Snapshot",
-    builtAt: (utc: string, age: string) => `dati del ${utc} UTC · ${age}`,
+    builtAt: (utc: string, age: string) => `costruito il ${utc} UTC · ${age}`,
+    // 2026-10-18: the sources' newest data, apart from the snapshot's build (they are hours apart)
+    sourcesAt: (utc: string) => `fonti aggiornate al ${utc} UTC`,
     newer: "È stato pubblicato un aggiornamento del mondo.",
     reload: "Ricarica",
     trailLocal: "La trail è salvata solo in questo browser: esporta il JSON per conservarla altrove.",
@@ -448,7 +453,7 @@ export const S = {
   relevantInsightsNote: "Associazioni e contesti calcolati da regole su questi dati: tocca un elemento o chiedi Perché?",
   moreInsights: "altri insight",
   sources: "Fonti",
-  health: { ok: "attiva", degraded: "degradata", suspended: "sospesa" } as Record<string, string>,
+  health: { ok: "attiva", degraded: "degradata", suspended: "sospesa", stale: "non aggiornata" } as Record<string, string>,
   lastUpdate: "ultimo aggiornamento",
   noGeometryNotice: (n: number) =>
     `${n.toLocaleString("it-IT")} elementi senza posizione geografica: li trovi in Grafo, Tempo e Cerca`,

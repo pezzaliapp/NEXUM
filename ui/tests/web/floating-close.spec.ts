@@ -3,6 +3,7 @@
 // 1920×1080, on a tablet and on a phone: the close is inside the viewport, below the top bar and the map's HUD, not
 // covered by anything, and a real click closes. The card's content scrolls and its header stays in view.
 import { expect, test, type Page } from "@playwright/test";
+import { gdelt } from "../gdelt.shared";
 
 const BASE = process.env.NEXUM_WEB ?? "http://127.0.0.1:8791/";
 test.describe.configure({ timeout: 180_000 });
@@ -10,6 +11,9 @@ test.describe.configure({ timeout: 180_000 });
 async function open(page: Page, w: number, h: number) {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  // GDELT answers from real files of 17 October 2026, frozen (tests/gdelt.shared.ts): the golden checks stay deterministic
+  // (2026-10-18, author's review); the behaviour with the current GDELT is tested apart (tests/web/gdelt-live.spec.ts)
+  await gdelt(page);
   await page.setViewportSize({ width: w, height: h });
   await page.goto(BASE);
   await page.waitForFunction(() => performance.getEntriesByName("nexum:ready").length > 0, null, { timeout: 120_000 });

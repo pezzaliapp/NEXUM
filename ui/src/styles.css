@@ -357,6 +357,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .touch.as-sheet .insp[data-sheet="mini"] { max-height: 96px; overflow: hidden; }
 .touch.as-sheet .insp[data-sheet="mini"] .pbody, .touch.as-sheet .insp[data-sheet="mini"] .support { display: none; }
 .touch.as-sheet .insp[data-sheet="mini"] .focushead h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* a very narrow phone (Galaxy Fold closed, 344 px): one line cut the name and nothing on the screen said it whole —
+   two lines there, within the same mini height (2026-10-19) */
+@media (max-width: 360px) {
+  .touch.as-sheet .insp[data-sheet="mini"] .focushead h1 { white-space: normal; font-size: 15px; line-height: 1.25; }
+}
 .touch.as-sheet .insp[data-sheet="peek"] { height: var(--peek-h); overflow: hidden; }
 .touch.as-sheet .insp[data-sheet="peek"] .pbody { overflow: hidden; }
 .touch.as-sheet .insp[data-sheet="peek"] .support:not(:has(.whybtn)) { display: none; }
@@ -1047,3 +1052,22 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .why .src-plain { margin: 0 0 6px; }
 .ev-src { font-weight: 500; }
 .edgepanel .ep-ends { flex-wrap: wrap; row-gap: 2px; }   /* both ends always readable, never one cut to "…" */
+/* NEWS (2026-10-18, review): a readable card in sections, wider than the other cards on a desk; one column of fields on a
+   narrow phone (no cut text); the list's filters wrap */
+.ops-card.ops-feat[data-layer="ops-news"], .ops-card.ops-feat[data-layer="ops-news-agg"] { width: min(440px, calc(100% - 20px)); }
+/* a card opened while a tool's panel is open (2026-10-19): beside the panel (360 px at 48 px from the right), never over
+   it; on a stage too narrow for both, it keeps a readable width and stays on top */
+.ops-card.ops-feat[data-beside="1"] { width: max(260px, min(340px, calc(100% - 434px))); }
+.ops-card.ops-feat[data-beside="1"][data-layer="ops-news"], .ops-card.ops-feat[data-beside="1"][data-layer="ops-news-agg"] { width: max(280px, min(440px, calc(100% - 434px))); }
+/* touch: the card is the surface in use; the tool's sheet waits under it, hidden, and is back when the card closes */
+.touch .ops-panel.ops-sheet[data-under-card="1"] { visibility: hidden; }
+.news-sec { margin: 8px 0; border-top: 1px solid #ffffff14; padding-top: 4px; }
+.news-h { margin: 4px 0 2px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+.news-flags { margin: 4px 0; padding-left: 16px; } .news-flags li { margin: 2px 0; overflow-wrap: anywhere; }
+.news-links { margin: 4px 0; padding-left: 16px; } .news-links li { margin: 2px 0; overflow-wrap: anywhere; }
+.news-filters { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 6px 0; }
+.news-filters label { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 140px; }
+.news-filters select { width: 100%; min-height: 32px; }
+[data-testid="news-item"] { display: flex; gap: 6px; align-items: flex-start; } [data-testid="news-item"] > .ops-alert { flex: 1; min-width: 0; }
+[data-testid="news-item"] .grow { overflow-wrap: anywhere; }
+@media (max-width: 420px) { .news-dl { grid-template-columns: 1fr; } .news-dl dd { margin-bottom: 4px; } }

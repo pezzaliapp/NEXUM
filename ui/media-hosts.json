@@ -1,5 +1,5 @@
 {
-  "_comment": "Explicit allowlist of the origins whose CURRENT images the browser may load on request (Phase 3B · block 1; satellite imagery, World Intelligence 2026-10-03). One entry per approved source (ACCEPT, no key); never a wildcard. \"connect\": origins the browser may ask (on a person's request only) for the time and availability of an image (NASA GIBS/Worldview Snapshots headers, EUMETView frames, NASA CMR acquisition dates). Read by scripts/assemble-web.mjs (web CSP) and by nexum/api/server.py (local CSP). \"video\": origins of the publishers' LIVE streams (HLS playlists and segments: media-src and connect-src), played only when the person starts a live camera; MJPEG live streams are images (img). OPERATIONAL SURFACE (2026-10-04, OSIRIS-level transformation): the keyless €0 providers of src/config/ops.json — \"tiles\": the basemap detail, imagery, terrain and clouds providers (img + connect: MapLibre fetches tiles; kept apart from the camera and imagery hosts of \"img\"), and the services the tools ask only on the person's action (connect). \"frame\": the only embedded player, YouTube's privacy-enhanced domain, loaded only when the person starts an official live channel.",
+  "_comment": "Explicit allowlist of the origins whose CURRENT images the browser may load on request (Phase 3B · block 1; satellite imagery, World Intelligence 2026-10-03). One entry per approved source (ACCEPT, no key); never a wildcard. \"connect\": origins the browser may ask (on a person's request only) for the time and availability of an image (NASA GIBS/Worldview Snapshots headers, EUMETView frames, NASA CMR acquisition dates). Read by scripts/assemble-web.mjs (web CSP) and by nexum/api/server.py (local CSP). \"video\": origins of the publishers' LIVE streams (HLS playlists and segments: media-src and connect-src), played only when the person starts a live camera; MJPEG live streams are images (img). OPERATIONAL SURFACE (2026-10-04, OSIRIS-level transformation): the keyless €0 providers of src/config/ops.json — \"tiles\": the basemap detail, imagery, terrain and clouds providers (img + connect: MapLibre fetches tiles; kept apart from the camera and imagery hosts of \"img\"), and the services the tools ask only on the person's action (connect). NEWS (2026-10-18, decision D7 option A): data.gdeltproject.org, asked by the browser only while the news layer or the alerts panel is open (GDELT's 15-minute files, CORS *). \"frame\": the only embedded player, YouTube's privacy-enhanced domain, loaded only when the person starts an official live channel.",
   "img": [
     "https://cwwp2.dot.ca.gov",
     "https://weathercam.digitraffic.fi",
@@ -43,6 +43,7 @@
     "https://services.swpc.noaa.gov",
     "https://www.gdacs.org",
     "https://api.weather.gov",
+    "https://data.gdeltproject.org",
     "https://api.frankfurter.dev",
     "https://api.coinbase.com",
     "https://photon.komoot.io",

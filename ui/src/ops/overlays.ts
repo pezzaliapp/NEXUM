@@ -7,6 +7,7 @@ import OPS from "../config/ops.json";
 import { spaceWeather as SW } from "../config/ops-space.json";
 import { call } from "../lib/api";
 import { ops } from "./state";
+import { isConfirmed, nationGroups } from "./newsmap";
 import { feed, type AlertKind } from "./alerts";
 
 const busy = () => !!((window as any).__nexumDrawing || (window as any).__nexumPicking);   // a tool owns the taps
@@ -23,7 +24,7 @@ export function openChannel(id: string) {
 export const tableMeta: Record<string, any> = {};
 /** The operational layers whose features say what they are on a tap (the card); the rest are drawn context only:
  *  the aurora oval (a forecast field) and the hotspots' heat at small scales (an aggregate). */
-export const INFO_LAYERS = ["ops-choke", "ops-ports", "ops-naval", "ops-quakes", "ops-gdacs", "ops-nws", "ops-news", "ops-ais", "ops-hotspots", "ops-cables", "ops-imported-pt", "ops-imported-line", "ops-imported-fill"];
+export const INFO_LAYERS = ["ops-choke", "ops-ports", "ops-naval", "ops-quakes", "ops-gdacs", "ops-nws", "ops-news", "ops-news-agg", "ops-ais", "ops-hotspots", "ops-cables", "ops-imported-pt", "ops-imported-line", "ops-imported-fill"];
 let hlMap: MLMap | null = null, hlTimer = 0;
 /** A card of the live list was chosen: the place is marked on the map for a few seconds (and the map flies there). */
 export function highlight(c: [number, number]) {
@@ -111,11 +112,18 @@ export function installOverlays(map: MLMap, before?: string): () => void {
   map.addLayer({ id: "ops-hotspots", type: "circle", source: "ops-hotspots", minzoom: 5, paint: {
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 2, 10, 5], "circle-color": ["case", ["==", ["get", "c"], "h"], "#FF5A2A", "#FF9A3A"],
     "circle-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0, 6, 0.9] } }, before);
-  // ── news events (GDELT, the last hour: what the news reported, automatic coding) ──
+  // ── news events (GDELT, the chosen window: what the news reported, automatic coding). Points: only CONFIRMED places
+  // (2026-10-18, review); the others are one hollow circle per nation, at its centre (newsmap.ts), never a precise place ──
+  map.addSource("ops-news-agg", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "ops-news-agg", type: "circle", source: "ops-news-agg", paint: {
+    "circle-radius": ["interpolate", ["linear"], ["get", "n"], 1, 7, 50, 13, 500, 22], "circle-color": "rgba(201,160,224,0.08)",
+    "circle-stroke-width": 2, "circle-stroke-color": "#C9A0E0", "circle-stroke-opacity": 0.8, "circle-pitch-alignment": "map" } }, before);
   map.addSource("ops-news", { type: "geojson", data: EMPTY });
   map.addLayer({ id: "ops-news", type: "circle", source: "ops-news", paint: {
     "circle-radius": ["interpolate", ["linear"], ["get", "n"], 1, 2.5, 20, 6, 200, 11],
-    "circle-color": ["case", ["get", "hot"], "#D7536F", "#C9A0E0"], "circle-opacity": 0.7, "circle-stroke-width": 0.6, "circle-stroke-color": "#0D1012" } }, before);
+    "circle-color": ["case", ["get", "hot"], "#D7536F", "#C9A0E0"], "circle-opacity": 0.7, "circle-stroke-width": 0.6, "circle-stroke-color": "#0D1012",
+    // drawn on the globe's surface (2026-10-18: with the default, some views of the globe at zoom 3 drew none of the points)
+    "circle-pitch-alignment": "map" } }, before);
   // ── live alerts verified by an institution (the geological survey, GDACS, NWS) ──
   for (const id of ["ops-quakes", "ops-gdacs", "ops-nws"]) map.addSource(id, { type: "geojson", data: EMPTY });
   map.addLayer({ id: "ops-quakes", type: "circle", source: "ops-quakes", paint: {
@@ -165,7 +173,19 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     (map.getSource(layer) as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features: feats });
     ops.count(count, feats.length);
   };
-  const loadNews = () => loadFeed("news", "ops-news", () => newsOn, "news");
+  // the reports: confirmed places as points, the others counted per nation; the count is of all the reports
+  const loadNews = async () => {
+    const f = await feed("news");
+    if (!newsOn) return;
+    tableMeta.news = { ...(f.meta ?? {}), fetched_ms: f.fetched, error: f.error };
+    const pt = (c: [number, number], properties: Record<string, any>) => ({ type: "Feature" as const, properties, geometry: { type: "Point" as const, coordinates: c } });
+    (map.getSource("ops-news") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection",
+      features: f.items.filter((a) => a.c && isConfirmed(a)).map((a) => pt(a.c!, { ...a.props, aid: a.id })) });
+    (map.getSource("ops-news-agg") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection",
+      features: nationGroups(f.items).map((g) => pt(g.c, { nation_name: g.nation, n: g.n, unconfirmed: g.unconfirmed, ambiguous: g.ambiguous, coarse: g.coarse })) });
+    ops.count("news", f.items.length);
+  };
+  window.addEventListener("nexum:news-window", () => { if (newsOn) loadNews(); });
   const loadHot = async () => {
     try {
       const r = await call<any>("/tables/hotspots", undefined, { channel: "hotspots" });
@@ -260,10 +280,10 @@ export function installOverlays(map: MLMap, before?: string): () => void {
       hotOn = l.hotspots;
       if (hotOn) loadHot(); else { (map.getSource("ops-hotspots") as GeoJSONSource).setData(EMPTY); ops.count("hotspots", 0); }
     }
-    vis("ops-news", l.news);
+    vis("ops-news", l.news); vis("ops-news-agg", l.news);
     if (l.news !== newsOn) {
       newsOn = l.news;
-      if (newsOn) loadNews(); else { (map.getSource("ops-news") as GeoJSONSource).setData(EMPTY); ops.count("news", 0); }
+      if (newsOn) loadNews(); else { for (const id of ["ops-news", "ops-news-agg"]) (map.getSource(id) as GeoJSONSource).setData(EMPTY); ops.count("news", 0); }
     }
     for (const [k, id] of [["quakes", "ops-quakes"], ["gdacs", "ops-gdacs"], ["nws", "ops-nws"]] as const) vis(id, l[k]);
     if (l.quakes !== quakesOn) { quakesOn = l.quakes; if (quakesOn) loadFeed("geo", "ops-quakes", () => quakesOn, "quakes"); else { (map.getSource("ops-quakes") as GeoJSONSource).setData(EMPTY); ops.count("quakes", 0); } }
@@ -295,10 +315,12 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     const r = innerWidth < 1120 ? 12 : 5, { x, y } = e.point;
     const layers = INFO_LAYERS.filter((l) => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none");
     const seen = new Set<string>();
-    const fs = (layers.length ? map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers }) : [])
+    const all = (layers.length ? map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers }) : [])
       .map((f) => ({ l: f.layer.id, p: f.properties as Record<string, any> }))
-      .filter((f) => { const k = f.l + JSON.stringify(f.p); return !seen.has(k) && !!seen.add(k); }).slice(0, 20);
-    if (fs.length) ops.set({ feat: { c: [e.lngLat.lng, e.lngLat.lat], fs } });
+      .filter((f) => { const k = f.l + JSON.stringify(f.p); return !seen.has(k) && !!seen.add(k); });
+    const fs = all.slice(0, 20);
+    // more than the card's 20 entries: the card says how many more, with the list of the place (2026-10-18)
+    if (fs.length) ops.set({ feat: { c: [e.lngLat.lng, e.lngLat.lat], fs, more: all.length > 20 ? all.length - 20 : undefined } });
     else if (ops.get().feat) ops.set({ feat: null });
   };
   map.on("click", pick);

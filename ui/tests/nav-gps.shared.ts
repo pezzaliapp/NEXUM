@@ -22,7 +22,7 @@ const FAKE = () => {
     getCurrentPosition(ok: any) { if (G.last) ok(G.last); },
   } });
   const sp = speechSynthesis.speak.bind(speechSynthesis), cancel = speechSynthesis.cancel.bind(speechSynthesis);
-  speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { G.spoken.push([Date.now(), u.text]); try { sp(u); } catch { /* no voice */ } };
+  speechSynthesis.speak = (u: SpeechSynthesisUtterance) => { G.spoken.push([Date.now(), u.text]); try { u.volume = 0; sp(u); } catch { /* no voice */ } };
   speechSynthesis.cancel = () => { G.cancels++; try { cancel(); } catch { /* none */ } };
   const wl = (navigator as any).wakeLock;
   if (wl?.request) { const req = wl.request.bind(wl); wl.request = async (t: string) => { const s = await req(t); G.locks++; s.addEventListener("release", () => G.released++); return s; }; }

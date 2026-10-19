@@ -15,7 +15,8 @@
   "observation": "#8C9AB8",
   "person": "#A3907E",
   "space": "#6F7FA6",
-  "ocean": "#56C1CF"
+  "ocean": "#56C1CF",
+  "public_order": "#A8679A"
  },
  "_families": {
   "place": "places of reference (inhabited places, states): a pale neutral, the backdrop of everything else",
@@ -32,7 +33,8 @@
   "observation": "measured series (not on the map): grey-blue",
   "person": "office holders (not on the map): taupe",
   "space": "satellites (not on the map; orbits have their own layer): slate",
-  "ocean": "observation of the sea (buoys, floats, coastal stations, tide gauges): aqua cyan, lighter and greener than the ports' sea blue"
+  "ocean": "observation of the sea (buoys, floats, coastal stations, tide gauges): aqua cyan, lighter and greener than the ports' sea blue",
+  "public_order": "documented public-order episodes (curated, with sources): a muted plum, apart from organised violence's red and GDELT's automatic reports"
  },
  "types": {
   "transport.port": "#4F95BF",

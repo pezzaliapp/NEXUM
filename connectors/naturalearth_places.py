@@ -14,8 +14,27 @@ from connectors import shapefile
 from connectors.base import content_version
 from nexum.core.records import NormalizedRecord
 from nexum.core.scheduler import FetchRequest
+from nexum.core.world import norm_name
 
-VERSION = "1.1.1"
+VERSION = "1.2.1"   # 1.2.1 (2026-10-19): accent-only variants dropped; 1.2.0 (2026-10-18): the place's other names Natural Earth gives (Italian, local, alternative) as aliases
+# The names a place is searched by besides its English label (2026-10-18, search review: "milano" found an airfield in
+# Brazil, Natural Earth's own "Milano" was dropped): the alternative and parenthetical names and the name in Italian,
+# NEXUM's language — Natural Earth's fields, nothing added. A new name set changes the record's version (else the
+# Core keeps the earlier record).
+NAME_FIELDS = ("nameascii", "namepar", "namealt", "name_it")
+NAMES_V = "names-2"   # names-2 (2026-10-19): without the aliases that only repeat the label without accents
+
+
+def other_names(r) -> list[str]:
+    # a name that differs from the label (or from another alias) only by accents, case or punctuation is searched the
+    # same way already (the Core's normalisation): kept once, so the search index grows only by names that find more
+    name = _g(r, "name")
+    seen, out = {norm_name(name or "")}, []
+    for x in sorted({x.strip() for f in NAME_FIELDS for x in str(_g(r, f) or "").split("|")} - {""}):
+        if norm_name(x) not in seen:
+            seen.add(norm_name(x))
+            out.append(x)
+    return out
 # IANA zone.tab (connectors/timezones_iana.json): the zones of each country, to check and complete Natural Earth's
 TZ = json.loads((pathlib.Path(__file__).with_name("timezones_iana.json")).read_text(encoding="utf-8"))
 
@@ -88,9 +107,9 @@ def parse(data: bytes, meta: dict):
         pop = _f(_g(r, "pop_max"))
         assertions = []   # the containing country comes from the geometry (vocabulary enrichment), not from codes
         yield NormalizedRecord(
-            source_id=meta["source_id"], native_id=ne_id, native_version=content_version(r),
+            source_id=meta["source_id"], native_id=ne_id, native_version=f"{content_version(r)}|{NAMES_V}",
             kind="object", type="place.settlement", label=_g(r, "name") or _g(r, "nameascii") or ne_id,
-            identifiers=[("ne_place", ne_id)], aliases=sorted({x for x in (_g(r, "nameascii"),) if x and x != _g(r, "name")}),
+            identifiers=[("ne_place", ne_id)], aliases=other_names(r),
             properties={"population": pop, "feature_class": _g(r, "featurecla") or None,
                         "world_city": bool(_f(_g(r, "worldcity"))), "megacity": bool(_f(_g(r, "megacity"))),
                         "country_name": _g(r, "adm0name") or None,

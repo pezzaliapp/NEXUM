@@ -1,0 +1,54 @@
+# Ordine pubblico — episodi documentati (2026-10-19, autorizzazione dell'autore per un esempio LOCALE). Un evento per
+# episodio, redatto a mano dagli articoli di stampa letti e citati (non una verifica indipendente): categoria, luogo, stato della verifica, fatti con le loro fonti,
+# cifre come affermazioni attribuite (chi le ha date, chi le ha riportate, quando), dichiarazioni e accuse come tali.
+# Mai la codifica automatica di GDELT. Un movimento è collegato solo all'evento che le fonti dicono abbia indetto,
+# mai alle violenze; nessuna persona è un elemento. Un'attribuzione di responsabilità solo da un'autorità o da un
+# giudice, con la sua fonte (oggi nessuna).
+
+[event_type."civil.public_order_event"]
+label = "Episodio di ordine pubblico (documentato)"
+geometry = "point"
+identity_schemes = ["nexum_episode"]
+roles = ["location", "organizer_reported", "authority_intervened", "figures_from"]
+display = { family = "public_order", density_priority = 3, group = "Ordine pubblico · episodi documentati", headline = [{ property = "category_name" }], facts = [{ property = "category_name", label = "Categoria" }, { property = "place_detail", label = "Luogo" }, { property = "verification_name", label = "Stato della verifica" }, { property = "n_sources", label = "Testate citate", digits = 0 }] }
+[event_type."civil.public_order_event".properties]
+category = { kind = "text", required = true }
+category_name = { kind = "text" }
+verification = { kind = "text", required = true }
+verification_name = { kind = "text" }
+summary = { kind = "text" }
+place_detail = { kind = "text" }
+place_wikidata = { kind = "text" }
+when_note = { kind = "text" }
+facts = { kind = "list" }
+figures = { kind = "list" }
+statements = { kind = "list" }
+roles = { kind = "list" }
+attributions = { kind = "list" }
+notes = { kind = "list" }
+sources = { kind = "list" }
+n_sources = { kind = "int" }
+review = { kind = "text" }
+curated_at = { kind = "text" }
+
+# Un movimento, un collettivo, un'associazione: solo quando una fonte lo nomina, con la sua descrizione come riportata.
+[object_type."civil.movement"]
+label = "Movimento o organizzazione civile"
+geometry = "none"
+identity_schemes = ["nexum_actor"]
+display = { family = "public_order", density_priority = 9, group = "Movimenti e organizzazioni", map = false, facts = [{ property = "note", label = "Descrizione (dalle fonti)" }] }
+[object_type."civil.movement".properties]
+note = { kind = "text" }
+sources = { kind = "list" }
+review = { kind = "text" }
+
+# Un'autorità di pubblica sicurezza citata dalle fonti (intervento, cifre diffuse).
+[object_type."gov.public_safety"]
+label = "Autorità di pubblica sicurezza"
+geometry = "none"
+identity_schemes = ["nexum_actor"]
+display = { family = "government", density_priority = 9, group = "Autorità di pubblica sicurezza", map = false, facts = [{ property = "note", label = "Descrizione" }] }
+[object_type."gov.public_safety".properties]
+note = { kind = "text" }
+sources = { kind = "list" }
+review = { kind = "text" }

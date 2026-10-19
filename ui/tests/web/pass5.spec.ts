@@ -4,6 +4,7 @@
 // same with a REAL touch, with the tools' sheet open and closed, in MAPPA and SAT. Then the AUDIT: every map layer that
 // draws features is either interactive (a real click on one of its features gets an answer) or declared context.
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { gdelt } from "../gdelt.shared";
 
 const BASE = process.env.NEXUM_WEB ?? "http://127.0.0.1:8791/";
 
@@ -11,6 +12,9 @@ async function open(browser: Browser, touch: boolean) {
   const ctx = await browser.newContext(touch ? { viewport: { width: 430, height: 932 }, isMobile: true, hasTouch: true } : { viewport: { width: 1440, height: 900 } });
   await ctx.route(/youtube|ytimg|googlevideo/, (r) => r.abort());     // no third-party video in the tests
   const page = await ctx.newPage();
+  // GDELT answers from real files of 17 October 2026, frozen (tests/gdelt.shared.ts): the golden checks stay deterministic
+  // (2026-10-18, author's review); the behaviour with the current GDELT is tested apart (tests/web/gdelt-live.spec.ts)
+  await gdelt(page);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(BASE);
@@ -145,7 +149,7 @@ test("golden · GDELT by touch: a real tap with the tools' sheet open, Back clos
 
 // ── AUDIT ─────────────────────────────────────────────────────────────────
 // Interactive: a click gets an answer about that feature. Context: drawn to read the map, not things (said why).
-const INTERACTIVE = /^(nexum-(items|hl|cells|links|zones)|nexum-pts-.+-(point|cluster)|ops-(orbits|channels|news|ais|hotspots|cables|routes(-[23]|-sel)?|quakes|gdacs|nws|naval|choke|ports|imported-(pt|line|fill)))$/;
+const INTERACTIVE = /^(nexum-(items|hl|cells|links|zones)|nexum-pts-.+-(point|cluster)|ops-(orbits|channels|news|news-agg|ais|hotspots|cables|routes(-[23]|-sel)?|quakes|gdacs|nws|naval|choke|ports|imported-(pt|line|fill)))$/;
 const CONTEXT: Record<string, string> = {
   "basemap-background": "background", "basemap-land": "land (a tap opens the place named there)", "basemap-borders": "borders",
   "nexum-density": "density of the groups (their invisible targets, nexum-cells, answer)", "nexum-cells-hl": "ring on the focus's group",

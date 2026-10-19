@@ -49,10 +49,14 @@ export interface Labels {
 export const ROLE_OF_EVENT: Record<string, string> = {
   location: "luogo dell'evento", nearest_location: "luogo più vicino all'evento", affected_area: "area colpita",
   at_volcano: "attività del vulcano",
+  organizer_reported: "ha indetto l'evento (secondo le fonti)", authority_intervened: "autorità intervenuta (secondo le fonti)",
+  figures_from: "cifre attribuite a (come riportate dalla stampa)",
 };
 export const ROLE_OF_PLACE: Record<string, string> = {
   location: "evento avvenuto qui", nearest_location: "evento nelle vicinanze (luogo più vicino)", affected_area: "evento con area colpita qui",
   at_volcano: "attività registrata di questo vulcano",
+  organizer_reported: "evento indetto, secondo le fonti (nessuna responsabilità per le violenze)",
+  authority_intervened: "intervento riportato dalle fonti", figures_from: "cifre attribuite, come riportate dalla stampa",
 };
 export const INSIGHT_KIND: Record<string, string> = {
   event_event_association: "associazione tra eventi", exposure_context: "contesto di esposizione",

@@ -18,6 +18,9 @@ import { RatesBlock } from "../components/Rates";
 import { LatestObs } from "../components/LatestObs";
 import { clearNameOf } from "../components/SearchBox";
 // loaded only when needed (O6: never part of the opening download): a place's view, the imagery, an indicator's table
+import { PlaceNews } from "../components/PlaceNews";
+import { EpisodeContext, EpisodeRecord } from "../components/Episode";
+import NEWS_UI from "../config/publicorder.json";
 const PlaceView = lazyStale(() => import("./PlaceView").then((m) => ({ default: m.PlaceView })));
 const ImageryBlock = lazyStale(() => import("../components/Imagery").then((m) => ({ default: m.ImageryBlock })));
 const PlaceWebcams = lazyStale(() => import("../components/Imagery").then((m) => ({ default: m.PlaceWebcams })));
@@ -58,6 +61,7 @@ export function ObjectMode({ id }: { id: string }) {
   }) : null), [ready, id, e?.kind, e?.type, d, ctx.data, types]);
   const tw = useStore((s) => s.scope.time_window);
   const explorable = !!types.get(e?.type ?? "")?.explore;
+  const episode = e?.type === (NEWS_UI as any).episodes.type;
   // the clear name of a place whose source label is abbreviated ("S. Sudan · South Sudan")
   const [clearName, setClearName] = useState<string | null>(null);
   useEffect(() => { setClearName(null); if (explorable) clearNameOf(id).then(setClearName, () => {}); }, [id, explorable]);
@@ -96,11 +100,13 @@ export function ObjectMode({ id }: { id: string }) {
         {explorable && ready && <Suspense fallback={<p className="note" style={{ padding: 12 }}>{S.loading}</p>}>
           <PlaceView id={id} d={d} ctxData={ctx.data!.data} conn={conn} /></Suspense>}
         {!explorable && <>
+        {e?.type === (NEWS_UI as any).placeNews.cityType && d && <div className="place-sec" style={{ padding: "6px 12px" }}><PlaceNews id={id} d={d} label={e.label} /></div>}
         {/* an observation's record: the measured results first, then its own facts and provenance */}
         {(types.get(e?.type ?? "")?.series || types.get(e?.type ?? "")?.wave) && <ObservationRecord id={id} />}
         {/* a camera (vocabulary hint "media"): the viewer of THIS camera, first; other cameras only after it, apart */}
         {d?.properties && types.get(e?.type ?? "")?.media && <Suspense fallback={<p className="xs dim conn-pad">{S.loading}</p>}><CamViewer id={id} props={d.properties} /></Suspense>}
         {ctx.data && e?.kind !== "insight" && <Facts id={id} d={d} data={ctx.data.data} />}
+        {episode && d && <EpisodeRecord d={d} />}
         {/* the latest observations the source published (vocabulary hint "latest"), read when the card opens */}
         {d && types.get(e?.type ?? "")?.latest && <LatestObs id={id} d={d} />}
         {/* OSSERVA: the public webcams near a place (a city), surfaced in its own view */}
@@ -112,12 +118,14 @@ export function ObjectMode({ id }: { id: string }) {
         {/* an indicator: compare the places it covers (after its connections: the first screen keeps them in view) */}
         {types.get(e?.type ?? "")?.indicator && d?.properties && <Suspense fallback={null}><IndicatorRecord props={d.properties} label={e?.label ?? ""} /></Suspense>}
         {/* an event: its connections first; "during the term of" is temporal context, after them */}
-        {ready && e?.kind === "event" && <TenuresBlock id={id} ctxData={ctx.data!.data} />}
+        {ready && e?.kind === "event" && !episode && <TenuresBlock id={id} ctxData={ctx.data!.data} />}
         {whyAfter && <div className="ins-why conn-pad"><WhyBig id={id} /></div>}
         {ready && e?.kind === "event" && <Suspense fallback={null}><EventWebcams id={id} /></Suspense>}
         {/* OSSERVA → IMMAGINI: places and events with a position (on request; never preloaded) */}
         {ready && (e?.kind === "event" || (e?.kind === "object" && !SAT_SKIP.has(types.get(e?.type ?? "")?.family ?? ""))) && (d?.geometry || e?.point) &&
           <Suspense fallback={null}><ImageryBlock id={id} geometry={d?.geometry} label={e?.label ?? ""} when={e?.kind === "event" ? e?.t ?? null : null} /></Suspense>}
+        {/* a documented episode: the office holders on its day are institutional context, apart and after the rest */}
+        {ready && episode && <EpisodeContext><TenuresBlock id={id} ctxData={ctx.data!.data} /></EpisodeContext>}
         {outside && when != null && <OutsideNote when={when} />}
         {ctx.data && <Sections id={id} data={ctx.data.data} />}
         </>}
