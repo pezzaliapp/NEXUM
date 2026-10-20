@@ -302,7 +302,7 @@ Audit date: 2026-10-07. Read-only. No OSIRIS or NEXUM files were changed. Networ
 
 ## Intro
 
-### OSIRIS files read (all under /Users/alessandropezzali/projects/OSIRIS-REFERENCE)
+### OSIRIS files read (all under <LOCAL_PATH>/OSIRIS-REFERENCE)
 - `src/components/LayerPanel.tsx` (1-554, read in full)
 - `src/components/OsirisMap.tsx`: 168, 300-470, 610-672, 792-900, 905-1226, 1584-1602, 1795-1990, 2360-2410, 2498-2660, 2963-3030. Every `addSource`/`addLayer`/`map.on` was listed with grep, and each thematic layer in scope was read.
 - `src/components/SpaceCam.tsx` (full), `src/components/SatelliteCard.tsx` (full), `src/components/FlightWatchPanel.tsx` (full)
@@ -312,7 +312,7 @@ Audit date: 2026-10-07. Read-only. No OSIRIS or NEXUM files were changed. Networ
 - `src/components/MarketsPanel.tsx` (203-240: where space weather is shown), `src/components/StyleStudio.tsx` (satellite swatches, 359-364)
 - `LICENSE` (MIT, © 2026 simplifaisoul)
 
-### NEXUM files read (all under /Users/alessandropezzali/projects/NEXUM)
+### NEXUM files read (all under <LOCAL_PATH>/NEXUM)
 `ui/src/ops/{state.ts, orbits.ts, orbits.worker.ts, overlays.ts (parts), alerts.ts (parts), basemaps.ts (parts), Sky.tsx (parts), Panels.tsx (layers, space, point, scenes, live, orbit card, feature card), OpsShell.tsx (Kp, quick toggles)}`, `ui/src/config/{ops.json, ops-space.json, imagery.json (head)}`, `ui/src/components/Imagery.tsx` (head and classes), `ui/src/map/illumination.ts` (head), `connectors/{celestrak_gp.py, firms_hotspots.py (hosts), noaa_swpc.py (head), ourairports_airports.py (head)}`, `sources_live/{celestrak.gp.toml, nasa.firms.toml}`, `.github/workflows/nexum-live.yml` (cadence: every 6 h).
 
 ### Evidence from the network (2026-10-07, one request per host)
@@ -474,7 +474,7 @@ REUSE / ADAPT / REIMPLEMENT / ALTERNATIVE / IMPOSSIBLE, as defined in the brief.
 
 # Part 3 — Alerts, news, intelligence feeds, AI, markets, supply chain, chain/crypto
 
-Read-only audit, 2026-10-07. OSIRIS baseline: `/Users/alessandropezzali/projects/OSIRIS-REFERENCE` at commit `7a3daec` (MIT). NEXUM: `/Users/alessandropezzali/projects/NEXUM` at commit `e2b17d0`. Earlier NEXUM matrices were consulted only for orientation and are **not** relied on. Every NEXUM equivalence below was re-read in the source.
+Read-only audit, 2026-10-07. OSIRIS baseline: `<LOCAL_PATH>/OSIRIS-REFERENCE` at commit `7a3daec` (MIT). NEXUM: `<LOCAL_PATH>/NEXUM` at commit `e2b17d0`. Earlier NEXUM matrices were consulted only for orientation and are **not** relied on. Every NEXUM equivalence below was re-read in the source.
 
 ## Scope and method
 
@@ -757,7 +757,7 @@ Abbreviations used in the table: LA = `src/components/LiveAlerts.tsx`, AD = `src
 
 # Part 4 — Routing / navigation, drawing / measurement / AOI / watch, geocoding, maritime, infrastructure, dataset discovery & import
 
-Audit date: 2026-10-07 · read-only · OSIRIS baseline `/Users/alessandropezzali/projects/OSIRIS-REFERENCE` @ `7a3daec` (MIT) · NEXUM `/Users/alessandropezzali/projects/NEXUM` @ `e2b17d0` (working tree clean).
+Audit date: 2026-10-07 · read-only · OSIRIS baseline `<LOCAL_PATH>/OSIRIS-REFERENCE` @ `7a3daec` (MIT) · NEXUM `<LOCAL_PATH>/NEXUM` @ `e2b17d0` (working tree clean).
 Earlier NEXUM matrices were NOT used; every row below was re-derived from the source files listed here.
 
 ## 0. Method and files read
@@ -1186,7 +1186,7 @@ NEXUM's architecture makes most OSIRIS risks *structurally* impossible rather th
 
 # Part 6: the OSIRIS CCTV/webcam subsystem compared with NEXUM
 
-Read-only audit, done 2026-10-07. OSIRIS was at `/Users/alessandropezzali/projects/OSIRIS-REFERENCE`, HEAD `7a3daec`. OSIRIS **code** is MIT ("Copyright (c) 2026 simplifaisoul", `LICENSE`). That says nothing about the camera **data, images or streams**, which belong to each operator.
+Read-only audit, done 2026-10-07. OSIRIS was at `<LOCAL_PATH>/OSIRIS-REFERENCE`, HEAD `7a3daec`. OSIRIS **code** is MIT ("Copyright (c) 2026 simplifaisoul", `LICENSE`). That says nothing about the camera **data, images or streams**, which belong to each operator.
 
 I started from `scratchpad/research/osiris-webcam.md` (probes of 2026-10-06), checked every claim in it against the code, and corrected and completed it here. Paths below are relative to the OSIRIS repo. `R` = `src/app/api/cctv/route.ts`.
 

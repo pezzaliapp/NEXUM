@@ -487,7 +487,11 @@ def test_w2_licence_policy_runtime_vs_build_only(tmp_path):
     ok = run()
     assert ok.returncode == 0, ok.stdout[-2000:]
     rep = json.loads((ROOT / "data" / "reports" / "phase2" / "licenses.json").read_text())
-    assert {e["name"] for e in rep["exceptions_used"]} <= {"lightningcss", "lightningcss-darwin-arm64"}
+    # every lockfile entry is checked (also other platforms' optional binaries, not installed): only the packages the
+    # exception names may use it
+    named = {n for e in json.loads((ui / "license-policy.json").read_text())["build_only"]["exceptions"] for n in e["packages"]}
+    assert {e["name"] for e in rep["exceptions_used"]} <= named
+    assert rep["builds_checked"] and rep["not_installed"] >= 0
     assert all(r["license"] != "MPL-2.0" for r in rep["list"] if r["class"] == "runtime_distributed")
     policy = json.loads((ui / "license-policy.json").read_text())
     # negative 1: without the exception the same tree fails

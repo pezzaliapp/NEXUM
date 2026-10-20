@@ -289,8 +289,9 @@ def snapshot_and_assemble(res: dict, npm_ci=True) -> dict:
             ("parity", [sys.executable, "-m", "nexum.snapshot", "parity", "live", "--out", str(SNAP)], ROOT),
             ("bundles", [sys.executable, "-m", "nexum.snapshot", "parity", "live", "--out", str(SNAP), "--bundles"], ROOT),
             *((("npm_ci", ["npm", "ci", "--no-audit", "--no-fund"], ROOT / "ui"),) if npm_ci else ()),
-            ("licences", ["npm", "run", "-s", "licenses"], ROOT / "ui"),
+            # the licence check reads the distributed build, so it runs after it
             ("web_build", ["npm", "run", "-s", "build:web"], ROOT / "ui"),
+            ("licences", ["npm", "run", "-s", "licenses"], ROOT / "ui"),
             ("browser_parity", ["node", "tests/parity/run.ts", str(SNAP / "live")], ROOT / "ui"),
             ("assemble", ["node", "scripts/assemble-web.mjs", "--snapshot", str(SNAP / "live"), "--out", str(WEB)], ROOT / "ui")):
         rc, so, se, secs = sh(cmd, cwd=cwd)

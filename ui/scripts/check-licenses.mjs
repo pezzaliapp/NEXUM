@@ -1,6 +1,8 @@
 // W2 — licence policy (ui/license-policy.json): runtime/distributed packages vs build-only packages, with nominal,
 // verified exceptions. The direct dependencies must be exactly the approved ones (§M).
 // Writes ../data/reports/phase2/licenses.json; exit 1 on any violation.
+// Run AFTER the build: the "not in the bundle" checks read the builds that are distributed (dist: the local workspace,
+// dist-web: the online deployment); with no build there is nothing to verify, and that is a violation, never a pass.
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -52,7 +54,9 @@ const licOf = (k) => entries[k].license ?? (fs.existsSync(path.join(root, k, "pa
 const walk = (d) => fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]) : [];
 const sha = (f) => crypto.createHash("sha256").update(fs.readFileSync(f)).digest("hex");
-const distFiles = walk(path.join(root, "dist"));
+const BUILDS = ["dist", "dist-web"].filter((d) => fs.existsSync(path.join(root, d, "index.html")));
+if (!BUILDS.length) problems.push({ build: "no build to verify (dist, dist-web): run the check after the build" });
+const distFiles = BUILDS.flatMap((d) => walk(path.join(root, d)));
 const distHashes = new Set(distFiles.map(sha));
 const distJs = distFiles.filter((f) => f.endsWith(".js")).map((f) => fs.readFileSync(f, "utf8")).join("\n");
 const tracked = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { cwd: repo }).toString()
@@ -61,9 +65,12 @@ const trackedHashes = new Set(tracked.map(sha));
 
 const list = [];
 for (const k of Object.keys(entries)) {
-  if (!k || !fs.existsSync(path.join(root, k))) continue;
+  if (!k) continue;
+  // every lockfile entry is checked, also the optional ones not installed on this machine (other platforms' binaries):
+  // their licence comes from the lockfile
+  const installed = fs.existsSync(path.join(root, k));
   const name = nameOf(k), lic = String(licOf(k)), isRuntime = runtime.has(k);
-  const row = { name, version: entries[k].version, license: lic, class: isRuntime ? "runtime_distributed" : "build_only" };
+  const row = { name, version: entries[k].version, license: lic, class: isRuntime ? "runtime_distributed" : "build_only", installed };
   list.push(row);
   if (isRuntime) {
     if (!policy.runtime_distributed.allow.includes(lic)) problems.push({ ...row, why: "runtime licence not allowed" });
@@ -72,7 +79,7 @@ for (const k of Object.keys(entries)) {
   if (policy.build_only.allow.includes(lic)) continue;
   const ex = policy.build_only.exceptions.find((e) => e.packages.includes(name) && e.license === lic);
   if (!ex) { problems.push({ ...row, why: "build-only licence not allowed and no approved exception" }); continue; }
-  const files = walk(path.join(root, k)).filter((f) => !f.endsWith("package.json"));
+  const files = installed ? walk(path.join(root, k)).filter((f) => !f.endsWith("package.json")) : [];
   const checks = {
     not_runtime: !isRuntime && entries[k].dev === true,
     not_in_bundle: files.every((f) => !distHashes.has(sha(f))) && !new RegExp(`["'\`]${name}["'\`/]`).test(distJs),
@@ -81,7 +88,8 @@ for (const k of Object.keys(entries)) {
   row.exception = { approved_on: ex.approved_on, checks };
   if (!Object.values(checks).every(Boolean)) problems.push({ ...row, why: "exception conditions not met" });
 }
-const out = { packages: list.length, runtime_distributed: list.filter((r) => r.class === "runtime_distributed").length,
+const out = { builds_checked: BUILDS, packages: list.length, not_installed: list.filter((r) => !r.installed).length,
+  runtime_distributed: list.filter((r) => r.class === "runtime_distributed").length,
   build_only: list.filter((r) => r.class === "build_only").length,
   by_license: list.reduce((m, r) => ((m[`${r.class}:${r.license}`] = (m[`${r.class}:${r.license}`] ?? 0) + 1), m), {}),
   exceptions_used: list.filter((r) => r.exception).map((r) => ({ name: r.name, license: r.license, ...r.exception })), problems };

@@ -68,8 +68,8 @@ jobs:
         working-directory: ui
         run: |
           npm ci
-          npm run licenses
           npm run build:web
+          npm run licenses
           node tests/parity/run.ts ../data/snapshot/live
           node scripts/assemble-web.mjs --snapshot ../data/snapshot/live --out ../data/deploy/web
       # the automatic deploy goes to the PREVIEW branch only (live-review); promoting a build to production and to the

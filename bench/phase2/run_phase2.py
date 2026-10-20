@@ -92,9 +92,9 @@ def ui_clean():
         shutil.rmtree(UI / d, ignore_errors=True)
     REP.mkdir(parents=True, exist_ok=True)
     sh(["npm", "ci", "--no-audit", "--no-fund"], cwd=UI, log=REP / "npm_ci.log")
-    sh(["node", "scripts/check-licenses.mjs"], cwd=UI, check=False, log=REP / "licenses.log")
     sh(["npx", "tsc", "--noEmit"], cwd=UI, log=REP / "tsc.log")
     sh(["npx", "vite", "build"], cwd=UI, log=REP / "vite_build.log")
+    sh(["node", "scripts/check-licenses.mjs"], cwd=UI, check=False, log=REP / "licenses.log")   # reads the build
     sh(["node", "scripts/bundle-size.mjs"], cwd=UI, log=REP / "bundle.log")
 
 

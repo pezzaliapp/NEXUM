@@ -86,16 +86,38 @@ fs.writeFileSync(path.join(out, "providers.json"), JSON.stringify({ note: "NEXUM
 // test deployment: not indexed until the author approves the public address (E3)
 fs.writeFileSync(path.join(out, "robots.txt"), "User-agent: *\nDisallow: /\n");
 
-// third-party notices: runtime packages distributed in the bundle (from the lockfile), Apache-2.0 text, data sources
+// third-party notices: runtime packages distributed in the bundle (from the lockfile) with the full text of each one's
+// licence and copyright notice (MIT, ISC and BSD ask for it in every copy, also minified), Apache-2.0 text, data sources
 const lock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json"), "utf8")).packages;
 const lic = JSON.parse(fs.readFileSync(path.join(root, "..", "data", "reports", "phase2", "licenses.json"), "utf8"));
-const runtime = lic.list.filter((r) => r.class === "runtime_distributed").sort((a, b) => a.name.localeCompare(b.name));
-const apache = fs.readFileSync(path.join(root, "node_modules", "detect-libc", "LICENSE"), "utf8");
+const runtime = lic.list.filter((r) => r.class === "runtime_distributed" && r.installed !== false).sort((a, b) => a.name.localeCompare(b.name));
+// the Apache-2.0 text is versioned with NEXUM (ui/licenses), never read from a build-only package
+const apache = fs.readFileSync(path.join(root, "licenses", "Apache-2.0.txt"), "utf8");
+// the licence text of a package: its own LICENSE/LICENCE/COPYING file, else the licence section of its README (when it
+// holds the copyright notice); a package distributed without any is an error, never a silent omission
+const NO_TEXT = { "@sqlite.org/sqlite-wasm": "Apache-2.0: il pacchetto npm non include il testo della licenza; testo completo in fondo a questo file." };
+const licenceText = (name) => {
+  const dir = path.join(root, "node_modules", name);
+  const files = fs.readdirSync(dir).filter((f) => /^(licen[cs]e|copying)(\.(md|txt))?$/i.test(f)).sort();
+  if (files.length) return files.map((f) => fs.readFileSync(path.join(dir, f), "utf8").trim()).join("\n\n");
+  const readme = fs.readdirSync(dir).find((f) => /^readme(\.md)?$/i.test(f));
+  const sec = readme && fs.readFileSync(path.join(dir, readme), "utf8").match(/^#+\s*Licen[cs]e\b[^\n]*\n([\s\S]*?)(?=\n#+\s|(?![\s\S]))/im);
+  if (sec && /copyright/i.test(sec[1])) return sec[0].trim();
+  if (NO_TEXT[name]) return NO_TEXT[name];
+  throw new Error(`no licence text for the distributed package ${name}`);
+};
+const nexumLicence = fs.readFileSync(path.join(root, "..", "LICENSE"), "utf8").trim();
+// Unicode CLDR (connectors/currency_iso.json): the currency of each country named on the published values
+const unicode = fs.readFileSync(path.join(root, "..", "connectors", "LICENSE-Unicode-CLDR.txt"), "utf8").trim();
 const manifest = JSON.parse(fs.readFileSync(path.join(snap, "manifest.json"), "utf8"));
+// share-alike sources: what NEXUM derives from them and publishes keeps the source's licence
+const shareAlike = Object.entries(manifest.sources).filter(([, s]) => /by-sa|odbl/i.test(s.license_id ?? ""));
 const notices = [
   "NEXUM — https://github.com/pezzaliapp/NEXUM — MIT License, Copyright (c) 2026 Alessandro Pezzali",
   "",
-  "SOFTWARE DI TERZE PARTI DISTRIBUITO IN QUESTA APPLICAZIONE",
+  nexumLicence,
+  "",
+  "SOFTWARE DI TERZE PARTI DISTRIBUITO IN QUESTA APPLICAZIONE (testi completi delle licenze più avanti)",
   ...runtime.map((r) => `- ${r.name} ${r.version} — ${r.license}${lock[`node_modules/${r.name}`]?.resolved ? ` — ${lock[`node_modules/${r.name}`].resolved}` : ""}`),
   "",
   "@sqlite.org/sqlite-wasm è distribuito con licenza Apache-2.0 (il pacchetto npm non include il testo della licenza,",
@@ -103,6 +125,13 @@ const notices = [
   "",
   "DATI (snapshot " + manifest.version + ", mondo " + manifest.world + ")",
   ...Object.entries(manifest.sources).map(([id, s]) => `- ${s.name} (${id}) — ${s.license_id} — ${s.attribution}`),
+  "",
+  "CONDIZIONI SHARE-ALIKE: i dati derivati da queste fonti e pubblicati in questo snapshot restano distribuiti con la",
+  "stessa licenza della fonte (le altre fonti non ne sono toccate; il codice di NEXUM resta MIT)",
+  ...shareAlike.map(([id, s]) => `- ${s.name} (${id}) — ${s.license_id}`),
+  "",
+  "VALUTE DEI PAESI (connectors/currency_iso.json: la valuta nominata sui valori pubblicati)",
+  "- Derivate da Unicode CLDR 47, supplemental/currencyData.json, licenza Unicode-3.0: testo completo più avanti.",
   "",
   "RETE MARITTIMA (api/tables/searoutes.json, il motore della «Rotta marittima tra due porti»; non disegnata come livello)",
   "- Derivata da Eurostat SeaRoute \"MARNET\" (© European Union, Eurostat; https://github.com/eurostat/searoute, commit",
@@ -129,6 +158,15 @@ const notices = [
   "  Immagine di RIFERIMENTO, mai presentata come osservazione in tempo reale. NASA Images and Media Usage Guidelines:",
   "  generalmente non soggetta a copyright negli USA; NASA indicata come fonte; nessun avallo implicito.",
   "  https://earthobservatory.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps",
+  "",
+  "=".repeat(78),
+  "TESTI DELLE LICENZE DEL SOFTWARE DI TERZE PARTI (dai pacchetti distribuiti, invariati)",
+  ...runtime.flatMap((r) => ["", "-".repeat(78), `${r.name} ${r.version} — ${r.license}`, "-".repeat(78), licenceText(r.name)]),
+  "",
+  "=".repeat(78),
+  "UNICODE CLDR — Unicode License v3 (dal rilascio CLDR 47, invariato)",
+  "=".repeat(78),
+  unicode,
   "",
   "=".repeat(78),
   apache,

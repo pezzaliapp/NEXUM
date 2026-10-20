@@ -59,6 +59,9 @@ async function page(req) {
   try { res = await fetch(req.url, { cache: "no-store", credentials: "same-origin" }); }
   catch (err) { const hit = await storedPage(); if (hit) return hit; throw err; }
   if (!res.ok) return res;
+  // a document that is not the app (the legal notices, a licence text opened from the app): shown as it is, never stored
+  // as the app's page
+  if (!(res.headers.get("content-type") ?? "").includes("text/html")) return res;
   const html = await res.clone().text();
   const entry = (html.match(/\/assets\/index-[\w-]+\.js/) || [])[0];
   if (entry) {

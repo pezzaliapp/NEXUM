@@ -46,8 +46,10 @@ Struttura: `nexum/core/` (Core domain-agnostic), `connectors/` (un modulo per fo
 
 ## Licenza
 
-Codice e documentazione: [MIT](LICENSE) © 2026 Alessandro Pezzali.
-I dati delle fonti esterne restano soggetti alle rispettive licenze e non sono inclusi nel repository.
+Codice e documentazione: [MIT](LICENSE) © 2026 Alessandro Pezzali, unico autore.
+I dati delle fonti esterne restano soggetti alle rispettive licenze. Quelli scaricati non sono versionati (`data/`); il
+repository contiene alcuni file di terzi (fixture dei test, tabelle di riferimento derivate, testi di licenza), ognuno
+con la propria licenza: elenco in [DATA-LICENSES.md](DATA-LICENSES.md). La MIT non si applica a quei file.
 
 ## Fase 2 — workspace locale
 

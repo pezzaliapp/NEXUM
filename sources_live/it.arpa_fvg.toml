@@ -13,7 +13,7 @@ connector = "connectors.webcams_more"
 id = "CC-BY-SA-3.0-IT"
 url = "https://www.meteo.fvg.it/note-legali.php"
 attribution = "ARPA FVG – OSMER e GRN (CC BY-SA 3.0 IT)"
-redistribution = "allowed_with_attribution"
+redistribution = "allowed_with_attribution_share_alike"
 commercial_use = "allowed"
 
 [access]

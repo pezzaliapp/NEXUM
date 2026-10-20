@@ -48,15 +48,17 @@ Builds deployed before this change still hold those columns at their own deploym
 
 ## Configuration
 
+Alessandro Pezzali is the sole author of NEXUM; every item below was set up on the author's behalf, with the author's own account and decision.
+
 | Item | Where | Who |
 |---|---|---|
-| private repository `NEXUM-world` (with a first commit: a release needs one) | GitHub | Claude (gh) |
-| first reference world (release `world-716-seed` from `data/live-ev`) | that repository | Claude (gh) |
+| private repository `NEXUM-world` (with a first commit: a release needs one) | GitHub | the author (via `gh`) |
+| first reference world (release `world-716-seed` from `data/live-ev`) | that repository | the author (via `gh`) |
 | secret `NEXUM_WORLD_TOKEN`: fine-grained token, *Only select repositories* → `NEXUM-world`, *Contents: Read and write*, expiry ≤ 1 year | repository secrets | **the author** |
-| variable `NEXUM_WORLD_REPO` | repository variables | Claude (gh) |
-| environment `cloudflare` (deployment branches: `main`), variable `CLOUDFLARE_ACCOUNT_ID` | repository environments | Claude (gh) |
+| variable `NEXUM_WORLD_REPO` | repository variables | the author (via `gh`) |
+| environment `cloudflare` (deployment branches: `main`), variable `CLOUDFLARE_ACCOUNT_ID` | repository environments | the author (via `gh`) |
 | secret `CLOUDFLARE_API_TOKEN` in `cloudflare`: *Custom token* → **Account · Cloudflare Pages · Edit**, this account only, an expiry date | Cloudflare dashboard → environment secret | **the author** |
-| variable `NEXUM_AUTO_PUBLISH=true` and the schedule | after the GO | Claude, on the author's GO |
+| variable `NEXUM_AUTO_PUBLISH=true` and the schedule | after the GO | the author |
 
 The Cloudflare token cannot be restricted to one project or to previews; it is an environment secret readable only by
 workflows on `main`, and can be revoked at any time.

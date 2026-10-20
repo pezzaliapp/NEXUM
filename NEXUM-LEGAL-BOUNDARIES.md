@@ -53,7 +53,7 @@ Ogni fonte ammessa è registrata nel **Source Registry** con licenza, attribuzio
 ## 4. Licenze dei dati e licenza del codice
 
 - Il **codice** NEXUM è MIT.
-- I **dati** restano sotto la licenza della fonte. Il repository **non contiene dataset di terzi**: contiene solo connettori che li scaricano sulla macchina dell'utente.
+- I **dati** restano sotto la licenza della fonte. I dati scaricati dai connettori stanno sulla macchina dell'utente (`data/`, mai versionati). Il repository contiene solo alcuni file di terzi — fixture dei test, tabelle di riferimento derivate, testi di licenza — ognuno con la propria licenza, elencati in [DATA-LICENSES.md](DATA-LICENSES.md); la MIT non si applica a quei file.
 - Ogni record conserva `source_id` e `license_id`; le esportazioni includono automaticamente attribuzioni e licenze.
 
 | Licenza dati | Conseguenza in NEXUM |

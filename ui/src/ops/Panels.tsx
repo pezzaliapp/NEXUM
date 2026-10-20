@@ -1563,6 +1563,7 @@ function HelpPanel() {
       <table className="ops-table" data-testid="ops-help"><tbody>{rows.map(([k, v]) => <tr key={k + v}><td className="mono">{k}</td><td>{v}</td></tr>)}</tbody></table>
       <div className="hl-h">Chi contatta il tuo browser, e quando</div>
       <table className="ops-table xs" data-testid="ops-privacy"><tbody>{(OPS.privacy as string[][]).map(([w, v]) => <tr key={w}><td><b>{w}</b></td><td>{v}</td></tr>)}</tbody></table>
+      {__NEXUM_WEB__ && <p className="xs" data-testid="help-legal">Avvisi legali: <a href="/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener">software e dati di terzi, licenze e attribuzioni</a> · codice di NEXUM: licenza MIT, © 2026 Alessandro Pezzali, unico autore (<a href="https://github.com/pezzaliapp/NEXUM/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">LICENSE ↗</a>)</p>}
       <p className="xs faint">Parte del disegno operativo si ispira a OSIRIS (MIT, © 2026 simplifaisoul): nessun codice copiato, nessun servizio a pagamento, nessuna chiave.</p>
     </>);
 }
