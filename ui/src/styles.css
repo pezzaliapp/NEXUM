@@ -769,6 +769,10 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
 .ops-modes .ops-seg button { padding: 6px 9px; font: 600 11px/1.3 var(--mono); }
 /* touch: under the zoom buttons, in the map's own control column (never over the chips and the legend) */
 .app.touch .ops-rail-toggle { right: 10px; top: 112px; width: 46px; height: 46px; font-size: 20px; }
+/* the button says what it opens (2026-10-19, Fold review: a bare ⌖ read as "my position"); the label only on touch */
+.ops-rail-toggle-l { display: none; }
+.app.touch .ops-rail-toggle { width: auto; padding: 0 12px 0 10px; display: flex; gap: 6px; align-items: center; }
+.app.touch .ops-rail-toggle-l { display: inline; font: 600 12px/1 var(--mono); letter-spacing: .04em; }
 .app.touch .ops-rail.touch { top: 112px; right: 10px; }
 .ops-panel { position: absolute; right: 48px; top: 40px; z-index: 8; width: min(360px, calc(100% - 64px)); max-height: calc(100% - 76px);
   display: flex; flex-direction: column; background: #13171AF5; border: 1px solid var(--line-strong); border-radius: 2px;
@@ -823,6 +827,11 @@ pre.raw { font: 11px/1.4 var(--mono); background: var(--bg); border: 1px solid v
   border-radius: 3px; background: var(--raised); }
 .ops-qrow span { display: flex; flex-direction: column; }
 .ops-qrow small { color: var(--dim); font-size: var(--fs-xs); }
+.ops-nw-h { margin: 6px 0 4px; color: var(--dim); font-weight: 600; }
+.ops-sub .seg button { min-height: 32px; }
+.app.touch .ops-sub .seg button { min-height: 44px; padding: 3px 14px; }
+.ops-nw-more summary { cursor: pointer; color: var(--dim); margin-top: 4px; }
+.ops-invite { margin: 2px 0 0 56px; }
 .app.touch .ops-panel input[type="checkbox"], .app.touch .ops-panel input[type="radio"] { width: 22px; height: 22px; flex: none; }
 .app.touch .ops-panel .ops-list label { min-height: 44px; }
 .app.touch .ops-panel select, .app.touch .ops-panel input[type="text"] { min-height: 44px; }

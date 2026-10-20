@@ -23,7 +23,8 @@ import { sheetDrag, sheetRoom } from "../lib/sheetdrag";
 import { bboxOf, compass, bearing, fmtKm, fmtKm2, fmtLatLng, haversine, inRing, type LngLat } from "./geo";
 import { draw, download, NAMES, shapesGeoJSON, toCSV, type DrawMode, type Shape } from "./draw";
 import { CHANNELS, highlight, IMPORT_COLORS, importedData, tableMeta } from "./overlays";
-import { feed, KINDS, newsWindow, setNewsWindow, SOURCE_NAME, type AlertKind, type Feed } from "./alerts";
+import { feed, KINDS, SOURCE_NAME, type AlertKind, type Feed } from "./alerts";
+import { NewsWindow, newsHowTo } from "./NewsWindow";
 import ORDER from "../config/publicorder.json";
 import { newsState } from "./newsstatus";
 import { filterNews, isConfirmed, nationGroups } from "./newsmap";
@@ -239,7 +240,7 @@ function LayersPanel({ map }: { map: MLMap }) {
             <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}
               {(() => { const f = fresh(l.k); return f ? <span className={`xs ${f.cls}`} data-testid={`ops-layer-${l.k}-state`}> · {f.text}</span> : null; })()}</span>
             {counts[l.k] ? <span className="mono xs dim">{counts[l.k].toLocaleString("it-IT")}</span> : null}
-          </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}{l.k === "news" && layers.news && <NewsWindow />}</li>))}
+          </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}{l.k === "news" && (layers.news ? <NewsWindow hint /> : <p className="xs faint ops-invite" data-testid="ops-layer-news-invite">{ORDER.guide.invite}</p>)}</li>))}
           </ul></div>))}
       <p className="xs warn" data-testid="ops-airtraffic-blocked">{OPS.orbits.airTraffic}</p>
       <div className="hl-h">Viste</div>
@@ -247,21 +248,6 @@ function LayersPanel({ map }: { map: MLMap }) {
         {OPS.presets.map((p) => <button key={p.id} type="button" className="chip" onClick={() => { showMap(); map.flyTo({ center: p.c as [number, number], zoom: p.z, duration: 900 }); }}>{p.label}</button>)}
       </div>
     </>);
-}
-
-/** The news window (2026-10-18): how many hours of GDELT the browser downloads, with the measured size of each; what
- *  NEXUM keeps (nothing on the device) is said with it. */
-function NewsWindow() {
-  const [h, setH] = useState(newsWindow());
-  const W = ORDER.windows;
-  const choose = (x: number) => { setNewsWindow(x); setH(x); window.dispatchEvent(new CustomEvent("nexum:news-window")); };
-  return (
-    <div className="ops-sub xs" data-testid="ops-news-window">
-      <div className="seg" role="group" aria-label="Finestra delle notizie">{W.map((w) => (
-        <button key={w.h} type="button" aria-pressed={h === w.h} data-testid={`ops-news-window-${w.h}`} onClick={() => choose(w.h)}>{w.label}</button>))}</div>
-      <p className="faint" data-testid="ops-news-window-note">{W.find((w) => w.h === h)?.note}</p>
-      <p className="faint">{ORDER.retention}</p>
-    </div>);
 }
 
 /** SAT VIEW preset: only the observing spacecraft whose own imagery NEXUM shows in their card (turns the
@@ -1571,6 +1557,7 @@ function HelpPanel() {
   ];
   return (
     <>
+      <p className="xs" data-testid="help-news">{newsHowTo()}</p>
       <p className="xs" data-testid="help-operator">{S.web.operatorLabel}: <a href={`mailto:${S.web.operatorEmail}`}>{S.web.operatorEmail}</a></p>
       <p className="xs" data-testid="help-build">Versione in uso: <b className="mono">build {__NEXUM_BUILD__}</b> · si aggiorna da sola; quando ne arriva una nuova compare «Nuova versione disponibile · AGGIORNA ORA».</p>
       <table className="ops-table" data-testid="ops-help"><tbody>{rows.map(([k, v]) => <tr key={k + v}><td className="mono">{k}</td><td>{v}</td></tr>)}</tbody></table>

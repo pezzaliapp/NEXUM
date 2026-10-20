@@ -17,6 +17,9 @@ import { fmtLatLng, scaleFor } from "./geo";
 import { applyTheme } from "./theme";
 import { useHighlights, typeLabelOf } from "../components/Highlights";
 import { head } from "../lib/summary";
+import OPS from "../config/ops.json";
+import ORDER from "../config/publicorder.json";
+import { NewsWindow } from "./NewsWindow";
 
 const Panels = lazyStale(() => import("./Panels"));
 const SeaRoutePanel = lazyStale(() => import("./SeaRoutePanel"));
@@ -233,6 +236,27 @@ function Modes() {
 
 const GROUPS: [string, string][] = [["map", "Mappa"], ["see", "Osservare"], ["world", "Dati del mondo"], ["tools", "Strumenti"]];
 
+/** The touch button that opens Strumenti, said in words (2026-10-19, Fold review: a bare ⌖ read as "my position"). Its
+ *  place is under the zoom; where the map's top bar (legend, focus note) runs taller than that, just under it. */
+function ToolsToggle() {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [top, setTop] = useState<number>();
+  useEffect(() => {
+    const b = ref.current, box = b?.offsetParent as HTMLElement | null;
+    // the map's top bar on touch holds the legend and the focus note («Vai al 2025»): the button stays clear of all of it
+    const leg = box?.querySelector<HTMLElement>('[data-testid="map-legend"]'), lg = leg?.closest<HTMLElement>(".view-toolbar") ?? leg;
+    if (!b || !box || !lg) return;
+    const base = parseFloat(getComputedStyle(b).top) || 0;
+    const fit = () => { const below = lg.getBoundingClientRect().bottom - box.getBoundingClientRect().top + 8; setTop(below > base ? below : undefined); };
+    const ro = new ResizeObserver(fit); ro.observe(lg); ro.observe(box); fit();
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <button ref={ref} type="button" className="ops-rail-toggle" data-testid="ops-tools" title="Strumenti" style={top != null ? { top } : undefined}
+      onClick={() => ops.palette(true)}>
+      <span aria-hidden="true">⌖</span><span className="ops-rail-toggle-l">Strumenti</span></button>);
+}
+
 function ToolRail({ touch, map }: { touch: boolean; map: MLMap }) {
   const tool = useOps((s) => s.tool);
   const palette = useOps((s) => s.palette);
@@ -253,8 +277,7 @@ function ToolRail({ touch, map }: { touch: boolean; map: MLMap }) {
           <span aria-hidden="true">{t.icon}</span><span className="sr">{t.label}</span></button>))}
     </nav>);
   // touch: one button opens the palette; the palette is a sheet of its own, replaced by the tool chosen (never both)
-  if (!palette) return tool ? null : (
-    <button type="button" className="ops-rail-toggle" data-testid="ops-tools" aria-label="Strumenti" title="Strumenti" onClick={() => ops.palette(true)}>⌖</button>);
+  if (!palette) return tool ? null : <ToolsToggle />;
   return (
     <section className="ops-panel ops-palette ov ops-sheet" data-testid="ops-rail" aria-label="strumenti">
       <header className="ops-ph"><b>Strumenti</b><span className="grow" />
@@ -283,6 +306,10 @@ function QuickLayers({ map }: { map: MLMap }) {
     <div className="ops-quick" data-testid="ops-quick">
       <label className="ops-qrow"><input type="checkbox" className="ops-switch" checked={layers.orbits} onChange={() => ops.layer("orbits")} data-testid="ops-quick-orbits" />
         <span><b>Satelliti</b><small>posizioni calcolate (SGP4), non osservate</small></span></label>
+      {/* the world's news, one tap from the map (2026-10-19, author's Fold review): the same switch as in Livelli */}
+      <label className="ops-qrow"><input type="checkbox" className="ops-switch" checked={layers.news} onChange={() => ops.layer("news")} data-testid="ops-quick-news" />
+        <span><b>{OPS.news.label}</b><small>{ORDER.guide.quickNote}</small></span></label>
+      {layers.news && <NewsWindow hint />}
       <MaritimeGroup map={map} prefix="ops-quick" />
     </div>);
 }

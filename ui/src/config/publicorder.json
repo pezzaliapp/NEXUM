@@ -214,6 +214,21 @@
    "note": "come 6 ore, per 24 ore; circa 6–9 MB: meglio in Wi-Fi"
   }
  ],
+ "guide": {
+  "_doc": "How to reach the news (2026-10-19, author's Fold review): the real path on each screen; the windows that exist (1, 6, 24 hours).",
+  "invite": "Scopri cosa accade nel mondo: attiva e scegli 1, 6 o 24 ore.",
+  "quickNote": "riportato dai media, codifica automatica · 1, 6 o 24 ore",
+  "windowTitle": "Notizie delle ultime:",
+  "mapHint": {
+   "touch": "Tocca i punti sulla mappa per leggere le notizie e aprire le fonti.",
+   "desk": "Clicca i punti sulla mappa per leggere le notizie e aprire le fonti."
+  },
+  "details": "Dati scaricati e cosa resta sul dispositivo",
+  "help": {
+   "touch": "Scopri cosa accade nel mondo. Tocca ⌖ Strumenti, attiva Notizie dal mondo (GDELT) e scegli 1, 6 o 24 ore. Tocca i punti sulla mappa per leggere le notizie e consultare le fonti.",
+   "desk": "Scopri cosa accade nel mondo. Apri ≡ Livelli, attiva Notizie dal mondo (GDELT) e scegli 1, 6 o 24 ore. Clicca i punti sulla mappa per leggere le notizie e consultare le fonti."
+  }
+ },
  "retention": "Le segnalazioni restano solo in questa pagina, per la finestra scelta: chiudendo o ricaricando la pagina spariscono, e a ogni aggiornamento quelle fuori finestra sono tolte. NEXUM non salva nulla sul dispositivo (la cache del browser conserva i file GDELT per al massimo un'ora, come indicano i server di GDELT).",
  "reliability": {
   "auto": "Codifica automatica di articoli giornalistici (GDELT): non è un fatto verificato né una dichiarazione ufficiale.",
