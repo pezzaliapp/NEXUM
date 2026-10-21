@@ -345,7 +345,7 @@ Each new map element follows VEDO → TOCCO → CAPISCO → VERIFICO LA FONTE �
 
 **Open after Wave 1:**
 - The real road test of routing and GPS navigation (the author's own test, later).
-- D6 (GDACS suspension): implemented and set aside as a patch, not in Wave 1.
+- D6 (GDACS suspension): implemented and set aside as a patch, not in Wave 1. Applied on 2026-10-21 (the author's GO D6): `ui/src/ops/alerts.ts` never asks GDACS, the layer cannot be turned on (not from a saved state or a link either), «Allerte e notizie» says the source is suspended, `https://www.gdacs.org` is out of the CSP (declared reduction), the EONET events that name GDACS are unchanged and the site's notices keep GDACS's attribution as their upstream source; `ui/tests/web/gdacs-d6.spec.ts` proves zero requests to gdacs.org.
 - D7 option A and D5 headlines: approved, for Wave 3.
 
 **Tests that depend on an external source (flaky, recorded, never hidden):**

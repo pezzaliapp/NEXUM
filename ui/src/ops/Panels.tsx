@@ -189,10 +189,11 @@ async function nexumIn(box: [number, number, number, number], types?: string[], 
 }
 
 // ── LAYERS ────────────────────────────────────────────────────────────────
-const LAYER_LIST: { k: keyof OpsLayers; label: string; note?: string }[] = [
+/** `off`: a layer that cannot be turned on, and why (said next to it). */
+const LAYER_LIST: { k: keyof OpsLayers; label: string; note?: string; off?: string }[] = [
   { k: "orbits", label: OPS.orbits.label, note: "posizioni calcolate (SGP4), non osservate" },
   { k: "quakes", label: OPS.alerts.layerLabel, note: "verificati da un'istituzione, M 2,5+" },
-  { k: "gdacs", label: "Allerte GDACS (arancioni e rosse)", note: "Commissione europea e Nazioni Unite, automatiche" },
+  { k: "gdacs", label: "Allerte GDACS (arancioni e rosse)", off: OPS.alerts.gdacsSuspended },
   { k: "nws", label: "Avvisi meteo gravi NWS (USA)", note: "solo Stati Uniti" },
   { k: "news", label: OPS.news.label, note: "riportato dai media, codifica automatica" },
   { k: "hotspots", label: "Punti caldi (incendi attivi, 24 h)", note: "rilevamenti VIIRS, non incendi confermati" },
@@ -236,8 +237,9 @@ function LayersPanel({ map }: { map: MLMap }) {
           <ul className="ops-list">
             {ks.map((k) => LAYER_LIST.find((x) => x.k === k)!).map((l) => (
           <li key={l.k}><label className="row">
-            <input type="checkbox" className="ops-switch" checked={layers[l.k]} data-testid={`ops-layer-${l.k}`} onChange={() => ops.layer(l.k)} />
+            <input type="checkbox" className="ops-switch" checked={layers[l.k] && !l.off} disabled={!!l.off} data-testid={`ops-layer-${l.k}`} onChange={() => ops.layer(l.k)} />
             <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}
+              {l.off && <span className="xs warn" data-testid={`ops-layer-${l.k}-off`}> · {l.off}</span>}
               {(() => { const f = fresh(l.k); return f ? <span className={`xs ${f.cls}`} data-testid={`ops-layer-${l.k}-state`}> · {f.text}</span> : null; })()}</span>
             {counts[l.k] ? <span className="mono xs dim">{counts[l.k].toLocaleString("it-IT")}</span> : null}
           </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}{l.k === "news" && (layers.news ? <NewsWindow hint /> : <p className="xs faint ops-invite" data-testid="ops-layer-news-invite">{ORDER.guide.invite}</p>)}</li>))}
@@ -333,7 +335,7 @@ function ShapeRow({ s, map }: { s: Shape; map: MLMap }) {
   };
   const types = store.get().types;
   // WATCH (OSIRIS's area tripwire, for events only — never vehicles or people): while this page is open, the live alerts
-  // (geological survey, GDACS, NWS, grouped news) that appear inside the shape after the watch starts are logged here
+  // (geological survey, NWS, grouped news) that appear inside the shape after the watch starts are logged here
   const [watch, setWatch] = useState(false);
   const [log, setLog] = useState<{ base: number; fresh: { id: string; title: string; kind: string; t: number }[] } | null>(null);
   useEffect(() => {
@@ -525,17 +527,18 @@ function AlertsPanel({ map }: { map: MLMap }) {
       <div className="ops-srcs xs" data-testid="ops-alerts-sources">{KINDS.map((k) => { const f = feeds[k];
         if (k === "news" && f && !f.error) return <span key={k} className={ns.cls === "archive" || ns.cls === "late" ? "warn" : ""} data-testid="ops-alerts-news-state">{SOURCE_NAME[k]} {f.items.length} · {ns.text}</span>;
         return <span key={k} className={f?.error ? "warn" : ""} title={f?.error ?? ""}>{SOURCE_NAME[k]} {f ? (f.error ? "non raggiungibile" : `${f.items.length} · ${ago(f.fetched)}`) : "…"}</span>; })}
+        <span className="warn" title={OPS.alerts.gdacsSuspended} data-testid="ops-alerts-gdacs-off">{SOURCE_NAME.gdacs} sospese</span>
         <button type="button" className="xs" data-testid="ops-alerts-refresh" onClick={() => load(true)}>Aggiorna</button></div>
       <div className="seg" role="tablist">{TABS.map(([k, label]) => <button key={k} type="button" role="tab" aria-pressed={tab === k} data-testid={`ops-alerts-tab-${k}`} onClick={() => setTab(k)}>{label} {count(k)}</button>)}</div>
       <div className="row xs"><input type="search" className="grow" value={q} placeholder="Cerca: luogo, tipo, fonte…" onChange={(e) => setQ(e.target.value)} data-testid="ops-alerts-q" />
         <label className="ops-qrow"><input type="checkbox" checked={inView} onChange={() => setInView(!inView)} data-testid="ops-alerts-inview" /> solo nella vista</label></div>
       <p className="xs" data-testid="ops-alerts-summary">{(() => {
         const day = all.filter((r) => r.t != null && Date.now() - r.t < 864e5);
-        const q5 = day.filter((r) => r.kind === "geo" && Number(r.props?.mag) >= 5).length, red = all.filter((r) => r.kind === "gdacs" && r.level === "Red").length;
+        const q5 = day.filter((r) => r.kind === "geo" && Number(r.props?.mag) >= 5).length;
         const ext = all.filter((r) => r.kind === "nws" && r.level === "Extreme").length, rep = all.filter((r) => !r.verified).length;
-        return `Ultime 24 ore: ${day.length} elementi · terremoti M 5+: ${q5} · allerte GDACS rosse in corso: ${red} · avvisi NWS estremi: ${ext} · notizie raggruppate: ${rep}.`;
+        return `Ultime 24 ore: ${day.length} elementi · terremoti M 5+: ${q5} · avvisi NWS estremi: ${ext} · notizie raggruppate: ${rep}.`;
       })()}</p>
-      <p className="xs dim">{CARD.alertsNote}</p>
+      <p className="xs dim">{CARD.alertsNote} {OPS.alerts.gdacsSuspended}</p>
       {(tab === "reported" || tab === "order") && <NewsWindow />}
       {tab === "order" && <div data-testid="ops-alerts-cats">
         <div className="ops-chips">{[null, ...ORDER.categories.map((c) => c.id)].map((id) => {
@@ -556,7 +559,7 @@ function AlertsPanel({ map }: { map: MLMap }) {
                   <span className="xs dim"> · {r.t ? ago(r.t) : "senza ora"} · {r.src}{r.n ? ` · ${r.n} articoli` : ""}{r.level ? ` · ${r.level}` : ""}</span></span>
               </button>{r.url && <a className="xs" href={r.url} target="_blank" rel="noopener noreferrer">fonte ↗</a>}</li>))}</ul></section>))}
         {!rows.length && <p className="xs dim" data-testid="ops-alerts-empty">Nessun elemento con questi filtri.</p>}</div>
-      <Credit>{[OPS.alerts.geoCredit, OPS.alerts.gdacsCredit, OPS.alerts.nwsCredit, OPS.news.credit].join(" · ")}</Credit>
+      <Credit>{[OPS.alerts.geoCredit, OPS.alerts.nwsCredit, OPS.news.credit].join(" · ")}</Credit>
     </>);
 }
 

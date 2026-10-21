@@ -26,7 +26,7 @@
       "auto": true
     }
   ],
-  "live": "Letti dal browser e non conservati: «Allerte e notizie» — terremoti USGS delle ultime 24 ore, allerte GDACS, avvisi NWS per gli Stati Uniti (in diretta dalle fonti) e notizie GDELT (un file ogni 15 minuti, non in diretta).",
+  "live": "Letti dal browser e non conservati: «Allerte e notizie» — terremoti USGS delle ultime 24 ore, avvisi NWS per gli Stati Uniti (in diretta dalle fonti) e notizie GDELT (un file ogni 15 minuti, non in diretta).",
   "partial": [
     {
       "id": "gdelt.events",

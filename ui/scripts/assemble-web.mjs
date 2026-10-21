@@ -145,7 +145,10 @@ const notices = [
   "",
   "SERVIZI CHIESTI DAL BROWSER SOLO SU RICHIESTA (strumenti e livelli operativi; nessuna copia, nessun proxy)",
   ...(() => { const O = JSON.parse(fs.readFileSync(path.join(root, "src", "config", "ops.json"), "utf8"));
-    return [O.alerts.geoCredit, O.alerts.gdacsCredit, O.alerts.nwsCredit, O.portwatch.credit, O.route.credit, O.cables.credit, O.routes.credit, O.arcgis.credit].map((c) => `- ${c}`); })(),
+    return [O.alerts.geoCredit, O.alerts.nwsCredit, O.portwatch.credit, O.route.credit, O.cables.credit, O.routes.credit, O.arcgis.credit].map((c) => `- ${c}`); })(),
+  "",
+  "FONTI A MONTE CITATE NEI DATI GIÀ PUBBLICATI (mai chieste da NEXUM)",
+  `- ${JSON.parse(fs.readFileSync(path.join(root, "src", "config", "ops.json"), "utf8")).alerts.gdacsCredit}.`,
   "",
   "IMMAGINI DALL'ORBITA (chieste dal browser solo su richiesta; nessuna copia, nessun archivio, nessun proxy)",
   "- NASA GIBS / ESDIS (Worldview Snapshots), NASA CMR: imagery NASA, attribuzione richiesta; HLS S30: contains modified Copernicus Sentinel data.",

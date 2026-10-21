@@ -311,28 +311,10 @@
   "n2yo": "https://www.n2yo.com/satellite/?s={norad}"
  },
  "alerts": {
-  "gdacs": "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=EQ;TC;FL;VO;DR;WF&alertlevel=Orange;Red",
-  "gdacsCredit": "GDACS (Commissione europea, Nazioni Unite) — allerte automatiche",
-  "gdacsTypes": {
-   "EQ": "Terremoto",
-   "TC": "Ciclone tropicale",
-   "FL": "Alluvione",
-   "VO": "Vulcano",
-   "DR": "Siccità",
-   "WF": "Incendio"
-  },
+  "gdacsCredit": "GDACS (Commissione europea, Nazioni Unite): nominato come fonte a monte di eventi NASA EONET già pubblicati; NEXUM non contatta gdacs.org (accesso diretto sospeso, condizioni di riuso non confermate)",
+  "gdacsSuspended": "Allerte GDACS sospese: le condizioni di riuso di GDACS non sono confermate, NEXUM non contatta gdacs.org (decisione D6).",
   "nws": "https://api.weather.gov/alerts/active?status=actual&severity=Extreme,Severe&limit=60",
   "nwsCredit": "US National Weather Service (dominio pubblico) — solo Stati Uniti",
-  "gdacsFields": {
-   "type": "eventtype",
-   "name": "name",
-   "level": "alertlevel",
-   "place": "country",
-   "from": "fromdate",
-   "to": "todate",
-   "severity": "severitydata",
-   "links": "url"
-  },
   "geoFeed": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",
   "geoCredit": "Terremoti: U.S. Geological Survey (dominio pubblico) — ultime 24 ore, M 2,5 e oltre, aggiornati ogni minuto alla fonte",
   "names": {
@@ -857,11 +839,11 @@
   ],
   [
    "Solo se accendi il livello",
-   "NOAA nowCOAST (nubi), NASA GIBS (precipitazioni), Terrain Tiles AWS (rilievo), Digitraffic (navi), NOAA SWPC (aurora), USGS (terremoti in diretta), GDACS e NWS (allerte), GDELT (notizie: i file pubblici di data.gdeltproject.org, nessun dato tuo), IMF PortWatch su ArcGIS (stretti e porti), i gestori delle telecamere (anteprime sulla mappa, solo da zoom 13)"
+   "NOAA nowCOAST (nubi), NASA GIBS (precipitazioni), Terrain Tiles AWS (rilievo), Digitraffic (navi), NOAA SWPC (aurora), USGS (terremoti in diretta), NWS (allerte), GDELT (notizie: i file pubblici di data.gdeltproject.org, nessun dato tuo), IMF PortWatch su ArcGIS (stretti e porti), i gestori delle telecamere (anteprime sulla mappa, solo da zoom 13)"
   ],
   [
    "Solo se apri lo strumento o agisci",
-   "USGS, GDACS e NWS (avvisi in diretta), GDELT (notizie, in «Allerte e notizie»), BCE/Frankfurter, Coinbase e Tesoro USA (mercati), Photon e FOSSGIS Valhalla/OSRM (percorsi e profilo altimetrico; a FOSSGIS solo l'origine del sito, come chiedono), Open-Meteo e Wikipedia (punto), Earth Search (Sentinel-2), ArcGIS Online (cerca e importa), IMF PortWatch (transiti e scali di un giorno), DNS/RDAP/CT/RIPE/MITRE/Shodan InternetDB (rete), INFORM e DefiLlama (registri), YouTube (dirette, solo quando avvii il video), X/LinkedIn/Reddit e N2YO/CelesTrak (solo se tocchi il collegamento)"
+   "USGS e NWS (avvisi in diretta), GDELT (notizie, in «Allerte e notizie»), BCE/Frankfurter, Coinbase e Tesoro USA (mercati), Photon e FOSSGIS Valhalla/OSRM (percorsi e profilo altimetrico; a FOSSGIS solo l'origine del sito, come chiedono), Open-Meteo e Wikipedia (punto), Earth Search (Sentinel-2), ArcGIS Online (cerca e importa), IMF PortWatch (transiti e scali di un giorno), DNS/RDAP/CT/RIPE/MITRE/Shodan InternetDB (rete), INFORM e DefiLlama (registri), YouTube (dirette, solo quando avvii il video), X/LinkedIn/Reddit e N2YO/CelesTrak (solo se tocchi il collegamento)"
   ],
   [
    "Mai",
@@ -886,7 +868,7 @@
   "imported": "Importato da te — solo in questo browser, non pubblicato",
   "gdacs": "Allerta GDACS · calcolata automaticamente da Commissione europea e Nazioni Unite",
   "nws": "Avviso del servizio meteorologico nazionale degli Stati Uniti (NWS)",
-  "alertsNote": "VERIFICATO: misurato o emesso da un'istituzione (USGS, GDACS, NWS) o evento NEXUM con le sue prove. RIPORTATO: ciò che i media hanno scritto, codificato automaticamente da GDELT; più righe sono un solo elemento quando vengono dallo stesso articolo e luogo, o quando GDELT ha codificato la stessa azione nello stesso luogo, fra gli stessi attori, nella stessa ora. Un punto vuoto sulla mappa: luogo non confermato o approssimato.",
+  "alertsNote": "VERIFICATO: misurato o emesso da un'istituzione (USGS, NWS) o evento NEXUM con le sue prove. RIPORTATO: ciò che i media hanno scritto, codificato automaticamente da GDELT; più righe sono un solo elemento quando vengono dallo stesso articolo e luogo, o quando GDELT ha codificato la stessa azione nello stesso luogo, fra gli stessi attori, nella stessa ora. Un punto vuoto sulla mappa: luogo non confermato o approssimato.",
   "importedArcgis": "Importato da ArcGIS Online — dataset pubblico di {owner}, licenza dichiarata dal proprietario; solo in questo browser",
   "choke": "Stretto marittimo · conteggi misurati dai segnali AIS (IMF PortWatch); nessun livello di «rischio» editoriale",
   "naval": "Base navale come mappata in OpenStreetMap — solo nome e gestore",

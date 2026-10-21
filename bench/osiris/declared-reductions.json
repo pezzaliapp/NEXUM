@@ -32,5 +32,19 @@
   ],
   "list": "connect",
   "reference": "e2b17d0 (the approved PRE baseline's tree: 52 connect hosts)"
+ },
+ {
+  "key": "media.hosts.connect",
+  "from": 52,
+  "reduction": 1,
+  "to": 43,
+  "what": "https://www.gdacs.org removed from the Content-Security-Policy connect-src: the browser no longer asks GDACS for its alerts; the GDACS layer cannot be turned on and «Allerte e notizie» says the source is suspended.",
+  "why": "Decision D6 (GDACS: direct access SUSPENDED — licence unconfirmed): gdacs.org/About/termofuse.aspx gives disclaimers only, no permission to reuse. The EONET events that name GDACS among their sources are kept unchanged, with the attribution in the site's notices.",
+  "approved": "2026-10-21, Alessandro Pezzali (GO D6: 'Rimuovi dalla CSP l'autorizzazione a gdacs.org soltanto se non serve ad altre funzionalità legittime')",
+  "hosts": [
+   "https://www.gdacs.org"
+  ],
+  "list": "connect",
+  "reference": "e2b17d0 (the approved PRE baseline's tree: 52 connect hosts)"
  }
 ]

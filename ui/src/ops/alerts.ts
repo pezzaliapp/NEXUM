@@ -2,8 +2,10 @@
 // saying what kind of knowledge it is —
 //   REPORTED   by the news media (GDELT, automatic coding of articles; several articles and rows about the same action
 //              in the same place in the same hour are ONE item, with all their sources) — never a verified fact;
-//   VERIFIED   by an institution: the geological survey's live events, GDACS alerts (EC/UN, automatic), NWS warnings, and
-//              NEXUM's own events (with their evidence, relations and timeline).
+//   VERIFIED   by an institution: the geological survey's live events, NWS warnings, and NEXUM's own events (with their
+//              evidence, relations and timeline).
+// GDACS (2026-10-21, D6): SUSPENDED — its reuse terms are not confirmed, so no request reaches gdacs.org (the host is
+// out of the CSP too); the kind stays only so the panel can say so.
 // Shared by the panel and the map layers (one download per source and refresh). Nothing is stored outside this page.
 import OPS from "../config/ops.json";
 import NEWS from "../config/news.json";
@@ -130,14 +132,9 @@ async function geoEvents(): Promise<Feed> {
         props: { qid: f.id, mag: p.mag, place: p.place, time: p.time, depth: f.geometry.coordinates[2], tsunami: p.tsunami, felt: p.felt, alert: p.alert,
           sig: p.sig, status: p.status, url: p.url, magType: p.magType } }; }) };
 }
+// D6: never downloaded — an empty feed that says why
 async function gdacs(): Promise<Feed> {
-  const d = await json(A.gdacs), F = A.gdacsFields as Record<string, string>, types = A.gdacsTypes as Record<string, string>;
-  return { fetched: Date.now(), meta: { attribution: A.gdacsCredit },
-    items: ((d.features ?? []) as any[]).map((f, i) => { const p = f.properties ?? {};
-      return { id: `gdacs:${p.eventid ?? i}`, kind: "gdacs" as const, verified: true, title: `${types[p[F.type]] ?? p[F.type]} · ${p[F.name] ?? ""}`, place: p[F.place] ?? "",
-        t: p[F.from] ? Date.parse(p[F.from]) : null, c: f.geometry?.coordinates?.slice(0, 2) ?? null, src: "GDACS", url: p[F.links]?.report ?? null,
-        level: String(p[F.level] ?? ""), props: { type: types[p[F.type]] ?? p[F.type], name: p[F.name], place: p[F.place], level: p[F.level],
-          from: p[F.from], to: p.todate, severity: p[F.severity]?.severitytext, url: p[F.links]?.report } }; }) };
+  return { items: [], fetched: Date.now(), error: A.gdacsSuspended, meta: { suspended: true } };
 }
 async function nws(): Promise<Feed> {
   const d = await json(A.nws, { headers: { Accept: "application/geo+json" } });
@@ -163,5 +160,6 @@ export function feed(k: AlertKind, fresh = false): Promise<Feed> {
   cache.set(k, { at: Date.now(), p });
   return p;
 }
-export const KINDS: AlertKind[] = ["geo", "gdacs", "nws", "news"];
+/** The sources asked (GDACS is suspended, D6: never asked). */
+export const KINDS: AlertKind[] = ["geo", "nws", "news"];
 export const SOURCE_NAME = A.names as Record<AlertKind, string>;

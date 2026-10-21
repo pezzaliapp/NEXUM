@@ -81,7 +81,8 @@ function initial(): OpsState {
   return {
     base: fromHash.base ?? (saved.base as BaseMode) ?? "map",
     projection: fromHash.projection ?? (saved.projection as Projection) ?? "globe",
-    layers: { ...DEFAULT_LAYERS, ...(saved.layers ?? {}), ...(fromHash.layers ?? {}) },
+    // GDACS never on (D6, suspended): not from a saved state, not from a shared link
+    layers: { ...DEFAULT_LAYERS, ...(saved.layers ?? {}), ...(fromHash.layers ?? {}), gdacs: false },
     tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false, newsStatus: null, newsFilter: { nation: "", city: "", cat: "", geo: "" },
   };
 }
@@ -121,7 +122,7 @@ export const ops = {
     try { localStorage.setItem(LS, JSON.stringify({ base: state.base, projection: state.projection, layers: state.layers, theme: state.theme })); } catch { /* ignore */ }
     subs.forEach((f) => f());
   },
-  layer(k: keyof OpsLayers, on?: boolean) { ops.set({ layers: { ...state.layers, [k]: on ?? !state.layers[k] } }); },
+  layer(k: keyof OpsLayers, on?: boolean) { if (k !== "gdacs") ops.set({ layers: { ...state.layers, [k]: on ?? !state.layers[k] } }); },
   tool(t: Tool | null) {
     const next = state.tool === t ? null : t;
     ops.set({ tool: next, palette: false, pick: null, sheet: "half" });   // every tool opens at half: the map stays in view
