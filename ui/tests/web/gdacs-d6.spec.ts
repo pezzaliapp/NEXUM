@@ -49,14 +49,17 @@ test("zero requests to GDACS: alerts panel, refresh, tabs, layer (saved, linked,
   page.on("console", (m) => { if (GDACS.test(m.text())) hits.push(`console ${m.text().slice(0, 200)}`); });
   const all = async () => [...hits, ...await page.evaluate(() => (window as any).__gdacs as string[]).catch(() => [])];
 
-  // a saved state with the GDACS layer on, and a shared link asking for it
+  // a saved state with the GDACS layer on, and a shared link asking for it, read by a real new load of the page (a
+  // change of the # alone reloads nothing): the saved buildings off and the linked quakes on prove both were read
   await page.goto(BASE);
-  await page.evaluate(() => { localStorage.setItem("nexum.ops.v1", JSON.stringify({ layers: { gdacs: true } })); });
+  await page.evaluate(() => { localStorage.setItem("nexum.ops.v1", JSON.stringify({ layers: { gdacs: true, buildings: false } })); });
+  await page.goto("about:blank");
   await page.goto(`${BASE}#v=150,10,1.6&l=gdacs,quakes`);
   await page.waitForFunction(() => performance.getEntriesByName("nexum:ready").length > 0, null, { timeout: 120_000 });
   await page.waitForFunction(() => (window as any).__nexum.ops, null, { timeout: 30_000 });
-  const ops = () => page.evaluate(() => (window as any).__nexum.ops.get().layers.gdacs as boolean);
-  expect(await ops()).toBe(false);
+  const layers = () => page.evaluate(() => (window as any).__nexum.ops.get().layers);
+  const ops = async () => (await layers()).gdacs as boolean;
+  expect(await layers()).toMatchObject({ gdacs: false, buildings: false, quakes: true });
 
   // the layer: shown, cannot be turned on, says why; asked by code, it stays off
   await page.evaluate(() => (window as any).__nexum.ops.tool("layers"));

@@ -137,6 +137,7 @@ async function gdacs(): Promise<Feed> {
   return { items: [], fetched: Date.now(), error: A.gdacsSuspended, meta: { suspended: true } };
 }
 async function nws(): Promise<Feed> {
+  // the API no longer takes "limit" (HTTP 400 since 2026-10): at most nwsMax alerts are kept here, in the order NWS gives
   const d = await json(A.nws, { headers: { Accept: "application/geo+json" } });
   const centre = (g: any): [number, number] | null => {
     const ring = g?.type === "Polygon" ? g.coordinates[0] : g?.type === "MultiPolygon" ? g.coordinates[0][0] : null;
@@ -145,7 +146,7 @@ async function nws(): Promise<Feed> {
     return [s[0] / ring.length, s[1] / ring.length];
   };
   return { fetched: Date.now(), meta: { attribution: A.nwsCredit },
-    items: ((d.features ?? []) as any[]).map((f) => { const p = f.properties;
+    items: ((d.features ?? []) as any[]).slice(0, A.nwsMax).map((f) => { const p = f.properties;
       return { id: `nws:${f.id}`, kind: "nws" as const, verified: true, title: p.event, place: p.areaDesc ?? "", t: p.sent ? Date.parse(p.sent) : null,
         c: centre(f.geometry), src: "NWS", url: p["@id"] ?? null, level: p.severity,
         props: { event: p.event, area: p.areaDesc, severity: p.severity, urgency: p.urgency, certainty: p.certainty, sent: p.sent, expires: p.expires, headline: p.headline, url: p["@id"] } }; }) };

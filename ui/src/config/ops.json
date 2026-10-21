@@ -313,7 +313,8 @@
  "alerts": {
   "gdacsCredit": "GDACS (Commissione europea, Nazioni Unite): nominato come fonte a monte di eventi NASA EONET già pubblicati; NEXUM non contatta gdacs.org (accesso diretto sospeso, condizioni di riuso non confermate)",
   "gdacsSuspended": "Allerte GDACS sospese: le condizioni di riuso di GDACS non sono confermate, NEXUM non contatta gdacs.org (decisione D6).",
-  "nws": "https://api.weather.gov/alerts/active?status=actual&severity=Extreme,Severe&limit=60",
+  "nws": "https://api.weather.gov/alerts/active?status=actual&severity=Extreme,Severe",
+  "nwsMax": 60,
   "nwsCredit": "US National Weather Service (dominio pubblico) — solo Stati Uniti",
   "geoFeed": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",
   "geoCredit": "Terremoti: U.S. Geological Survey (dominio pubblico) — ultime 24 ore, M 2,5 e oltre, aggiornati ogni minuto alla fonte",
