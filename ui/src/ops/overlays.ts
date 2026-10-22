@@ -9,6 +9,7 @@ import { call } from "../lib/api";
 import { ops } from "./state";
 import { isConfirmed, nationGroups } from "./newsmap";
 import { feed, type AlertKind } from "./alerts";
+import { splitHotspots } from "../lib/hotspots";
 
 const busy = () => !!((window as any).__nexumDrawing || (window as any).__nexumPicking);   // a tool owns the taps
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
@@ -163,7 +164,7 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     if (newsOn) loadNews();
   };
   liveTimer = window.setInterval(loadLive, 5 * 60_000);
-  let aisTimer = 0, aisOn = false, auroraOn = false, auroraTimer = 0, hotOn = false, cablesOn = false, newsOn = false;
+  let aisTimer = 0, aisOn = false, auroraOn = false, auroraTimer = 0, hotOn = false, hotTimer = 0, hotRows: any[][] = [], cablesOn = false, newsOn = false;
   // the live alerts drawn from the shared feeds (GDELT news grouped: one point per action and place, all its articles)
   const loadFeed = async (k: AlertKind, layer: string, on: () => boolean, count: string) => {
     const f = await feed(k);
@@ -186,16 +187,30 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     ops.count("news", f.items.length);
   };
   window.addEventListener("nexum:news-window", () => { if (newsOn) loadNews(); });
+  // only the detections of the last 24 hours (device clock, UTC) are drawn as active fires; the table loaded once is
+  // filtered again every 5 minutes without the network, so a detection leaves the map when it turns 24 hours old
+  const drawHot = () => {
+    if (!hotOn) return;
+    const h = splitHotspots(hotRows, Date.now());
+    const feats = h.recent.map((x) => ({ type: "Feature" as const, properties: { frp: x[2], c: x[3], t: x[4], s: x[5] },
+      geometry: { type: "Point" as const, coordinates: [x[0], x[1]] } }));
+    (map.getSource("ops-hotspots") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats });
+    ops.count("hotspots", feats.length);
+    ops.set({ hotStatus: { recent: feats.length, old: h.old, newestMs: h.newestMs, oldestMs: h.oldestMs, error: false } });
+  };
   const loadHot = async () => {
     try {
       const r = await call<any>("/tables/hotspots", undefined, { channel: "hotspots" });
       if (!hotOn) return;
       tableMeta.hotspots = r.data;
-      const feats = (r.data.rows as any[]).map((x) => ({ type: "Feature" as const, properties: { frp: x[2], c: x[3], t: x[4], s: x[5] },
-        geometry: { type: "Point" as const, coordinates: [x[0], x[1]] } }));
-      (map.getSource("ops-hotspots") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats });
-      ops.count("hotspots", feats.length);
-    } catch { ops.count("hotspots", 0); }
+      hotRows = r.data.rows as any[][];
+      drawHot();
+    } catch {
+      hotRows = [];
+      (map.getSource("ops-hotspots") as GeoJSONSource).setData(EMPTY);
+      ops.count("hotspots", 0);
+      ops.set({ hotStatus: { recent: 0, old: 0, newestMs: null, oldestMs: null, error: true } });
+    }
   };
   // cables: OpenStreetMap's global extract published by NEXUM (one download when turned on; every zoom)
   const loadCables = async () => {
@@ -278,7 +293,9 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     for (const id of ["ops-hotspots", "ops-hotspots-heat"]) vis(id, l.hotspots);
     if (l.hotspots !== hotOn) {
       hotOn = l.hotspots;
-      if (hotOn) loadHot(); else { (map.getSource("ops-hotspots") as GeoJSONSource).setData(EMPTY); ops.count("hotspots", 0); }
+      window.clearInterval(hotTimer);
+      if (hotOn) { loadHot(); hotTimer = window.setInterval(drawHot, 5 * 60_000); }
+      else { (map.getSource("ops-hotspots") as GeoJSONSource).setData(EMPTY); ops.count("hotspots", 0); hotRows = []; ops.set({ hotStatus: null }); }
     }
     vis("ops-news", l.news); vis("ops-news-agg", l.news);
     if (l.news !== newsOn) {
@@ -328,5 +345,5 @@ export function installOverlays(map: MLMap, before?: string): () => void {
     map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
   }
-  return () => { u1(); u2(); map.off("click", pick); window.clearInterval(liveTimer); hlMap = null; window.clearInterval(aisTimer); window.clearInterval(auroraTimer); };
+  return () => { u1(); u2(); map.off("click", pick); window.clearInterval(liveTimer); hlMap = null; window.clearInterval(aisTimer); window.clearInterval(auroraTimer); window.clearInterval(hotTimer); };
 }

@@ -32,6 +32,10 @@ test("the notices hold the licence text of every distributed package", async ({ 
   expect(t).toContain("UNICODE LICENSE V3");
   expect(t).toContain("CONDIZIONI SHARE-ALIKE");
   expect(t).toContain("Apache License");
+  // NASA FIRMS (2026-10-22): the acknowledgement FIRMS asks for and a link to the LANCE disclaimer (README FIRMS, §4)
+  expect(t).toContain("We acknowledge the use of imagery from the NASA LANCE FIRMS");
+  expect(t).toContain("https://www.earthdata.nasa.gov/data/projects/lance/disclaimer");
+  expect(t).toMatch(/^- NASA FIRMS .*\(nasa\.firms\) — nasa-open-data — Hotspots: NASA FIRMS \(LANCE\)/m);
 });
 
 test("Aiuto links the notices; opening them keeps the app's stored page", async ({ page, context }) => {

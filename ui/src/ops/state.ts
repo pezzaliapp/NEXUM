@@ -3,6 +3,7 @@
 // query, never sent anywhere. A small store of its own (the workspace store keeps the world's information).
 
 import { useSyncExternalStore } from "react";
+import type { HotStatus } from "../lib/hotspots";
 
 export type BaseMode = "map" | "sat" | "today";
 export type Projection = "globe" | "flat";
@@ -58,6 +59,9 @@ export interface OpsState {
   /** The news feed as last loaded (GDELT from the browser, or the snapshot's archive): what the layer and the panels
    *  say about its freshness. null until the feed is first asked. Never saved. */
   newsStatus: NewsStatus | null;
+  /** The hotspots layer as last drawn: how many detections are recent (drawn) and how many are older than 24 hours
+   *  (left in the archive), or that the table could not be read. null while the layer is off. Never saved. */
+  hotStatus: HotStatus | null;
   /** The news list's filters (Notizie e ordine pubblico): nation and city names as GDELT gives them, a category, the
    *  place's certainty (confirmed / uncertain). Never saved. */
   newsFilter: NewsFilter;
@@ -83,7 +87,7 @@ function initial(): OpsState {
     projection: fromHash.projection ?? (saved.projection as Projection) ?? "globe",
     // GDACS never on (D6, suspended): not from a saved state, not from a shared link
     layers: { ...DEFAULT_LAYERS, ...(saved.layers ?? {}), ...(fromHash.layers ?? {}), gdacs: false },
-    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false, newsStatus: null, newsFilter: { nation: "", city: "", cat: "", geo: "" },
+    tool: null, palette: false, sheet: "half", pick: null, point: null, orbit: null, feat: null, satOff: [], satObs: false, kpTime: null, streetsStatus: "idle", theme: (saved.theme as string) ?? "nexum", kp: null, counts: {}, splash: true, navigating: false, newsStatus: null, hotStatus: null, newsFilter: { nation: "", city: "", cat: "", geo: "" },
   };
 }
 

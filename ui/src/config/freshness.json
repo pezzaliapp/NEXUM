@@ -3,6 +3,7 @@
 "maxAgeHours": {
   "gdelt.events": 24,
   "nasa.firms": 24,
+  "nasa.firms.noaa20": 24,
   "usgs.earthquakes": 48,
   "nasa.eonet": 48,
   "cems.rapid_mapping": 48,

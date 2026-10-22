@@ -236,7 +236,7 @@ def _report(tmp_path, publish):
 
 def test_celestrak_in_the_daily_publish_only(tmp_path):
     assert _report(tmp_path, publish=False)["sources"] == list(pipe.PHASE1)
-    assert _report(tmp_path, publish=True)["sources"] == [*pipe.PHASE1, "celestrak.gp"]
+    assert _report(tmp_path, publish=True)["sources"] == [*pipe.PHASE1, "celestrak.gp", "nasa.firms", "nasa.firms.noaa20"]
 
 
 def test_the_pipeline_runs_celestrak_through_the_runner_and_the_others_as_before(monkeypatch):

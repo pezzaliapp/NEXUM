@@ -391,38 +391,50 @@ class Service:
         from the source's latest payload of every resource (connector function table(payloads) → fields, rows,
         notes). Generic: what the table holds is the connector's and the vocabulary's business, never this layer's."""
         import importlib
-        src = next((s for s in self.sources.values() if (s.options or {}).get("published_table") == name), None)
-        if src is None:
+        # several sources may publish ONE table (2026-10-22, NASA FIRMS: one source per sensor, so that one failing
+        # never stops the other): same connector, distinct resources; the first source by id answers for the table
+        srcs = sorted((s for s in self.sources.values() if (s.options or {}).get("published_table") == name), key=lambda s: s.id)
+        if not srcs:
             raise ApiError(404, "not_found", f"no published table {name!r}")
+        src = srcs[0]
+        if len({s.connector for s in srcs}) > 1:
+            raise ApiError(500, "internal", f"table {name!r}: its sources use different connectors")
         mod = importlib.import_module(src.connector)
         conn = sqlite3.connect(pathlib.Path(self.cfg.db_path).resolve().as_uri() + "?mode=ro", uri=True)
+        latest = []
         try:
-            if hasattr(mod, "usable"):
-                # a connector that can tell a usable payload (usable(bytes)): each resource's newest USABLE one, so an
-                # answer that is not the data (a 200 with an error text) never replaces the last good payload; a
-                # resource with none is left out
-                latest, done = [], set()
-                for k, sha, fetched, url in conn.execute(
-                        "SELECT resource_key, sha256, fetched_ms, url FROM raw_record WHERE source_id=? "
-                        "ORDER BY resource_key, fetched_ms DESC", (src.id,)):
-                    if k not in done and mod.usable(self.raw.store.get(sha)):
-                        latest.append((k, sha, fetched, url))
-                        done.add(k)
-            else:
-                latest = conn.execute(
-                    "SELECT r.resource_key, r.sha256, r.fetched_ms, r.url FROM raw_record r JOIN (SELECT resource_key, MAX(fetched_ms) AS f "
-                    "FROM raw_record WHERE source_id=? GROUP BY resource_key) l ON l.resource_key=r.resource_key AND l.f=r.fetched_ms "
-                    "WHERE r.source_id=? ORDER BY r.resource_key", (src.id, src.id)).fetchall()
+            for s in srcs:
+                if hasattr(mod, "usable"):
+                    # a connector that can tell a usable payload (usable(bytes)): each resource's newest USABLE one, so an
+                    # answer that is not the data (a 200 with an error text) never replaces the last good payload; a
+                    # resource with none is left out
+                    done = set()
+                    for k, sha, fetched, url in conn.execute(
+                            "SELECT resource_key, sha256, fetched_ms, url FROM raw_record WHERE source_id=? "
+                            "ORDER BY resource_key, fetched_ms DESC", (s.id,)):
+                        if k not in done and mod.usable(self.raw.store.get(sha)):
+                            latest.append((k, sha, fetched, url))
+                            done.add(k)
+                else:
+                    latest += conn.execute(
+                        "SELECT r.resource_key, r.sha256, r.fetched_ms, r.url FROM raw_record r JOIN (SELECT resource_key, MAX(fetched_ms) AS f "
+                        "FROM raw_record WHERE source_id=? GROUP BY resource_key) l ON l.resource_key=r.resource_key AND l.f=r.fetched_ms "
+                        "WHERE r.source_id=? ORDER BY r.resource_key", (s.id, s.id)).fetchall()
         finally:
             conn.close()
+        keys = [k for k, _s, _f, _u in latest]
+        if len(keys) != len(set(keys)):
+            raise ApiError(500, "internal", f"table {name!r}: two of its sources fetch the same resource")
         payloads = [(k, self.raw.store.get(sha), fetched, url) for k, sha, fetched, url in latest]
         t = mod.table(payloads)
         data = {"table": name, "source_id": src.id, "fields": t["fields"], "rows": t["rows"], "notes": t.get("notes"),
                 "fetched_ms": max((f for _k, _s, f, _u in latest), default=None),
-                "attribution": src.attribution, "license_id": src.license_id}
+                "attribution": " · ".join(dict.fromkeys(s.attribution for s in srcs)), "license_id": src.license_id}
+        if len(srcs) > 1:
+            data["source_ids"] = [s.id for s in srcs]
         return {"data": data, "lod": "refs", "total": len(t["rows"]), "returned": len(t["rows"]), "truncated": False,
                 "cursor_next": None, "excluded": {}, "facets": None, "highlight": None,
-                "sources": [{"source_id": src.id, "attribution": src.attribution, "license_id": src.license_id}],
+                "sources": [{"source_id": s.id, "attribution": s.attribution, "license_id": s.license_id} for s in srcs],
                 "world_version": None, "as_of": {}, "timing_ms": 0}
 
     def close(self):

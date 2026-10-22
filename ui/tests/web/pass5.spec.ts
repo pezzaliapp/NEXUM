@@ -5,12 +5,14 @@
 // draws features is either interactive (a real click on one of its features gets an answer) or declared context.
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { gdelt } from "../gdelt.shared";
+import { recentHotspots } from "../firms.shared";
 
 const BASE = process.env.NEXUM_WEB ?? "http://127.0.0.1:8791/";
 
 async function open(browser: Browser, touch: boolean) {
   const ctx = await browser.newContext(touch ? { viewport: { width: 430, height: 932 }, isMobile: true, hasTouch: true } : { viewport: { width: 1440, height: 900 } });
   await ctx.route(/youtube|ytimg|googlevideo/, (r) => r.abort());     // no third-party video in the tests
+  await recentHotspots(ctx);           // hotspots are drawn only within the last 24 hours: the snapshot's table, moved to now
   const page = await ctx.newPage();
   // GDELT answers from real files of 17 October 2026, frozen (tests/gdelt.shared.ts): the golden checks stay deterministic
   // (2026-10-18, author's review); the behaviour with the current GDELT is tested apart (tests/web/gdelt-live.spec.ts)

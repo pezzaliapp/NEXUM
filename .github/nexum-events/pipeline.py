@@ -49,8 +49,13 @@ WEB = ROOT / "data" / "deploy" / "web"
 # phase 1 (2026-10-11): the natural events that move fastest; other sources are added one by one, by decision
 PHASE1 = ("usgs.earthquakes", "nasa.eonet", "cems.rapid_mapping")
 # the daily publish only (2026-10-16, option C): CelesTrak's orbital elements, one request per set, through the
-# dedicated runner (no retry, no redirect, stop at the first anomaly); the update runs stay as they are
-PUBLISH_ONLY = ("celestrak.gp",)
+# dedicated runner (no retry, no redirect, stop at the first anomaly); the update runs stay as they are.
+# NASA FIRMS (2026-10-21; 2026-10-22 one source per satellite: nasa.firms = NOAA-21, nasa.firms.noaa20 = NOAA-20): the
+# open 24-hour VIIRS files, once a day through the Core's own fetch (no key; about 12 MB downloaded, about 2.5 MB added
+# to the reference world, measured 2026-10-22): only the publish makes a snapshot, so the update runs would add data
+# nobody sees. Each satellite is fetched, judged and signalled on its own: one failing never stops the other. A failed
+# day keeps the last good file; the browser draws only the last 24 hours.
+PUBLISH_ONLY = ("celestrak.gp", "nasa.firms", "nasa.firms.noaa20")
 RUNNERS = {"celestrak.gp": pathlib.Path(__file__).resolve().parent / "orbits.py"}
 # USGS: the current year's FDSN window (M ≥ 5.5, one request) closes any gap the 7-day feed cannot reach, then the feed
 MODES = {"usgs.earthquakes": ("backfill", "incremental")}
@@ -60,6 +65,9 @@ FETCH_TIMEOUT_S = 1200
 SEARCH_INDEX_MAX_BYTES = 4_600_000
 CF_MAX_FILES, CF_MAX_FILE_BYTES = 20_000, 25 * 1024 * 1024
 MANIFEST, ARCHIVE = "manifest.json", "world.tar.xz"
+# GitHub refuses a release file of 2 GiB or more: above 1.5 GiB the reference world is signalled (never pruned, never
+# migrated here: what to keep is the author's decision)
+ARCHIVE_WARN_BYTES = 1536 * 1024 * 1024
 # raw-record columns that must never reach a published file, whatever the policy of their source says
 NEVER_PUBLISHED = ("source_article", "source_headline", "source_office", "source_original")
 USER_AGENT = "NEXUM-pipeline (+https://github.com/pezzaliapp/NEXUM)"
@@ -125,6 +133,16 @@ def pack(world: pathlib.Path, out: pathlib.Path, label: str) -> dict:
              "sources_last_success_ms": days}
     (out / MANIFEST).write_text(json.dumps(m, indent=1, sort_keys=True))
     return m
+
+
+def archive_too_big(manifest: dict, attention: dict) -> bool:
+    """Above ARCHIVE_WARN_BYTES: an entry in `attention` (nothing else: no file is changed or removed)."""
+    size = manifest.get("archive_bytes") or 0
+    if size <= ARCHIVE_WARN_BYTES:
+        return False
+    attention["reference world archive"] = (f"{ARCHIVE} {size / 2**30:.2f} GiB > {ARCHIVE_WARN_BYTES / 2**30:.1f} GiB "
+                                           "(GitHub limit 2 GiB per release file): a retention decision is needed")
+    return True
 
 
 def _xz(src: pathlib.Path, dst: pathlib.Path):
@@ -431,6 +449,8 @@ def run(a) -> int:
         if after["world_version"] > before["world_version"]:
             nm = pack(LIVE, out / "seed", label=f"world-{after['world_version']}")
             rep["reference_out"] = {k: nm[k] for k in ("label", "world_version", "archive_sha256", "archive_bytes")}
+            if archive_too_big(nm, attention):  # signalled like a source (attention.json), the run goes on
+                (out / "attention.json").write_text(json.dumps(attention, indent=1))
         if not a.publish:
             return finish(0, "reference world updated" if "reference_out" in rep else
                           "nothing new: the reference world stays as it is")

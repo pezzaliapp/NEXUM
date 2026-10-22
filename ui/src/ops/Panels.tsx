@@ -30,7 +30,8 @@ import { newsState } from "./newsstatus";
 import { filterNews, isConfirmed, nationGroups } from "./newsmap";
 import type { NewsFilter } from "./state";
 import { staleDays } from "../lib/freshness";
-import { dayLabel } from "../lib/period";
+import { hotNote, hotSourcesNote } from "../lib/hotspots";
+import { ageOf as obsAge } from "../lib/age";
 import { familyColor, familyLabel, groupOf, GROUPS, loadOrbits, OBSERVERS, orbitDetail } from "./orbits";
 import { epochAgeDays } from "./satgeo";
 import SATVIEW from "../config/satview.json";
@@ -220,14 +221,14 @@ function LayersPanel({ map }: { map: MLMap }) {
   const satObs = useOps((s) => s.satObs);
   const counts = useOps((s) => s.counts);
   const newsSt = useOps((s) => s.newsStatus);
+  const hotSt = useOps((s) => s.hotStatus);
   const status = useStore((s) => s.status);
   // what each layer's data are now: the news feed's own state; a published table whose source stopped is said as such
   const fresh = (k: keyof OpsLayers): { cls: string; text: string } | null => {
     if (k === "news") { const n = newsState(newsSt, Date.now()); return { cls: n.cls === "archive" || n.cls === "late" ? "warn" : "faint", text: n.text }; }
-    const sid = ({ hotspots: "nasa.firms" } as Record<string, string>)[k];
-    const src = sid ? status?.sources.find((x) => x.source_id === sid) : undefined;
-    const d = staleDays(src);
-    return d != null && src?.last_success_ms ? { cls: "warn", text: `dati del ${dayLabel(src.last_success_ms)}, non aggiornati da ${d} giorni` } : null;
+    // the hotspots' sources (one per sensor): each one failing, suspended or stale is said on its own
+    if (k === "hotspots") { const n = hotSourcesNote(status?.sources, (s) => staleDays(s)); return n ? { cls: "warn", text: n.text } : null; }
+    return null;
   };
   return (
     <>
@@ -240,7 +241,8 @@ function LayersPanel({ map }: { map: MLMap }) {
             <input type="checkbox" className="ops-switch" checked={layers[l.k] && !l.off} disabled={!!l.off} data-testid={`ops-layer-${l.k}`} onChange={() => ops.layer(l.k)} />
             <span className="grow">{l.label}{l.note && <span className="xs faint"> · {l.note}</span>}
               {l.off && <span className="xs warn" data-testid={`ops-layer-${l.k}-off`}> · {l.off}</span>}
-              {(() => { const f = fresh(l.k); return f ? <span className={`xs ${f.cls}`} data-testid={`ops-layer-${l.k}-state`}> · {f.text}</span> : null; })()}</span>
+              {(() => { const f = fresh(l.k); return f ? <span className={`xs ${f.cls}`} data-testid={`ops-layer-${l.k}-state`}> · {f.text}</span> : null; })()}
+              {l.k === "hotspots" && layers.hotspots && (() => { const n = hotNote(hotSt); return n ? <span className={`xs ${n.warn ? "warn" : "faint"}`} data-testid="ops-layer-hotspots-age"> · {n.text}</span> : null; })()}</span>
             {counts[l.k] ? <span className="mono xs dim">{counts[l.k].toLocaleString("it-IT")}</span> : null}
           </label>{l.k === "orbits" && <SatObservers />}{l.k === "orbits" && layers.orbits && !satObs && <SatGroups />}{l.k === "news" && (layers.news ? <NewsWindow hint /> : <p className="xs faint ops-invite" data-testid="ops-layer-news-invite">{ORDER.guide.invite}</p>)}</li>))}
           </ul></div>))}
@@ -1885,7 +1887,8 @@ function FeatCard({ map, feat, beside = false }: { map: MLMap; feat: NonNullable
     credit = OPS.alerts.nwsCredit;
   } else if (f.l === "ops-hotspots") {
     title = CARD.hotspotTitle; kind = CARD.hotspot;
-    rows = [["Acquisito", `${String(p.t).replace("T", " ")} UTC`], ["Sensore", meta?.notes?.sensors?.[p.s] ?? p.s], ["Potenza radiativa (FRP)", `${p.frp} MW`],
+    const age = obsAge(`${p.t}Z`, Date.now(), 24);
+    rows = [["Acquisito", `${String(p.t).replace("T", " ")} UTC${age ? ` (${age.text})` : ""}`], ["Sensore", meta?.notes?.sensors?.[p.s] ?? p.s], ["Potenza radiativa (FRP)", `${p.frp} MW`],
       ["Confidenza", p.c === "h" ? "alta" : p.c === "n" ? "nominale" : p.c]];
     link = [`https://firms.modaps.eosdis.nasa.gov/map/#d:24hrs;@${feat.c[0].toFixed(3)},${feat.c[1].toFixed(3)},10z`, "Mappa NASA FIRMS"];
     credit = OPS.hotspots.credit;
