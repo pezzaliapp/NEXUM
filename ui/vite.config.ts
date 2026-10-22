@@ -23,6 +23,8 @@ const installable = (): Plugin => ({
     og("og:locale", "it_IT"), og("og:image", `${ORIGIN}/og-image.png`), og("og:image:secure_url", `${ORIGIN}/og-image.png`),
     og("og:image:type", "image/png"), og("og:image:width", "1200"), og("og:image:height", "630"), og("og:image:alt", MOTTO),
     tw("twitter:card", "summary_large_image"), tw("twitter:title", "NEXUM"), tw("twitter:description", MOTTO), tw("twitter:image", `${ORIGIN}/og-image.png`),
+    // INDEXING (2026-10-22): one address for search engines, the official one, whichever host served the page
+    { tag: "link", attrs: { rel: "canonical", href: `${ORIGIN}/` }, injectTo: "head" },
     { tag: "link", attrs: { rel: "manifest", href: "/manifest.webmanifest" }, injectTo: "head" },
     { tag: "meta", attrs: { name: "theme-color", content: "#0D1012" }, injectTo: "head" },
     { tag: "link", attrs: { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" }, injectTo: "head" },

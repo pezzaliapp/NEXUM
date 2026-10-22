@@ -75,6 +75,10 @@ fs.writeFileSync(path.join(out, "_headers"), [
   "  Cache-Control: no-cache",
   "/manifest.webmanifest",
   "  Cache-Control: no-cache",
+  // the project's pages.dev address serves the same site as the official one: kept out of the index (host rule,
+  // Cloudflare Pages documentation, "Headers"); the official domain does not match it
+  "https://nexum-45e.pages.dev/*",
+  "  X-Robots-Tag: noindex",
   "",
 ].join("\n"));
 // Cloudflare Pages ignores a header value over 2,000 characters: never let a policy be dropped silently
@@ -83,8 +87,10 @@ fs.writeFileSync(path.join(out, "404.html"),
   "<!doctype html><meta charset=utf-8><title>NEXUM — non trovato</title><p>Risorsa non trovata. <a href=\"/\">NEXUM</a></p>\n");
 // the routing services, read by the app at run time (FOSSGIS: service addresses not fixed in the app; switched here)
 fs.writeFileSync(path.join(out, "providers.json"), JSON.stringify({ note: "NEXUM routing providers, in order of use; set \"on\": false to switch one off", route: JSON.parse(fs.readFileSync(path.join(root, "src", "config", "ops.json"), "utf8")).route.providers }, null, 1) + "\n");
-// test deployment: not indexed until the author approves the public address (E3)
-fs.writeFileSync(path.join(out, "robots.txt"), "User-agent: *\nDisallow: /\n");
+// public address approved by the author on 2026-10-22 (https://nexum.pezzalihub.app/): crawling allowed. Until then a
+// test deployment, not indexed (E3). The pages.dev duplicate stays out of the index by its _headers rule; previews carry
+// Cloudflare's own X-Robots-Tag: noindex. robots.txt is no security measure: nothing here is meant to be private.
+fs.writeFileSync(path.join(out, "robots.txt"), "User-agent: *\nAllow: /\n");
 
 // third-party notices: runtime packages distributed in the bundle (from the lockfile) with the full text of each one's
 // licence and copyright notice (MIT, ISC and BSD ask for it in every copy, also minified), Apache-2.0 text, data sources
