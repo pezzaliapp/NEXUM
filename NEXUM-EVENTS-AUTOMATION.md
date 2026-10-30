@@ -3,6 +3,62 @@
 **Status (2026-10-11):** implemented and tested locally; the schedule is **off** until the author's GO; production
 deploys only by the author's GO (variable `NEXUM_AUTO_PUBLISH`). Decisions of the author of 2026-10-11 (D7 extended).
 
+## Data by themselves, code by approval — CODE PIN (2026-10-30)
+
+**Why:** from 20 to 30 October 2026 production stayed at 22 October while every daily publish succeeded in the preview:
+with `NEXUM_AUTO_PUBLISH=false` the data stopped together with the code, because the daily publish built the site from
+main's newest commit. Now the two are separate.
+
+- Repository variable **`NEXUM_CODE_PIN`** = an **annotated** tag `approved-YYYYMMDD-<sha>` on `main`, created and moved
+  **only by the author** (the act of approval). Every run — the 6-hour updates and the daily publish — checks out that
+  code (`actions/checkout` with `ref: vars.NEXUM_CODE_PIN`), never main's newest: pipeline, connectors, interface,
+  configuration and the list of sources are the approved ones. Only the data change: the reference world and what the
+  approved sources deliver.
+- `.github/nexum-events/codepin.py check` stops the run (exit 4, an issue) when: the pin is missing or malformed, is
+  a lightweight tag, names another commit than the one it points to, is not on `main`; the checkout is not the pin;
+  a tracked file differs; **the workflow file on `main` differs from the pin's** (GitHub always runs the workflow of
+  the default branch: a workflow change needs a new approval, or nothing runs). `codepin.py clean` before every deploy:
+  no tracked file changed during the run.
+- The deploy records the **approved commit** (`--commit-hash $CODE_SHA`, message `· code <pin>`); after a production
+  deploy, Cloudflare's `canonical_deployment` must be this deployment of this commit, or production is rolled back.
+- Manual run with input `code=main` (the author's hand, to try new code): **preview only**, refused for production,
+  and it **stores no reference world** (a test never becomes the base of production).
+- `NEXUM_AUTO_PUBLISH` keeps its role of switch: `true` = the daily publish deploys the new DATA to production with
+  the approved code; anything else = preview.
+- **Freshness:** every run reads production's `current.json`; after **48 hours** without a publication it opens one
+  issue "nexum-events: production not updated for 48 h" (commented once a day by the publish run), closed by the first
+  run that finds production fresh again (`.github/nexum-events/freshness.py`). The site says the same:
+  «Ultima pubblicazione: … UTC (… fa) · dati ricevuti dalle fonti fino al … UTC», in warning past 48 hours
+  (`PublishedLine`, «Cosa sta succedendo»).
+- **Releasing code:** push to `main` → manual run `code=main`, `deploy=preview` → the author's approval → annotated tag
+  `approved-YYYYMMDD-<sha7>` on that commit and `NEXUM_CODE_PIN` set to it. Between a push that changes this workflow
+  and the new pin, every run stops (fail closed): push and pin go together.
+
+**Limits, said plainly:** the workflow file always runs from `main`; its own guard protects against a change pushed
+by mistake, not against someone who can push to `main` and rewrite the guard (today the author alone). Repository
+variables and secrets are configuration outside git: changing them stays the author's act.
+
+## USGS: deleted and merged events (2026-10-30)
+
+The 7-day feed never says that USGS deleted an event or merged a preliminary solution into another: PTWC
+`pt26297050`/`pt26298050` ("M 7.0 Bonin Islands", 24 October, deleted; the earthquake is `us6000u4r9`, M 6.5, 25
+October 02:09:23 UTC) and `pt26293000` (M 6.6 Vanuatu, merged into `us6000u3jl`, M 6.3) stayed preliminary in the
+world and were listed in «Cosa sta succedendo» (the Vanuatu one in production since 20 October).
+
+- Before the acquisition the pipeline writes the USGS events still **preliminary after 6 hours** (at most 90 days old)
+  into the connector's state; the connector asks each one to the FDSN service (`eventid=…&includedeleted=true`, at
+  most 50 a run, through the Polite Scheduler). Deleted → `retracted`, flag `deleted_by_source`, label
+  «M 7.0 · cancellato dalla fonte» (USGS strips the place); merged → the asked id `retracted`, flag
+  `merged_into:<id>`, label «… · unito dalla fonte a <id>»; still there → its own revision. An id USGS answers twice with a client error is no longer
+  asked (report: `unverifiable`), so it never blocks the others.
+- Withdrawn is a **status, never a deleted row**: no count goes down, so the loss checks (tables, sources, relation
+  types, production's types) stay as strict as before. A withdrawn event that becomes active again **stops the run**
+  (7), for the author to review. The report lists every event withdrawn in the run with its reason (`usgs_verify`).
+- «Cosa sta succedendo» (`/highlights`: recent, strongest, active domains) never lists a withdrawn event; the map
+  hides it by default (confidence 0).
+- **Publish gate:** two USGS events of the last 60 days, not withdrawn, at the same instant and place (0.01°) stop the
+  publish (10) — the reference world is still stored, so the next run can correct it.
+
 ## Decisions
 
 1. **D7 extended:** a scheduled workflow updates and publishes the natural events. GDELT news stay under the
@@ -71,6 +127,8 @@ workflows on `main`, and can be revoked at any time.
 3. **Data:** each production build has its reference world (`prod-*`, the 3 most recent); `pipeline.py restore`
    brings any of them back.
 4. **Stop the automation:** disable the workflow (Actions → nexum-events → Disable) or remove `NEXUM_AUTO_PUBLISH`.
+5. **Code:** the previous approved code is the previous `approved-*` tag: set `NEXUM_CODE_PIN` back to it (the tags
+   are never deleted). Production rollback (1–2) never changes the pin: the next daily publish uses the pin as it is.
 
 ## Costs and limits (verified 2026-10-11)
 

@@ -18,6 +18,11 @@
 #     secret   CLOUDFLARE_API_TOKEN  Account · Cloudflare Pages · Edit, nothing else
 #     variable CLOUDFLARE_ACCOUNT_ID
 #   variable NEXUM_AUTO_PUBLISH      "true" lets the DAILY run deploy to production; otherwise it deploys to the preview
+#   variable NEXUM_CODE_PIN          the APPROVED CODE (2026-10-30): an annotated tag approved-YYYYMMDD-<sha> on main.
+#                                    Every run checks out this code, never main's newest: DATA reach production by
+#                                    themselves, CODE (pipeline, connectors, interface, configuration) only when the author
+#                                    moves the pin. This workflow file must be identical on main and in the pin, or nothing
+#                                    runs (.github/nexum-events/codepin.py). Missing or invalid pin → nothing runs.
 # Cost: €0 — public repository on standard GitHub-hosted runners; release assets have no total size or bandwidth
 # limit (each file < 2 GiB); Cloudflare Pages Free (one deploy a day, 7,628 files ≤ 20,000).
 name: nexum-events
@@ -43,6 +48,11 @@ on:
         description: "restore exactly this reference release (empty: the newest by publishedAt)"
         type: string
         default: ""
+      code:
+        description: "pin = the approved code (NEXUM_CODE_PIN); main = main's newest code, preview only, no reference stored"
+        type: choice
+        options: [pin, main]
+        default: pin
   # SCHEDULE ON by the author's GO (2026-10-12); times in UTC. Minute 23 avoids the start of the hour (GitHub delays
   # there). The "Mode" step matches the publish cron string exactly: change both together.
   schedule:
@@ -69,7 +79,30 @@ jobs:
     timeout-minutes: 240
     environment: cloudflare
     steps:
+      - name: Mode
+        run: |
+          mode="${{ inputs.mode }}"; deploy="${{ inputs.deploy }}"; code="${{ inputs.code }}"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            code=pin
+            if [ "${{ github.event.schedule }}" = "23 3 * * *" ]; then
+              mode=publish; if [ "${{ vars.NEXUM_AUTO_PUBLISH }}" = "true" ]; then deploy=production; else deploy=preview; fi
+            else mode=update; deploy=none; fi
+          fi
+          [ "$mode" = publish ] || deploy=none
+          [ -n "$code" ] || code=pin
+          echo "MODE=$mode" >> "$GITHUB_ENV"; echo "DEPLOY=$deploy" >> "$GITHUB_ENV"; echo "CODE=$code" >> "$GITHUB_ENV"
+          echo "mode $mode · deploy $deploy · code $code" >> "$GITHUB_STEP_SUMMARY"
+      # the approved code (NEXUM_CODE_PIN), whole history (the pin must be on main); code=main only by the author's hand
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.code == 'main' && github.sha || vars.NEXUM_CODE_PIN }}
+          fetch-depth: 0
+      - name: Code pin (approved code only; the workflow identical to the approved one)
+        env:
+          PIN: ${{ vars.NEXUM_CODE_PIN }}    # never expanded into the script: an environment value only
+        run: |
+          python3 .github/nexum-events/codepin.py check --pin "$PIN" --main "$GITHUB_SHA" \
+            --code "$CODE" --deploy "$DEPLOY" --github-env "$GITHUB_ENV" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
@@ -92,17 +125,6 @@ jobs:
           sys.exit(1 if bad else 0)
           PY
           test ! -e data/live || { echo "::error::data/live exists before the reference world is restored"; exit 1; }
-      - name: Mode
-        run: |
-          mode="${{ inputs.mode }}"; deploy="${{ inputs.deploy }}"
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${{ github.event.schedule }}" = "23 3 * * *" ]; then
-              mode=publish; if [ "${{ vars.NEXUM_AUTO_PUBLISH }}" = "true" ]; then deploy=production; else deploy=preview; fi
-            else mode=update; deploy=none; fi
-          fi
-          [ "$mode" = publish ] || deploy=none
-          echo "MODE=$mode" >> "$GITHUB_ENV"; echo "DEPLOY=$deploy" >> "$GITHUB_ENV"
-          echo "mode $mode · deploy $deploy" >> "$GITHUB_STEP_SUMMARY"
       - name: Reference world (the newest world-*/prod-* release by publishedAt, or the one asked; checksum verified by the pipeline)
         env:
           GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
@@ -123,9 +145,9 @@ jobs:
           [ -n "${{ inputs.test_break }}" ] && args="$args --test-break ${{ inputs.test_break }}"
           [ "$MODE" = publish ] && args="$args --publish --production-url $SITE_URL"
           python3 .github/nexum-events/pipeline.py $args
-      - name: Store the next reference world (new release, digest verified before anything older is removed)
+      - name: Store the next reference world (new release, digest verified before anything older is removed; approved code only)
         id: store
-        if: always() && hashFiles('out/seed/manifest.json') != ''
+        if: always() && env.PINNED == 'true' && hashFiles('out/seed/manifest.json') != ''
         env:
           GH_TOKEN: ${{ secrets.NEXUM_WORLD_TOKEN }}
         run: |
@@ -133,7 +155,7 @@ jobs:
           want=$(python3 -c "import json; print(json.load(open('out/seed/manifest.json'))['archive_sha256'])")
           tag="world-${wv}-$(date -u +%Y%m%dT%H%MZ)"
           gh release create "$tag" -R "$WORLD_REPO" --title "$tag" \
-            --notes "Reference world written by nexum-events run ${{ github.run_id }} ($MODE) from $REFERENCE_TAG." \
+            --notes "Reference world written by nexum-events run ${{ github.run_id }} ($MODE) from $REFERENCE_TAG with code $CODE_PIN ($CODE_SHA)." \
             out/seed/world.tar.xz out/seed/manifest.json out/report.json
           got=$(gh api "repos/$WORLD_REPO/releases/tags/$tag" --jq '.assets[] | select(.name == "world.tar.xz") | .digest')
           if [ "$got" != "sha256:$want" ]; then
@@ -149,6 +171,7 @@ jobs:
           WRANGLER_SEND_METRICS: "false"
         run: |
           set -o pipefail
+          python3 .github/nexum-events/codepin.py clean    # no tracked file changed since the checkout of the code
           api="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PAGES_PROJECT/deployments"
           auth="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
           version=$(python3 -c "import json; print(json.load(open('out/site.json'))['version'])")
@@ -160,7 +183,7 @@ jobs:
             echo "rollback target (previous production): $prev" >> "$GITHUB_STEP_SUMMARY"
           else branch=$PREVIEW_BRANCH; fi
           npx --yes wrangler@4.144.0 pages deploy data/deploy/web --project-name "$PAGES_PROJECT" --branch "$branch" \
-            --commit-hash "$GITHUB_SHA" --commit-message "nexum-events $build ($version)" | tee deploy.log
+            --commit-hash "$CODE_SHA" --commit-message "nexum-events $build ($version) · code $CODE_PIN" | tee deploy.log
           url=$(grep -oE "https://[a-z0-9]+\.[a-z0-9-]+\.pages\.dev" deploy.log | tail -1)
           check() {  # $1 = base URL: the deployed site must serve exactly this build and snapshot
             for i in $(seq 1 10); do
@@ -170,7 +193,12 @@ jobs:
               [ "$c" = "$version" ] && [ "$b" = "$build" ] && [ "$s" = 200 ] && return 0; sleep 15; done; return 1; }
           ok=1; check "$url" || ok=0
           [ "$DEPLOY" = production ] && [ $ok = 1 ] && { check "$SITE_URL" || ok=0; }
-          echo "deployed $build ($version) to $branch: $url · verified=$ok" >> "$GITHUB_STEP_SUMMARY"
+          # production serves this deployment, made of the approved code (the commit Cloudflare records)
+          if [ "$DEPLOY" = production ] && [ $ok = 1 ]; then
+            served=$(curl -fsS -H "$auth" "${api%/deployments}" | python3 -c "import json,sys; d = json.load(sys.stdin)['result']['canonical_deployment']; print(d['id'][:8], d['deployment_trigger']['metadata']['commit_hash'])" || true)
+            [ "$served" = "$(echo "$url" | sed -E 's#https://([a-z0-9]{8}).*#\1#') $CODE_SHA" ] || { echo "::error::production serves '$served', not this deployment of $CODE_SHA"; ok=0; }
+          fi
+          echo "deployed $build ($version) · code $CODE_PIN ($CODE_SHA) to $branch: $url · verified=$ok" >> "$GITHUB_STEP_SUMMARY"
           if [ $ok = 0 ]; then
             if [ "$DEPLOY" = production ]; then
               curl -fsS -X POST -H "$auth" "$api/$prev/rollback" > /dev/null
@@ -203,6 +231,23 @@ jobs:
           [print('-', s, v['status']) for s, v in r.get('phases', {}).get('acquisition', {}).items()]; \
           [print('- check:', f) for f in r.get('phases', {}).get('checks', {}).get('failures', [])]" >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Production freshness (one issue after 48 h without a publication; closed when production is fresh again)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          n=$(gh issue list --state open --search "nexum-events: production not updated in:title" --json number --jq '.[0].number // ""')
+          d=$(python3 .github/nexum-events/freshness.py --site "$SITE_URL" --issue-open "$n" --mode "$MODE")
+          a=$(echo "$d" | python3 -c "import json,sys; print(json.load(sys.stdin)['action'])")
+          body="Production last published $(echo "$d" | python3 -c "import json,sys; d = json.load(sys.stdin); print(d.get('built_utc'), '·', d.get('age_h'), 'h ago')") — $url"
+          echo "production freshness: $d" >> "$GITHUB_STEP_SUMMARY"
+          case "$a" in
+            open) gh issue create --title "nexum-events: production not updated for 48 h" --body "$body" ;;
+            comment) gh issue comment "$n" --body "$body" ;;
+            close) gh issue close "$n" --comment "Production published again: $body" ;;
+            warn) echo "::warning::production not readable: freshness unknown" ;;
+          esac
       - name: Signal a source that failed or is suspended (the run went on with the other sources)
         if: always() && hashFiles('out/attention.json') != ''
         env:

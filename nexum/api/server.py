@@ -989,17 +989,20 @@ def highlights_of(q, n=8):
                             "connections": []}, t0, Budget.of(None), lod="refs")
     a = _month_index(last)
     win = [_month_start(a - 11), _month_start(a + 1) - 1]
+    # 2026-10-30: an event its source withdrew (deleted, merged into another) is never one of "what is happening"
+    live = "status != 'retracted'"
     domains = [{"type": r[0], "n": r[1], "max_severity": r[2]} for r in conn.execute(
-        "SELECT type, COUNT(*), MAX(severity) FROM event WHERE t_start_ms BETWEEN ? AND ? GROUP BY type ORDER BY 2 DESC, 1",
-        win)]
+        f"SELECT type, COUNT(*), MAX(severity) FROM event WHERE t_start_ms BETWEEN ? AND ? AND {live} GROUP BY type "
+        "ORDER BY 2 DESC, 1", win)]
 
     hints = _hints(conn)
 
     def refs(sql, args):   # each event with its headline facts (vocabulary display hints; raw values)
         return [{**q._ref_min("event", r), "head": _head(json.loads(r["props_json"] or "{}"), hints.get(r["type"], ("", {}))[1])}
                 for r in conn.execute(sql, args)]
-    recent = refs("SELECT * FROM event WHERE COALESCE(severity, 0) >= 0.5 ORDER BY t_start_ms DESC, event_id LIMIT ?", (n,))
-    strongest = refs("SELECT * FROM event WHERE t_start_ms BETWEEN ? AND ? AND severity IS NOT NULL "
+    recent = refs(f"SELECT * FROM event WHERE COALESCE(severity, 0) >= 0.5 AND {live} ORDER BY t_start_ms DESC, event_id "
+                  "LIMIT ?", (n,))
+    strongest = refs(f"SELECT * FROM event WHERE t_start_ms BETWEEN ? AND ? AND severity IS NOT NULL AND {live} "
                      "ORDER BY severity DESC, t_start_ms DESC, event_id LIMIT ?", (*win, n))
     # the most recent rule outputs, at most two per rule (what NEXUM found, varied), each with its readable summary
     per_rule, picked = {}, []

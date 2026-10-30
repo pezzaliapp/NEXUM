@@ -429,6 +429,10 @@ export const S = {
     builtAt: (utc: string, age: string) => `costruito il ${utc} UTC · ${age}`,
     // 2026-10-18: the sources' newest data, apart from the snapshot's build (they are hours apart)
     sourcesAt: (utc: string) => `fonti aggiornate al ${utc} UTC`,
+    // 2026-10-30: the last publication that really reached this site, apart from the day of its data
+    published: (utc: string, age: string) => `Ultima pubblicazione: ${utc} UTC (${age})`,
+    publishedData: (utc: string) => ` · dati ricevuti dalle fonti fino al ${utc} UTC`,
+    publishedStale: " · nessuna pubblicazione da oltre 48 ore",
     newer: "È stato pubblicato un aggiornamento del mondo.",
     reload: "Ricarica",
     trailLocal: "La trail è salvata solo in questo browser: esporta il JSON per conservarla altrove.",

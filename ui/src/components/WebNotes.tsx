@@ -44,6 +44,23 @@ export function SnapshotAge({ compact = false }: { compact?: boolean }) {
   );
 }
 
+const STALE_H = 48;
+
+/** "Cosa sta succedendo" (2026-10-30): when this site was last published, and up to when its sources delivered data —
+ *  two dates, never one for the other; past 48 hours without a publication the line says so. */
+export function PublishedLine() {
+  const { info, age } = useSnapshot();
+  const received = useStore((s) => (s.status as any)?.data_received_ms as number | null ?? null);
+  if (!SNAPSHOT || !info) return null;
+  const stale = Date.now() - Date.parse(info.built_utc) > STALE_H * 3600e3;
+  return (
+    <p className={`xs ${stale ? "warn" : "dim"}`} data-testid="published-line" data-built={info.built_utc} data-stale={stale ? "1" : "0"}>
+      {S.web.published(utcMinute(info.built_utc), age)}
+      {received != null ? S.web.publishedData(utcMinute(new Date(received).toISOString())) : ""}
+      {stale ? S.web.publishedStale : ""}
+    </p>);
+}
+
 /** A newer BUILD of NEXUM is announced: a clear notice with AGGIORNA ORA (the automatic update stays); after any update,
  *  a short confirmation of the build now running. Shown builds are the ones executing, never only the announced one. */
 export function UpdateBanner() {

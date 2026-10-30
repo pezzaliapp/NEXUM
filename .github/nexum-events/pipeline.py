@@ -60,6 +60,17 @@ RUNNERS = {"celestrak.gp": pathlib.Path(__file__).resolve().parent / "orbits.py"
 # USGS: the current year's FDSN window (M ≥ 5.5, one request) closes any gap the 7-day feed cannot reach, then the feed
 MODES = {"usgs.earthquakes": ("backfill", "incremental")}
 FETCH_TIMEOUT_S = 1200
+# USGS VERIFY (2026-10-30): the events still preliminary after VERIFY_AFTER_H hours (USGS reviews its own within hours;
+# a preliminary solution of another agency, deleted or merged, stays preliminary forever in the 7-day feed) and at most
+# VERIFY_DAYS old are asked again one by one (connectors/usgs_earthquakes.py, state["verify"])
+USGS = "usgs.earthquakes"
+VERIFY_AFTER_H, VERIFY_DAYS = 6, 90
+# an id USGS answers with a client error (404: unknown to it) stops the Core's fetch of that run (SchedulerError); after
+# VERIFY_STRIKES such answers it is no longer asked (said in the report as unverifiable), so it never blocks the others
+VERIFY_STRIKES = 2
+# DUPLICATES (2026-10-30): two USGS events of the same instant and place are one earthquake told twice; the published
+# site never shows one (the publish stops; the reference world is still stored, so the next run can correct it)
+DUP_DAYS = 60
 # O9 (first search ≤ 6,000 ms at ~1,012,500 B/s, measured 5,866.7 ms on live-716): the search index may grow by
 # ~100 KB at most before the threshold is at risk; a candidate above this size needs the author's benchmark
 SEARCH_INDEX_MAX_BYTES = 4_600_000
@@ -203,6 +214,8 @@ def fingerprint(db) -> dict:
         out["relations"][t] = fp("SELECT * FROM relation WHERE type=? ORDER BY relation_id", (t,))
     out["counts"] = {t: c.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
                      for t in ("object", "event", "relation", "claim", "evidence", "identifier", "record", "raw_record")}
+    # withdrawn by their source (2026-10-30): a status, never a deleted row, so no count goes down when a source corrects
+    out["retracted"] = [r[0] for r in c.execute("SELECT event_id FROM event WHERE status='retracted' ORDER BY 1")]
     c.close()
     return out
 
@@ -227,6 +240,9 @@ def checks(db, before: dict, after: dict, allow: tuple) -> list:
     for t, n in before["counts"].items():
         if after["counts"][t] < n:
             bad.append(f"table {t}: {n} → {after['counts'][t]} (a loss)")
+    back = sorted(set(before.get("retracted", [])) - set(after.get("retracted", [])))
+    if back:                                # a withdrawn event is never shown again without the author's review
+        bad.append(f"{len(back)} events withdrawn by their source are active again: {back[:5]}")
     c = ro(db)
     dup = c.execute("SELECT scheme, value, COUNT(DISTINCT entity_id) n FROM identifier GROUP BY 1, 2 HAVING n > 1 "
                     "LIMIT 5").fetchall()
@@ -247,6 +263,62 @@ def checks(db, before: dict, after: dict, allow: tuple) -> list:
         bad.append(f"{moved} objects of other sources written in this run")
     c.close()
     return bad
+
+
+def usgs_verify_seed(db, now_ms=None) -> list:
+    """The USGS ids to ask again in this run (the connector's state["verify"]): events still preliminary after
+    VERIFY_AFTER_H hours, at most VERIFY_DAYS old, oldest first. Returns the list written."""
+    now_ms = now_ms or int(time.time() * 1000)
+    c = sqlite3.connect(db)
+    with c:
+        bad = set(usgs_unverifiable(c))
+        ids = [r[0] for r in c.execute(
+            "SELECT i.value FROM event e JOIN identifier i ON i.entity_id = e.event_id AND i.scheme = 'usgs' "
+            "AND i.strong = 1 WHERE e.source_id = ? AND e.status = 'preliminary' AND e.t_start_ms BETWEEN ? AND ? "
+            "ORDER BY e.t_start_ms, i.value", (USGS, now_ms - VERIFY_DAYS * 86_400_000, now_ms - VERIFY_AFTER_H * 3_600_000))
+            if r[0] not in bad]
+        r = c.execute("SELECT state_json FROM connector_state WHERE source_id=?", (USGS,)).fetchone()
+        st = json.loads(r[0]) if r else {}
+        st["verify"] = ids
+        c.execute("INSERT INTO connector_state VALUES(?,?,?) ON CONFLICT(source_id) DO UPDATE SET "
+                  "state_json=excluded.state_json, updated_ms=excluded.updated_ms",
+                  (USGS, json.dumps(st, sort_keys=True), now_ms))
+    c.close()
+    return ids
+
+
+def usgs_unverifiable(c) -> list:
+    """The ids USGS answered VERIFY_STRIKES times or more with a client error (never asked again)."""
+    return [r[0][7:] for r in c.execute(
+        "SELECT resource_key, COUNT(*) FROM fetch_log WHERE source_id = ? AND resource_key LIKE 'verify:%' "
+        "AND http_status BETWEEN 400 AND 499 GROUP BY 1 HAVING COUNT(*) >= ? ORDER BY 1", (USGS, VERIFY_STRIKES))]
+
+
+def withdrawn(db, ids) -> list:
+    """The events withdrawn in this run, with the reason their source gave (the flags of their newest record)."""
+    out = []
+    with ro(db) as c:
+        for eid in ids:
+            e = c.execute("SELECT label, source_id FROM event WHERE event_id=?", (eid,)).fetchone()
+            f = c.execute("SELECT quality_flags FROM record WHERE entity_id=? ORDER BY native_version DESC LIMIT 1",
+                          (eid,)).fetchone()
+            out.append({"event": eid, "label": e[0] if e else None, "source": e[1] if e else None,
+                        "flags": json.loads(f[0]) if f and f[0] else []})
+    return out
+
+
+def duplicate_check(db, now_ms=None) -> dict:
+    """USGS events of the last DUP_DAYS days, not withdrawn, told twice (same instant, same place to 0.01°)."""
+    now_ms = now_ms or int(time.time() * 1000)
+    with ro(db) as c:
+        groups = [list(r) for r in c.execute(
+            "SELECT t_start_ms, round(lon, 2), round(lat, 2), group_concat(event_id), COUNT(*) n FROM event "
+            "WHERE source_id = ? AND status != 'retracted' AND t_start_ms > ? GROUP BY 1, 2, 3 HAVING n > 1 ORDER BY 1",
+            (USGS, now_ms - DUP_DAYS * 86_400_000))]
+    res = {"groups": groups}
+    if groups:
+        raise Stop(10, f"{len(groups)} USGS earthquakes told twice: nothing is published ({groups[:3]})")
+    return res
 
 
 # ── phases ───────────────────────────────────────────────────────────────────
@@ -410,6 +482,10 @@ def run(a) -> int:
         db = LIVE / "nexum.db"
         before = fingerprint(db)
         days_before = source_days(db)
+        if USGS in allow:                   # the preliminary events asked again (written as the connector's state)
+            rep["phases"]["usgs_verify"] = {"asked": usgs_verify_seed(db)}
+            with ro(db) as c:
+                rep["phases"]["usgs_verify"]["unverifiable"] = usgs_unverifiable(c)
         # A. acquisition
         acq = acquire(allow, tuple(x for x in (a.test_break or "").split(",") if x))
         # the Core suspends a source after 5 consecutive errors and never resumes it by itself (a protection of the
@@ -444,6 +520,9 @@ def run(a) -> int:
         rep["phases"]["checks"] = {"failures": bad, "world_version": [before["world_version"], after["world_version"]],
                                    "events": {s: [before["events"].get(s, [0])[0], after["events"].get(s, [0])[0]] for s in allow},
                                    "sources_last_success_ms": {s: [days_before.get(s), days_after.get(s)] for s in allow}}
+        gone = sorted(set(after["retracted"]) - set(before["retracted"]))
+        if gone or "usgs_verify" in rep["phases"]:
+            rep["phases"].setdefault("usgs_verify", {})["withdrawn"] = withdrawn(db, gone)
         if bad:
             raise Stop(7, f"{len(bad)} checks failed: nothing is written")
         if after["world_version"] > before["world_version"]:
@@ -454,7 +533,8 @@ def run(a) -> int:
         if not a.publish:
             return finish(0, "reference world updated" if "reference_out" in rep else
                           "nothing new: the reference world stays as it is")
-        # D. snapshot, parity, assembly, exposure, production
+        # D. no earthquake told twice, then snapshot, parity, assembly, exposure, production
+        rep["phases"]["duplicates"] = duplicate_check(db)
         snapshot_and_assemble(rep["phases"].setdefault("snapshot", {}), npm_ci=not a.no_npm_ci)
         rep["phases"]["exposure"] = exposure_check(SNAP / "live")
         if a.production_url:

@@ -15,6 +15,7 @@ import { store, useStore } from "../store";
 import { ErrorNote, useFetch } from "./common";
 import { Freshness } from "./Period";
 import { EventsCoverage } from "./EventsCoverage";
+import { PublishedLine } from "./WebNotes";
 
 export const typeLabelOf = (t: string) => store.get().types.get(t)?.label ?? t.replace(/[._]/g, " ");
 
@@ -81,6 +82,7 @@ export function Highlights() {
   return (
     <section className="highlights" data-testid="highlights">
       <div className="hl-head"><strong>{S.hl.title}</strong><Freshness className="xs dim" /></div>
+      <PublishedLine />
       <EventsCoverage />
       {d.recent.length > 0 && <><div className="hl-h">{S.hl.recent}</div>
         <ul className="hl-list" data-testid="hl-recent">{d.recent.map((r: any) => <EventLine key={r.$ref} id={r.$ref} h={r.head} />)}</ul></>}
